@@ -1,28 +1,39 @@
 const initialState = {
-    isLoading: false,
-    userInfo:""
-  };
-  
-  export const authReducer = (state = initialState, action) => {
-    switch (action.type) {
-      case "AUTH_LOADING":
-        return {
-          ...state,
-          isLoading: true,
-        };
-      case "AUTH_SUCCESS":
-        return {
-          isLoading: false,
-          userInfo: action.payload,
-        };
-      case "LOGIN_FAILED":
-        return {
-          isLoading: false,
-          userInfo: action.payload,
-        };
-  
-      default:
-        return state;
-    }
-  };
-  
+  isLoading: false,
+  userInfo: null,
+  token: null,
+  isAuthenticated: false,
+};
+
+export const authReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case "AUTH_LOADING":
+      return {
+        ...state,
+        isLoading: true,
+      };
+    case "AUTH_SUCCESS":
+      return {
+        isLoading: false,
+        isAuthenticated: true,
+        userInfo: action.payload,
+      };
+    case "AUTH_FAILED":
+      return {
+        isLoading: false,
+        isAuthenticated: false,
+        token: null,
+        userInfo: null
+      };
+    case "LOG_OUT":
+      localStorage.removeItem("authToken");
+      return {
+        isLoading: false,
+        isAuthenticated: false,
+        token: null,
+        userInfo: null
+      };
+    default:
+      return state;
+  }
+};

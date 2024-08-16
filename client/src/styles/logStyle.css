@@ -1,0 +1,70 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 70px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.logContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #c1121f;
+    box-shadow: 10px 10px 30px 10px black;
+    color: #fdf0d5;
+    font-size: 17px;
+    padding: 20px;
+    width: 350px;
+    border-radius: 30px;
+}
+
+.logContainer > form {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin: 10px;
+}
+
+
+.logContainer > form > input {
+    background-color: #780000;
+    border: none;
+    border-radius: 5px;
+    margin: 5px 0px 15px 0px;
+    height: 25px;
+    width: 280px;
+    color: #fdf0d5;
+    padding: 5px 5px 5px 15px;
+}
+
+.logContainer > form > input:focus {
+    background-color: #410000;
+}
+
+.logContainer > form > button {
+    width: 100px;
+    text-align: center;
+    margin-top: 10px;
+    height: 35px;
+    width: 150px;
+    border: none;
+    background-color: #00270d;
+    color: #fdf0d5;
+    font-size: 16px;
+    border-radius: 30px;
+    box-shadow: 3px 3px 15px rgb(39, 0, 0);
+    align-self: center;
+}
+
+.logContainer > form > button:hover {
+    background-color: #00a738;
+}
+
+.Title {
+    font-size: 27px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    margin-top: 15px;
+}

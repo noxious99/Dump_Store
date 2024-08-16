@@ -1,5 +1,9 @@
-.App {
+* {
   padding: 0px;
   margin: 0px;
+}
+
+body {
+  background-color: #669bbc;
 }
 

@@ -14,6 +14,7 @@ export const logAction = (userData) => async (dispatch) => {
     const token = response.data;
     localStorage.setItem("authToken", token);
     dispatch({ type: "LOGIN_SUCCESS", payload: response.data });
+    dispatch({ type: "AUTH_SUCCESS"});
   } catch (error) {
     dispatch({ type: "LOGIN_FAILED", payload: error.message });
   }

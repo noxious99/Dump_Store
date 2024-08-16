@@ -1,4 +1,3 @@
-import { thunk } from "redux-thunk";
 import axios from "axios";
 
 export const regAction = (userData) => async (dispatch) => {
@@ -14,6 +13,7 @@ export const regAction = (userData) => async (dispatch) => {
     const token = response.data;
     localStorage.setItem("authToken", token);
     dispatch({ type: "REGISTER_SUCCESS", payload: response.data });
+    dispatch({ type: "AUTH_SUCCESS"});
   } catch (error) {
     dispatch({ type: "REGISTER_FAILED", payload: error.message });
   }
