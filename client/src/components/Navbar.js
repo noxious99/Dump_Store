@@ -1,15 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../styles/navbarStyle.css";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutAction } from "../actions/logoutAction";
+import down from "../resources/imagesNicons/down.png";
 
 export const Navbar = () => {
   const dispatch = useDispatch();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const authenticated = useSelector((state) => state.auth.isAuthenticated);
+  const { avatar, username } = useSelector((state) => state.auth.userInfo || {});
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     dispatch(logoutAction());
+  };
+
+  useEffect(() => {
+    if (avatar) {
+      setLoading(false);
+    }
+  }, [avatar]);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
@@ -17,7 +31,7 @@ export const Navbar = () => {
       <div className="navLeft">
         <div id="logo">
           <p>
-            <Link to="/">logo</Link>
+            <Link to="/">Logo</Link>
           </p>
         </div>
       </div>
@@ -33,8 +47,33 @@ export const Navbar = () => {
           </>
         ) : (
           <>
-            <div id="links">
-              <Link to="/Profile">Profile</Link>
+            <div id="links" className="profile-container">
+              <div className="profile-menu" onClick={toggleDropdown}>
+                <div className="profileOptions">
+                  <img src={avatar} alt="Profile Icon" />
+                  <img src={down} alt="Dropdown Icon" id="downIcon" />
+                </div>
+                {isDropdownOpen && (
+                  <ul className="dropdown">
+                    {username && (
+                      <li>
+                        <p>Welcome!! {username}</p>
+                      </li>
+                    )}
+                    <li>
+                      <Link to="/profile">Profile</Link>
+                    </li>
+                    <li>
+                      <Link to="/collection">Collections</Link>
+                    </li>
+                    <li>
+                      <a href="#" onClick={handleLogout}>
+                        Logout
+                      </a>
+                    </li>
+                  </ul>
+                )}
+              </div>
             </div>
             <div id="links">
               <button onClick={handleLogout}>

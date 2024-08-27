@@ -51,7 +51,7 @@ postRoute.put("/upvote/:id", auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
-      return res.status(400).json({ err: "No Such File to Delete" });
+      return res.status(400).json({ err: "No Such File to Vote" });
     }
     post.vote = post.vote + 1;
     await post.save();

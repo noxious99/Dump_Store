@@ -1,0 +1,91 @@
+.profileContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    color: #fdf0d5;
+}
+
+.basicInfo {
+    width: 97vw;
+    margin-inline: 3vw;
+    background-color: #003049;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 2px 1px 20px 3px black;
+}
+
+.profileComponents {
+    width: 97vw;
+    margin-inline: 3vw;
+    background-color: #003049;
+    padding: 10px;
+    margin-top: 10px;
+    box-shadow: 2px 1px 20px 3px black;
+
+}
+
+.profilePic {
+    padding: 5px 0px 5px 20px;
+}
+
+.profilePic > img{
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    padding: 5px;
+    box-shadow: 2px 1px 20px 3px darkred;
+    margin: 10px;
+}
+
+.tabs {
+    width: 30vw;
+    height: 50px;
+    margin-inline: 3vw;
+    background-color: #003049;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tabs:hover {
+    width: 32vw;
+    background-color: #003653;
+    transition: 0.3s ease-in-out;
+}
+
+.tabs #icon1 {
+    margin: 0px 40px 0px 50px;
+    transition: 0.5s;
+}
+.tabs #icon2 {
+    margin: 0px 50px 0px 40px;
+    transition: 0.5s;
+}
+.tabs #icon3 {
+    margin: 0px 40px 0px 40px;
+    transition: 0.5s;
+}
+
+.tabs #icon1:hover,
+.tabs #icon2:hover,
+.tabs #icon3:hover{
+    background-color: darkred;
+    height: 45px;
+    width: 9vw;
+    border-radius: 10px;
+    text-align: center;
+    transition: 0.3s ease-in-out;
+}
+#icon1 > button,
+#icon2 > button,
+#icon3 > button {
+    padding-top: 5px ;
+}
+
+.cardHolder {
+    margin: 20px;
+}
