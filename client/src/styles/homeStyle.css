@@ -50,3 +50,72 @@
 .dropdown li:hover {
   background-color: #f0f0f0;
 }
+
+#bgImage > img {
+  width: 450px;
+  max-width: 500px;
+  height: auto;
+}
+@media (max-width: 600px) {
+  #bgImage > img {
+    width: 300px;
+    max-width: 300px;
+    height: auto;
+    transition: 0.3s ease;
+  }
+}
+
+#bgImage img {
+  animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.1;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cta-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #ff4040;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 18px;
+  border-radius: 50px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.39);
+  transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 500px) {
+  .cta-button {
+    margin-top: 20px;
+    padding: 8px 13px;
+    font-size: 16px;
+    border-radius: 40px;
+    transition: 0.3s ease-in-out;
+  }
+}
+
+.cta-button > a {
+  text-decoration: none;
+  color: white;
+}
+
+.cta-button:hover {
+  background: linear-gradient(45deg, #feb47b, #ff7e5f);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.664);
+  transform: translateY(-3px);
+}
+
+.cta-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+}

@@ -1,9 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
 * {
   padding: 0px;
   margin: 0px;
+  font-family: "Rubik", sans-serif;
+  font-weight: 500;
+  font-style: normal;
 }
 
 body {
-  background-color: #669bbc;
+  background: linear-gradient(45deg, #0f0f0f, #550000);
+  min-height: 100vh;
+  background-size: cover;
+  margin: 0;
+  padding: 0;
 }
 
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}

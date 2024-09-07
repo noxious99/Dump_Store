@@ -1,70 +1,83 @@
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 70px;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 70px;
+  /* font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif; */
 }
 
 .logContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: #c1121f;
-    box-shadow: 10px 10px 30px 10px black;
-    color: #fdf0d5;
-    font-size: 17px;
-    padding: 20px;
-    width: 350px;
-    border-radius: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #080808;
+  box-shadow: 10px 10px 30px 10px black;
+  color: white;
+  font-size: 16px;
+  padding: 20px;
+  width: 350px;
+  border-radius: 15px;
 }
 
 .logContainer > form {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    margin: 10px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  margin: 10px 0 20px 0;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.932);
+  background-color: #131313;
 }
 
-
 .logContainer > form > input {
-    background-color: #780000;
-    border: none;
-    border-radius: 5px;
-    margin: 5px 0px 15px 0px;
-    height: 25px;
-    width: 280px;
-    color: #fdf0d5;
-    padding: 5px 5px 5px 15px;
+  height: 25px;
+  background-color: #242424;
+  border: none;
+  padding: 10px;
+  margin: 10px 0 20px 5px;
+  border-radius: 5px;
+  width: 90%;
+  box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.623);
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
 
 .logContainer > form > input:focus {
-    background-color: #410000;
+  outline: none;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
+  background-color: #494949;
 }
 
 .logContainer > form > button {
-    width: 100px;
-    text-align: center;
-    margin-top: 10px;
-    height: 35px;
-    width: 150px;
-    border: none;
-    background-color: #00270d;
-    color: #fdf0d5;
-    font-size: 16px;
-    border-radius: 30px;
-    box-shadow: 3px 3px 15px rgb(39, 0, 0);
-    align-self: center;
+  width: 100px;
+  text-align: center;
+  margin-top: 10px;
+  height: 35px;
+  width: 200px;
+  padding: 0 10px;
+  border: none;
+  background-color: #000f05;
+  color: white;
+  font-size: 16px;
+  border-radius: 10px;
+  box-shadow: 3px 3px 15px rgb(7, 0, 0);
+  align-self: center;
+  margin-bottom: 10px;
+  transition: background-color 0.3 ease;
 }
 
 .logContainer > form > button:hover {
-    background-color: #00a738;
+  background-color: #003110;
+  box-shadow: 5px 5px 25px rgb(20, 0, 0);
 }
 
 .Title {
-    font-size: 27px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    margin-top: 15px;
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  margin-top: 15px;
 }

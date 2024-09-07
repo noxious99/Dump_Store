@@ -4,7 +4,7 @@ import { composeWithDevTools } from "@redux-devtools/extension";
 import { regReducer } from "../reducers/registerReducer";
 import { logReducer } from "../reducers/loginReducer";
 import { authReducer } from "../reducers/authReducer";
-import { getPostReducer, postReducer, voteReducer } from "../reducers/postReducer";
+import { allPostReducer, getPostReducer, postReducer, voteReducer } from "../reducers/postReducer";
 
 
 
@@ -15,11 +15,12 @@ const rootReducer = combineReducers({
   auth: authReducer,
   post: postReducer,
   getPost: getPostReducer,
-  vote: voteReducer
+  vote: voteReducer,
+  pagePost: allPostReducer
 });
 const store = createStore(
   rootReducer,
-  composeWithDevTools(applyMiddleware(...middleware))
+  composeWithDevTools(applyMiddleware(...middleware)),
 );
 
 export default store;

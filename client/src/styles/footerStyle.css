@@ -1,0 +1,21 @@
+.footerContainer {
+    background: linear-gradient(60deg, #000000, #080000);
+    height: 100px;
+    max-width: 100%;
+    width: 100%;
+    position: relative;  /* Changed to absolute to work with relative parent */
+    bottom: 0;           /* Stick it to the bottom */
+    color: white;
+    box-shadow: 10px 10px 30px 10px black;
+    display: flex;
+    justify-content:space-evenly;
+    margin-top: 50px;
+}
+
+/* Sectors */
+.sector01,
+.sector02,
+.sector03 {
+    padding: 10px 0 0 0;
+    margin-top: 10px;
+}

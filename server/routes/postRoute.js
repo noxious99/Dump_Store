@@ -22,11 +22,39 @@ postRoute.post("/", auth, async (req, res) => {
 });
 
 //Get post of user
+// postRoute.get("/", auth, async (req, res) => {
+//   try {
+//     const id = await req.user.id;
+//     const posts = await Post.find({ author: id }).sort({ date: -1 });
+//     res.status(200).json(posts);
+//   } catch (err) {
+//     res.status(400).json({ err: err });
+//   }
+// });
+
 postRoute.get("/", auth, async (req, res) => {
   try {
     const id = await req.user.id;
-    const posts = await Post.find({ author: id }).sort({ date: -1 });
-    res.status(200).json(posts);
+    const page = await parseInt(req.query.page) || 0;
+    const limit = await parseInt(req.query.limit) || 5;
+    const totalPosts = await Post.countDocuments({ author: id });
+
+    const posts = await Post.find({ author: id }).sort({ date: -1 }).limit(limit).skip(page*limit);
+    res.status(200).json({posts, totalPosts});
+    console.log(totalPosts);
+  } catch (err) {
+    res.status(400).json({ err: err });
+  }
+});
+
+postRoute.get("/all/", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = page * limit;
+    const allposts = await Post.find().skip(skip).limit(limit);
+    console.log(`Page: ${page}, Limit: ${limit}, Skip: ${skip}`);
+    res.status(200).json(allposts);
   } catch (err) {
     res.status(400).json({ err: err });
   }

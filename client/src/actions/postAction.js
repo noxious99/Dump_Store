@@ -18,14 +18,14 @@ export const postAction = (postData) => async (dispatch) => {
   }
 };
 
-export const getPosts = () => async (dispatch) => {
+export const getPosts = (page) => async (dispatch) => {
   dispatch({ type: "GET_POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.get("http://localhost:8000/api/post/", {
+    const response = await axios.get(`http://localhost:8000/api/post/?page=${page}` , {
       headers: { "x-auth-token": token },
     });
-    dispatch({ type: "GET_POST_SUCCESS", payload: response.data });
+    dispatch({ type: "GET_POST_SUCCESS", payload: response.data});
   } catch (error) {
     dispatch({ type: "GET_POST_SUCCESS", payload: error.message });
   }
@@ -81,3 +81,14 @@ export const deletePost = (id) => async (dispatch) => {
   }
 };
 
+export const getAllPosts = (page) => async (dispatch) => {
+  dispatch({ type: "GET_ALL_POST_LOADING" });
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.get(`http://localhost:8000/api/post/all?page=${page}`, {
+    });
+    dispatch({ type: "GET_ALL_POST_SUCCESS", payload: response.data });
+  } catch (error) {
+    dispatch({ type: "GET_ALL_POST_FAILURE", payload: error.message });
+  }
+};

@@ -1,0 +1,157 @@
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deletePost, downVote, getPosts, upVote } from "../actions/postAction";
+import moment from "moment";
+import "../styles/profileStyle.css";
+import Loader from "./Loader";
+
+//MUI
+import Card from "@mui/material/Card";
+import { Button, CardMedia, CircularProgress, Tooltip } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import CardHeader from "@mui/material/CardHeader";
+import CardContent from "@mui/material/CardContent";
+import Avatar from "@mui/material/Avatar";
+import IconButton, { IconButtonProps } from "@mui/material/IconButton";
+import { red, grey } from "@mui/material/colors";
+import DeleteIcon from "@mui/icons-material/Delete";
+import LoupeOutlinedIcon from "@mui/icons-material/LoupeOutlined";
+import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
+
+export const MyCollection = () => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getPosts());
+  }, [dispatch]);
+
+  const posts = useSelector((state) => state.getPost.allPost);
+  const isLoading = useSelector((state) => state.getPost.isLoading);
+  const voteLoading = useSelector((state) => state.getPost.voteLoading);
+  const deleteLoading = useSelector((state) => state.getPost.deleteLoading);
+  console.log(posts);
+
+  const handleImageClick = (image) => {
+    window.open(image, "_blank");
+  };
+
+  const handleUpVote = (id) => {
+    dispatch(upVote(id));
+  };
+  const handleDownVote = (id) => {
+    dispatch(downVote(id));
+  };
+  const handleDelete = (id) => {
+    dispatch(deletePost(id));
+  };
+
+  return (
+    <div className="CardContainer">
+      <div className="cardHolder">
+        {isLoading && <Loader />}
+        {!isLoading && posts?.length === 0 && (
+          <Typography>No posts available</Typography>
+        )}
+        <Grid container alignItems="stretch" spacing={2}>
+          {posts?.length > 0 &&
+            !isLoading &&
+            posts.map((post) => (
+              <Grid item xs={12} sm={6} md={4}>
+                <Card
+                  sx={{
+                    height: "auto",
+                    width: "100%",
+                    minWidth: "300px",
+                    maxWidth: "350px",
+                    color: grey[100],
+                    borderRadius: 4,
+                    boxShadow: 2,
+                  }}
+                  key={post._id}
+                >
+                  <CardHeader
+                    sx={{ bgcolor: grey[900], color: grey[100] }}
+                    avatar={
+                      <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                        R
+                      </Avatar>
+                    }
+                    action={
+                      <IconButton
+                        aria-label="delete"
+                        color="error"
+                        sx={{ fontSize: "30px" }}
+                        onClick={() => handleDelete(post._id)}
+                        disabled={deleteLoading}
+                      >
+                        <DeleteIcon fontSize="30px" />
+                      </IconButton>
+                    }
+                    title={post.title}
+                    subheader={moment(post.date).fromNow()}
+                  />
+                  <Tooltip title="Click to enlarge the image" arrow>
+                    <a
+                      href={post.image}
+                      onClick={(e) => e.preventDefault()}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <CardMedia
+                        component="img"
+                        height="194"
+                        image={post.image}
+                        alt="Paella dish"
+                        onClick={() => handleImageClick(post.image)}
+                        style={{
+                          transition: "transform 0.3s",
+                          cursor: "zoom-in",
+                          maxWidth: "100%",
+                        }}
+                      />
+                    </a>
+                  </Tooltip>
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      {post.text}
+                    </Typography>
+                  </CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginLeft: "10px",
+                      }}
+                    >
+                      <span>Priority:</span>
+                      <span style={{ marginLeft: "2px", marginTop: "2px" }}>
+                        {post.vote}
+                      </span>
+                    </div>
+                  </Typography>
+                  <IconButton
+                    aria-label="Priority Up"
+                    color="success"
+                    sx={{ fontSize: "25px" }}
+                    onClick={() => handleUpVote(post._id)}
+                    disabled={voteLoading}
+                  >
+                    <LoupeOutlinedIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Priority Down"
+                    color="secondary"
+                    sx={{ fontSize: "25px" }}
+                    onClick={() => handleDownVote(post._id)}
+                    disabled={voteLoading}
+                  >
+                    <RemoveCircleOutlineOutlinedIcon />
+                  </IconButton>
+                </Card>
+              </Grid>
+            ))}
+        </Grid>
+      </div>
+    </div>
+  );
+};

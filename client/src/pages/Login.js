@@ -58,7 +58,19 @@ export const Login = () => {
             {isLoading ? "Logging in..." : "LOGIN"}
           </button>
         </form>
-        <Link to="/">BACK TO HOME</Link>
+        <div style={{ textDecoration: "none" }}>
+          Not a member yet?
+          <Link
+            to="/Register"
+            style={{
+              textDecoration: "none",
+              color: "darkGreen",
+              marginLeft: "5px",
+            }}
+          >
+            Register
+          </Link>
+      </div>
       </div>
     </div>
   );

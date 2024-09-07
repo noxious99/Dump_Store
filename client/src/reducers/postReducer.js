@@ -1,8 +1,9 @@
-import React from "react";
 
 const initialState = {
   isLoading: false,
   postStatus: null,
+  success: false,
+  error: false
 };
 
 export const postReducer = (state = initialState, action) => {
@@ -11,16 +12,22 @@ export const postReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: true,
+        success: false,
+        error: false
       };
     case "POST_SUCCESS":
       return {
         isLoading: false,
         postStatus: action.payload,
+        success: true,
+        error: false
       };
     case "POST_FAILED":
       return {
         isLoading: false,
         postStatus: action.payload,
+        success: false,
+        error: true
       };
     default:
       return state;
@@ -32,6 +39,7 @@ const allPostInitialState = {
   allPost: null,
   voteLoading: false,
   deleteLoading: false,
+  totalCount: null
 };
 
 export const getPostReducer = (state = allPostInitialState, action) => {
@@ -44,12 +52,14 @@ export const getPostReducer = (state = allPostInitialState, action) => {
     case "GET_POST_SUCCESS":
       return {
         isLoading: false,
-        allPost: action.payload,
+        allPost: action.payload.posts,
+        totalCount: action.payload.totalPosts
       };
     case "GET_POST_FAILED":
       return {
         isLoading: false,
         allPost: action.payload,
+        totalCount: null
       };
     case "UPVOTE_LOADING":
       return {
@@ -108,6 +118,27 @@ export const voteReducer = (state = voteState, action) => {
     case "DOWNVOTE_FAILED":
       return {
         isLoading: false,
+      };
+    default:
+      return state;
+  }
+};
+
+const allPagePostInitialState ={
+  isLoading: false,
+  PagePosts: null
+}
+export const allPostReducer = (state = allPagePostInitialState , action) => {
+  switch (action.type) {
+    case "GET_ALL_POST_LOADING":
+      return {
+        ...state,
+        isLoading: true
+      };
+    case "GET_ALL_POST_SUCCESS":
+      return {
+        isLoading: false,
+        PagePosts: action.payload
       };
     default:
       return state;

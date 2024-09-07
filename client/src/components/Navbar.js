@@ -4,6 +4,7 @@ import "../styles/navbarStyle.css";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutAction } from "../actions/logoutAction";
 import down from "../resources/imagesNicons/down.png";
+import icon from "../resources/imagesNicons/icon-01.png";
 
 export const Navbar = () => {
   const dispatch = useDispatch();
@@ -27,12 +28,11 @@ export const Navbar = () => {
   };
 
   return (
+    <div className="navShadow">
     <div className="NavbarContainer">
       <div className="navLeft">
-        <div id="logo">
-          <p>
-            <Link to="/">Logo</Link>
-          </p>
+        <div id="iconNav">
+            <Link to="/"><img src={icon}/></Link>
         </div>
       </div>
       <div className="navRight">
@@ -83,6 +83,7 @@ export const Navbar = () => {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 };

@@ -4,10 +4,12 @@ import { Home } from "./pages/Home";
 import { Register } from "./pages/Register";
 import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
+import { Allpost } from "./pages/Allpost";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { authAction } from "./actions/authAction";
 import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 
 function App() {
   const dispatch = useDispatch();
@@ -22,12 +24,16 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Navbar />
+        <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Allpost />} />
           <Route path="/Register" element={<Register />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
         </Routes>
+        </main>
+        <Footer/>
       </BrowserRouter>
     </div>
   );

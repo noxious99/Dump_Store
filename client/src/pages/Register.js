@@ -70,7 +70,19 @@ export const Register = () => {
             {isLoading ? "Creating..." : "REGISTER"}
           </button>
         </form>
-        <Link to="/">BACK TO HOME</Link>
+        <div style={{ textDecoration: "none" }}>
+          Already have an account?
+          <Link
+            to="/Login"
+            style={{
+              textDecoration: "none",
+              color: "darkGreen",
+              marginLeft: "5px",
+            }}
+          >
+            Login
+          </Link>
+        </div>
       </div>
     </div>
   );

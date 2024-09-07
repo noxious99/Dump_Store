@@ -1,91 +1,194 @@
 .profileContainer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    color: #fdf0d5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* background-color: #fdf0d5; */
+  /* background-color: #141414; */
+  background: linear-gradient(135deg, #141414, #0e0000);
+  padding: 0px;
+  width: 100%;
+  color: white;
 }
 
 .basicInfo {
-    width: 97vw;
-    margin-inline: 3vw;
-    background-color: #003049;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
-    box-shadow: 2px 1px 20px 3px black;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 60vw;
+  max-width: 96vw;
+  min-height: 120px;
+  background-color: #5e0b0b;
+  padding: 15px;
+  border-radius: 15px;
+  margin: 15px 15px 15px 15px;
+  box-shadow: 5px 5px 30px 10px rgb(0, 0, 0);
 }
+ 
+@media  ( max-width: 600px) {
+  .basicInfo {
+  flex-direction: column;
+  justify-content: center;
+  }
+}
+  
 
 .profileComponents {
-    width: 97vw;
-    margin-inline: 3vw;
-    background-color: #003049;
-    padding: 10px;
-    margin-top: 10px;
-    box-shadow: 2px 1px 20px 3px black;
-
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  background: linear-gradient(135deg, #0f0f0f, #7c0000);
+  margin: 15px 0px 15px 0px;
+  box-shadow: 5px 5px 30px 0px black;
+  min-height: 300px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .profilePic {
-    padding: 5px 0px 5px 20px;
+  padding: 5px 0px 5px 20px;
 }
 
-.profilePic > img{
-    width: 50px;
-    height: 50px;
-    border-radius: 100%;
-    padding: 5px;
-    box-shadow: 2px 1px 20px 3px darkred;
-    margin: 10px;
+.profilePic > img {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  padding: 5px;
+  box-shadow: 2px 1px 20px 3px darkred;
 }
 
 .tabs {
-    width: 30vw;
-    height: 50px;
-    margin-inline: 3vw;
-    background-color: #003049;
-    border-radius: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 450px;
+  max-width: 96vw;
+  height: 60px; /* Slightly increase height for better touch-target size */
+  margin-block: 1.5vw;
+  background: linear-gradient(135deg, #000000, #080000);
+  box-shadow: 5px 5px 20px black;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px; /* Add padding to create space on sides */
+  transition: background-color 0.3s ease-in-out;
 }
 
 .tabs:hover {
-    width: 32vw;
-    background-color: #003653;
-    transition: 0.3s ease-in-out;
+  background-color: #003653;
 }
 
-.tabs #icon1 {
-    margin: 0px 40px 0px 50px;
-    transition: 0.5s;
-}
-.tabs #icon2 {
-    margin: 0px 50px 0px 40px;
-    transition: 0.5s;
-}
+.tabs #icon1,
+.tabs #icon2,
 .tabs #icon3 {
-    margin: 0px 40px 0px 40px;
-    transition: 0.5s;
+  flex: 1; /* Distribute space evenly */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Add smooth transitions */
 }
 
 .tabs #icon1:hover,
 .tabs #icon2:hover,
-.tabs #icon3:hover{
-    background-color: darkred;
-    height: 45px;
-    width: 9vw;
-    border-radius: 10px;
-    text-align: center;
-    transition: 0.3s ease-in-out;
+.tabs #icon3:hover {
+  background-color: darkred;
+  transform: scale(1.05) 0.3s ease;
+  border-radius: 10px; 
+  color: black;
+  max-width: 100px;
+  transition: background-color 0.3s ease;
 }
+ 
 #icon1 > button,
 #icon2 > button,
 #icon3 > button {
-    padding-top: 5px ;
+  padding: 5px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Smooth button hover effect */
 }
 
-.cardHolder {
-    margin: 20px;
+#icon1 > button:hover,
+#icon2 > button:hover,
+#icon3 > button:hover {
+  transform: translateY(-2px); /* Subtle lift on hover */
 }
+
+.postForm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  /* background: linear-gradient(135deg, #0f0f0f, #7c0000); */
+  padding: 30px;
+  border-radius: 20px;
+}
+
+.postForm > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #292929;
+  padding: 20px;
+  border-radius: 15px;
+  width: 350px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.postForm > form > input {
+  background-color: #444;
+  border: none;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 10px;
+  width: 90%;
+  box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.postForm > form > input:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background-color: #494949;
+}
+
+#word_box {
+  height: 200px;
+}
+
+#fileSelect {
+  margin: 10px 0;
+}
+
+.postForm > form > button {
+  background: linear-gradient(45deg, #02030a, #020a05);
+  border: none;
+  padding: 10px;
+  margin: 20px 0;
+  border-radius: 10px;
+  width: 100%;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.postForm > form > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 75, 75, 0.4);
+}
+
+input[type="file"]::file-selector-button {
+  border: none;
+  padding: 10px 5px 10px 5px;
+  margin-left: 10px;
+  border-radius: 0.2em;
+  background-color: rgba(128, 2, 2, 0.685);
+  transition: 1s;
+  box-shadow: 1px 0px 15px 30px rgba(255, 75, 75, 0.4);
+  color: white;
+}
+
