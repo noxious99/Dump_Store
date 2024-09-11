@@ -4,7 +4,7 @@ export const regAction = (userData) => async (dispatch) => {
   dispatch({ type: "REGISTER_LOADING" });
   try {
     const response = await axios.post(
-      "http://localhost:8000/api/user/register",
+      "/api/user/register",
       JSON.stringify(userData),
       {
         headers: { "Content-Type": "application/json" },

@@ -6,7 +6,7 @@ export const authAction = () => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken")
     const response = await axios.get(
-      "http://localhost:8000/api/user/auth",
+      "/api/user/auth",
       {
         headers: { "x-auth-token": token },
       }

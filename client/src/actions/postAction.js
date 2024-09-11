@@ -6,7 +6,7 @@ export const postAction = (postData) => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken");
     const response = await axios.post(
-      "http://localhost:8000/api/post/",
+      "/api/post/",
       postData,
       {
         headers: { "x-auth-token": token },
@@ -22,7 +22,7 @@ export const getPosts = (page) => async (dispatch) => {
   dispatch({ type: "GET_POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.get(`http://localhost:8000/api/post/?page=${page}` , {
+    const response = await axios.get(`/api/post/?page=${page}` , {
       headers: { "x-auth-token": token },
     });
     dispatch({ type: "GET_POST_SUCCESS", payload: response.data});
@@ -36,7 +36,7 @@ export const upVote = (id) => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken");
     const response = await axios.put(
-      `http://localhost:8000/api/post/upvote/${id}`,
+      `/api/post/upvote/${id}`,
       {},
       {
         headers: { "x-auth-token": token },
@@ -53,7 +53,7 @@ export const downVote = (id) => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken");
     const response = await axios.put(
-      `http://localhost:8000/api/post/downvote/${id}`,
+      `/api/post/downvote/${id}`,
       {},
       {
         headers: { "x-auth-token": token },
@@ -70,7 +70,7 @@ export const deletePost = (id) => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken");
     const response = await axios.delete(
-      `http://localhost:8000/api/post/${id}`,
+      `/api/post/${id}`,
       {
         headers: { "x-auth-token": token },
       }
@@ -85,7 +85,7 @@ export const getAllPosts = (page) => async (dispatch) => {
   dispatch({ type: "GET_ALL_POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.get(`http://localhost:8000/api/post/all?page=${page}`, {
+    const response = await axios.get(`/api/post/all?page=${page}`, {
     });
     dispatch({ type: "GET_ALL_POST_SUCCESS", payload: response.data });
   } catch (error) {
