@@ -6,7 +6,7 @@ export const authAction = () => async (dispatch) => {
   try {
     const token = localStorage.getItem("authToken")
     const response = await axios.get(
-      "/api/user/auth",
+      "https://dump-store.onrender.com/api/user/auth",
       {
         headers: { "x-auth-token": token },
       }

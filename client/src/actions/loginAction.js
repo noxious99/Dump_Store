@@ -5,7 +5,7 @@ export const logAction = (userData) => async (dispatch) => {
   dispatch({ type: "LOGIN_LOADING" });
   try {
     const response = await axios.post(
-      "/api/user/login",
+      "https://dump-store.onrender.com/api/user/login",
       JSON.stringify(userData),
       {
         headers: { "Content-Type": "application/json" },
