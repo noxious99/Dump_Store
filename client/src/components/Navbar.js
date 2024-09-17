@@ -76,9 +76,6 @@ export const Navbar = () => {
               </div>
             </div>
             <div id="links">
-              <button onClick={handleLogout}>
-                <Link to="/">LogOut</Link>
-              </button>
             </div>
           </>
         )}

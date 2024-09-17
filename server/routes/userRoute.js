@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
 
-
 // auth middleware
 userRoute.get("/auth", auth, async (req, res) => {
   try {
@@ -66,7 +65,7 @@ userRoute.post("/register", async (req, res) => {
         username,
         email,
         avatar,
-        password
+        password,
       });
     }
     const salt = await bcrypt.genSalt(10);
@@ -86,6 +85,16 @@ userRoute.post("/register", async (req, res) => {
 
 userRoute.delete("/", (req, res) => {
   res.send("user delete route");
+});
+
+userRoute.get("/search", async (req, res) => {
+  try {
+    const buddyName = req.query.buddy;
+    const buddies = await User.find({ username: { $regex: `^${buddyName}`, $options: "i" }});
+    res.status(200).json(buddies);
+  } catch (error) {
+    res.status(400).json({ err: error });
+  }
 });
 
 module.exports = userRoute;

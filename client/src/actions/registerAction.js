@@ -1,10 +1,11 @@
 import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const regAction = (userData) => async (dispatch) => {
   dispatch({ type: "REGISTER_LOADING" });
   try {
     const response = await axios.post(
-      "https://dump-store.onrender.com/api/user/register",
+      `${API_URL}/api/user/register`,
       JSON.stringify(userData),
       {
         headers: { "Content-Type": "application/json" },

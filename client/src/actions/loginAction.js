@@ -1,11 +1,12 @@
 import { thunk } from "redux-thunk";
 import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const logAction = (userData) => async (dispatch) => {
   dispatch({ type: "LOGIN_LOADING" });
   try {
     const response = await axios.post(
-      "https://dump-store.onrender.com/api/user/login",
+        `${API_URL}/api/user/login`,
       JSON.stringify(userData),
       {
         headers: { "Content-Type": "application/json" },

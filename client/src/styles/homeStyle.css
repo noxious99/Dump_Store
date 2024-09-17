@@ -58,8 +58,8 @@
 }
 @media (max-width: 600px) {
   #bgImage > img {
-    width: 300px;
-    max-width: 300px;
+    width: 280px;
+    max-width: 280px;
     height: auto;
     transition: 0.3s ease;
   }

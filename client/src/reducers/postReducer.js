@@ -39,7 +39,7 @@ const allPostInitialState = {
   allPost: null,
   voteLoading: false,
   deleteLoading: false,
-  totalCount: null
+  totalCount: 0
 };
 
 export const getPostReducer = (state = allPostInitialState, action) => {
@@ -59,7 +59,7 @@ export const getPostReducer = (state = allPostInitialState, action) => {
       return {
         isLoading: false,
         allPost: action.payload,
-        totalCount: null
+        totalCount: 0
       };
     case "UPVOTE_LOADING":
       return {
@@ -72,6 +72,7 @@ export const getPostReducer = (state = allPostInitialState, action) => {
         allPost: state.allPost.map((post) =>
           post._id === action.payload._id ? action.payload : post
         ),
+        totalCount: state.totalCount,
       };
     case "DOWNVOTE_LOADING":
       return {
@@ -84,6 +85,7 @@ export const getPostReducer = (state = allPostInitialState, action) => {
         allPost: state.allPost.map((post) =>
           post._id === action.payload._id ? action.payload : post
         ),
+        totalCount: state.totalCount,
       };
     case "DELETE_LOADING":
       return {
@@ -94,7 +96,8 @@ export const getPostReducer = (state = allPostInitialState, action) => {
       return {
         deleteLoading: false,
         allPost: state.allPost.filter((post) => 
-          post._id !== action.payload._id)
+          post._id !== action.payload._id),
+        totalCount: state.totalCount,
       };
     case "DELETE_FAILED":
       return {
