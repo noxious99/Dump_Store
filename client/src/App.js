@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { authAction } from "./actions/authAction";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { Buddies } from "./pages/Buddies";
+import { EditProfile } from "./pages/EditProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -25,15 +27,17 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Allpost />} />
-          <Route path="/Register" element={<Register />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/Buddies/:username" element={<Buddies />} />
+            <Route path="/EditProfile/:id" element={<EditProfile />} />
+            <Route path="/dashboard" element={<Allpost />} />
+            <Route path="/Register" element={<Register />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
+          </Routes>
         </main>
-        <Footer/>
+        <Footer />
       </BrowserRouter>
     </div>
   );

@@ -7,7 +7,7 @@
   height: 70px;
   display: flex;
   justify-content: space-evenly;
-  background: linear-gradient(135deg, #000000, #080000);
+  background: linear-gradient(120deg, #000000, #080000);
   align-items: center;
   box-shadow: 5px 5px 30px black;
   padding: 0;
@@ -143,14 +143,107 @@
   background-color: #505050;
 }
 
+#searchBar {
+  display: flex;
+}
+
+#searchBar > input {
+  border: none;
+  background-color: black;
+  height: 40px;
+  /* box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.158); */
+  padding: 5px 5px 5px 10px;
+  box-sizing: border-box;
+  color: white;
+  transition: all 0.3s ease;
+  width: 250px;
+  font-size: 16px;
+}
+
+#searchBar > input:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.26);
+  background-color: #494949;
+}
+
+#searchBar > button {
+  border: none;
+  background-color: rgb(126, 32, 32);
+  padding: 0px 3px 0px 3px;
+  border-top-right-radius: 15px;
+}
 
 @media (max-width: 600px) {
   #iconNav > a > img {
     height: 40px;
     width: auto;
-    padding-left: 10px;
+    padding-left: 0px;
+    margin-right: 10px;
   }
   .NavbarContainer {
     height: 60px;
   }
+  #searchBar > input {
+    width: 190px;
+  }
+
+}
+
+.search-dropdown {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 70px;
+  background: linear-gradient(135deg, #1e1e1e, #2e2e2e);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100000;
+  width: 240px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.4);
+  transition: max-height 0.3s ease-in-out;
+}
+
+.search-dropdown li {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif; /* Optional: Use a modern font */
+  transition: background-color 0.3s, box-shadow 0.3s ease-in-out;
+  border-radius: 10px;
+  margin: 5px;
+}
+
+.search-dropdown li a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+.search-dropdown li:hover {
+  background-color: #ff5c5c;
+  box-shadow: 0px 0px 15px rgba(255, 92, 92, 0.6); /* Subtle glow on hover */
+  transform: scale(1.02); /* Slight scale on hover */
+}
+
+.search-dropdown li a:hover {
+  color: #000000;
+}
+
+.search-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+  background-color: #ff5c5c;
+  border-radius: 10px;
+}
+
+.search-dropdown::-webkit-scrollbar-track {
+  background-color: #1e1e1e;
 }

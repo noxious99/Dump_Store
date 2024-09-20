@@ -26,7 +26,7 @@ export const Profile = () => {
   if (!user) {
     return <p>Loading...</p>;
   }
-  const { username, email, avatar } = user;
+  const { username, email, avatar, _id } = user;
 
   const handlePaging = (val) => {
     setPaging(val);
@@ -54,12 +54,20 @@ export const Profile = () => {
               <img src={avatar} alt={`${username}'s avatar`} />
             </div>
             <div>
-              <h3 style={{color: "wheat", marginBottom: "10px"}}>User: {username}</h3>
+              <h3 style={{ color: "wheat", marginBottom: "10px" }}>
+                User: {username}
+              </h3>
             </div>
           </div>
           <div></div>
           <div>
-            <h3 style={{textDecoration: "underline"}}>
+            <div className="editProfile">
+              <Link to={`/EditProfile/${_id}`}>Edit Profile</Link>
+            </div>
+            <div>
+              <br />
+            </div>
+            <h4 style={{ textDecoration: "underline" }}>
               Total Collection:{" "}
               {!totalPosts ? (
                 <p>Loading...</p>
@@ -68,7 +76,7 @@ export const Profile = () => {
               ) : (
                 totalPosts
               )}
-            </h3>
+            </h4>
           </div>
         </div>
         <div className="tabs">
