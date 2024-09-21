@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import FilterIcon from "@mui/icons-material/Filter";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import { grey } from "@mui/material/colors";
-import logoS from "../resources/imagesNicons/logo-03.png";
+import logoS from "../resources/imagesNicons/logoOff.png";
 import "../styles/homeStyle.css";
 import { Link } from "react-router-dom";
 

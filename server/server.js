@@ -9,9 +9,15 @@ app = express();
 
 // app.options( '*' , cors())
 
-app.use(cors({
-  allowedOrigin: ["*"]
-}));
+// app.use(cors({
+//   allowedOrigin: ["*"]
+// }));
+
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 // app.use(cors({
 //   origin: "*", // Allows all origins
@@ -30,7 +36,7 @@ const serverConnect = async () => {
       "mongodb+srv://noxious:saad1234@cluster0.ajiuz.mongodb.net/Project01"
     );
     console.log("DB connected");
-    app.listen(8000, 'localhost', () => {
+    app.listen(8000, "0.0.0.0", () => {
       console.log("server running at 8000");
     });
   } catch (err) {
