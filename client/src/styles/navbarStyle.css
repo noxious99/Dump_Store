@@ -1,20 +1,25 @@
 .navShadow {
-  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.582); /* Adjust shadow as needed */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
 }
+
 .NavbarContainer {
   width: 100%;
   max-width: 100%;
   height: 70px;
   display: flex;
-  justify-content: space-evenly;
-  background: linear-gradient(120deg, #000000, #080000);
+  justify-content: space-between; /* Use space-between for better spacing */
+  background: linear-gradient(
+    120deg,
+    #0a0a0a,
+    #161616
+  ); /* More dynamic gradient */
   align-items: center;
-  box-shadow: 5px 5px 30px black;
-  padding: 0;
-  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.541);
-  z-index: 100000;
+  padding: 0 0px; /* Add horizontal padding */
+  position: relative;
+  z-index: 1000;
   box-sizing: border-box;
 }
+
 #iconNav > a > img {
   height: 52px;
   width: auto;
@@ -23,7 +28,7 @@
 
 .navLeft {
   flex: 1;
-  color: black;
+  color: white;
   padding-left: 20px;
   box-sizing: border-box;
 }
@@ -33,8 +38,9 @@
   align-items: center;
   flex: 1;
   justify-content: flex-end;
-  padding-right: 20px;
+  padding-right: 0px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 #links {
@@ -45,6 +51,13 @@
 #links a {
   text-decoration: none;
   color: white;
+  padding: 10px 10px; /* Add padding for clickable area */
+  border-radius: 5px; /* Rounded corners */
+  transition: background-color 0.3s ease; /* Smooth background transition */
+}
+
+#links a:hover {
+  background-color: rgba(255, 255, 255, 0.2); /* Subtle highlight on hover */
 }
 
 .profile-container {
@@ -58,9 +71,17 @@
   cursor: pointer;
 }
 
+.profile-menu:hover {
+  transform: scale(1.05); /* Slight scaling effect */
+}
+
 .profileOptions {
   display: flex;
   align-items: center;
+}
+
+.profileOptions > img:hover {
+  transform: scale(1.1); /* Scale on hover */
 }
 
 #downIcon {
@@ -149,21 +170,22 @@
 
 #searchBar > input {
   border: none;
-  background-color: black;
+  background-color: #292929;
   height: 40px;
   /* box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.158); */
   padding: 5px 5px 5px 10px;
   box-sizing: border-box;
   color: white;
   transition: all 0.3s ease;
-  width: 250px;
+  width: 280px;
   font-size: 16px;
 }
 
 #searchBar > input:focus {
   outline: none;
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.26);
-  background-color: #494949;
+  /* background-color: #494949; */
+  transform: scale(1.05); /* Slight scaling effect on focus */
 }
 
 #searchBar > button {
@@ -171,22 +193,12 @@
   background-color: rgb(126, 32, 32);
   padding: 0px 3px 0px 3px;
   border-top-right-radius: 15px;
+  transition: background-color 0.3s ease; /* Transition effect */
 }
 
-@media (max-width: 600px) {
-  #iconNav > a > img {
-    height: 40px;
-    width: auto;
-    padding-left: 0px;
-    margin-right: 10px;
-  }
-  .NavbarContainer {
-    height: 60px;
-  }
-  #searchBar > input {
-    width: 190px;
-  }
-
+#searchBar > button:hover {
+  background-color: rgba(255, 0, 0, 0.8); /* Change color on hover */
+  padding: 3px 6px 3px 6px;
 }
 
 .search-dropdown {
@@ -211,7 +223,7 @@
   cursor: pointer;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  font-family: 'Roboto', sans-serif; /* Optional: Use a modern font */
+  font-family: "Roboto", sans-serif; /* Optional: Use a modern font */
   transition: background-color 0.3s, box-shadow 0.3s ease-in-out;
   border-radius: 10px;
   margin: 5px;
@@ -247,3 +259,49 @@
 .search-dropdown::-webkit-scrollbar-track {
   background-color: #1e1e1e;
 }
+
+@media (max-width: 600px) {
+  #iconNav {
+    max-width: 100px;
+  }
+  .navLeft {
+    flex: 1;
+    color: white;
+    padding-left: 20px;
+    box-sizing: border-box;
+    max-width: 85px;
+  }
+  #iconNav > a > img {
+    height: 40px;
+    width: auto;
+    padding-left: 0px;
+    margin-right: 0px;
+  }
+  .NavbarContainer {
+    height: 60px;
+  }
+  #searchBar > input {
+    width: 150px;
+  }
+  #links a {
+    text-decoration: none;
+    color: white;
+    padding: 5px 8px; /* Add padding for clickable area */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth background transition */
+    font-size: 15px;
+  }
+
+  #links {
+    padding: 0px;
+    margin: 0 0px;
+  }
+}
+
+/* #links a {
+  text-decoration: none;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+} */

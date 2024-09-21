@@ -6,7 +6,7 @@ import { logoutAction } from "../actions/logoutAction";
 import down from "../resources/imagesNicons/down.png";
 import icon from "../resources/imagesNicons/icon-01.png";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import axios from "axios"
+import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 
 export const Navbar = () => {
@@ -40,7 +40,9 @@ export const Navbar = () => {
 
     if (query.length > 0) {
       try {
-        const response = await axios.get(`${API_URL}/api/user/search?buddy=${query}`);
+        const response = await axios.get(
+          `${API_URL}/api/user/search?buddy=${query}`
+        );
         setSearchResults(response.data);
       } catch (error) {
         console.error("Error fetching search results", error);
@@ -62,21 +64,24 @@ export const Navbar = () => {
         </div>
         <div className="navMiddle">
           <div id="searchBar">
-              <input
-                type="text"
-                placeholder="Search Buddies"
-                value={searchTerm}
-                onChange={handleSearch} // Update search term on change
-              />
-              <button type="submit" onClick={(e) => e.preventDefault()}>
-                <PersonSearchIcon sx={{ fontSize: 30 }} />
-              </button>
+            <input
+              type="text"
+              placeholder="Search Buddies"
+              value={searchTerm}
+              onChange={handleSearch} // Update search term on change
+            />
+            <button type="submit" onClick={(e) => e.preventDefault()}>
+              <PersonSearchIcon sx={{ fontSize: 35 }} />
+            </button>
             {searchResults.length > 0 && (
               <ul className="search-dropdown">
                 {searchResults.map((buddy) => (
                   <li key={buddy._id}>
                     <Link to={`/Buddies/${buddy.username}`}>
-                      <img src={buddy.avatar} style={{height: "20px", margin: "0px 10px 0px 10px"}}/>
+                      <img
+                        src={buddy.avatar}
+                        style={{ height: "20px", margin: "0px 10px 0px 10px" }}
+                      />
                       {buddy.username}
                     </Link>
                   </li>
