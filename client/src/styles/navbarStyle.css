@@ -44,20 +44,17 @@
 }
 
 #links {
-  padding: 0px;
-  margin: 0 10px;
+  padding: 5px;
+  margin: 0 0px;
+  border-radius: 5px;
 }
 
 #links a {
   text-decoration: none;
   color: white;
-  padding: 10px 10px; /* Add padding for clickable area */
-  border-radius: 5px; /* Rounded corners */
+  padding: 20px 20px; /* Add padding for clickable area */
+  border-radius: 15px; /* Rounded corners */
   transition: background-color 0.3s ease; /* Smooth background transition */
-}
-
-#links a:hover {
-  background-color: rgba(255, 255, 255, 0.2); /* Subtle highlight on hover */
 }
 
 .profile-container {
