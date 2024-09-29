@@ -5,6 +5,8 @@ const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
+const cloudinary = require("../utils/cloudinary.js");
+const { upload } = require("../middleware/multerMiddleware.js");
 
 // auth middleware
 userRoute.get("/auth", auth, async (req, res) => {
@@ -95,15 +97,41 @@ userRoute.get("/search", async (req, res) => {
   }
 });
 
-userRoute.put("/update/:id", async (req, res) => {
+userRoute.put("/update/:id", upload.single("avatar"), async (req, res) => {
   try {
+    console.log(req.file);
     const { id } = req.params;
     const { username, email } = req.body;
+    let avatar;
+
+    const avatarFile = req.file;
+
+    if (!avatarFile) {
+      return res.status(400).json({ err: { mssg: "No file uploaded" } });
+    }
+
+    const cloudinaryResponse = await cloudinary.uploadOnCloudinary(
+      avatarFile.path
+    );
+    if (!cloudinaryResponse) {
+      return res
+        .status(500)
+        .json({ err: { mssg: "Failed to upload image to Cloudinary" } });
+    }
+    console.log(cloudinaryResponse);
+    avatar = cloudinaryResponse.url;
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { $set: { username, email } },
+      {
+        $set: {
+          username,
+          email,
+          ...(avatar && { avatar }),
+        },
+      },
       { new: true, runValidators: true }
     );
+
     if (!updatedUser) {
       return res.status(404).json({ err: { mssg: "User Not Found" } });
     }

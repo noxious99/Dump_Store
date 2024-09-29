@@ -5,16 +5,16 @@ import moment from "moment";
 import "../styles/profileStyle.css";
 import Loader from "./Loader";
 
-//MUI
+// MUI
 import Card from "@mui/material/Card";
-import { Button, CardMedia, CircularProgress, Tooltip } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
-import IconButton, { IconButtonProps } from "@mui/material/IconButton";
-import { red, grey } from "@mui/material/colors";
+import IconButton from "@mui/material/IconButton";
+import { red, grey, yellow } from "@mui/material/colors";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LoupeOutlinedIcon from "@mui/icons-material/LoupeOutlined";
 import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
@@ -67,7 +67,7 @@ export const MyCollection = () => {
         display: "flex",
         justifyContent: "center",
         flexDirection: "column",
-        alignItems: "column",
+        alignItems: "center",
         width: "100%",
         overflow: "hidden",
       }}
@@ -93,23 +93,24 @@ export const MyCollection = () => {
             alignItems: "flex-start",
             overflow: "hidden",
             spacing: {
-              md: 4
-            }
+              md: 4,
+            },
           }}
         >
           {posts?.length > 0 &&
             !isLoading &&
             posts.map((post) => (
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid item xs={10} sm={6} md={4} key={post._id}>
                 <Card
                   sx={{
                     height: "auto",
-                    width: "100%",
+                    width: "90%",
                     maxWidth: "350px",
                     borderRadius: 4,
                     boxShadow: 4,
+                    backgroundColor: post.image ? "white" : "#fff59d",
+                    marginLeft: { xs: "-30px", sm: "0px", md: "0px" },
                   }}
-                  key={post._id}
                 >
                   <CardHeader
                     sx={{ bgcolor: grey[900], color: grey[100] }}
@@ -132,32 +133,48 @@ export const MyCollection = () => {
                     title={post.title}
                     subheader={moment(post.date).fromNow()}
                   />
-                  <Tooltip title="Click to enlarge the image" arrow>
-                    <a
-                      href={post.image}
-                      onClick={(e) => e.preventDefault()}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <CardMedia
-                        component="img"
-                        height="auto"
-                        image={post.image}
-                        alt="Paella dish"
-                        onClick={() => handleImageClick(post.image)}
-                        style={{
-                          transition: "transform 0.3s",
-                          cursor: "zoom-in",
-                          maxWidth: "100%",
-                          maxHeight: "300px",
-                        }}
-                      />
-                    </a>
-                  </Tooltip>
-                  <CardContent>
-                    <Typography variant="body2" color="text.secondary">
-                      {post.text}
-                    </Typography>
-                  </CardContent>
+                  {post.image ? (
+                    <Tooltip title="Click to enlarge the image" arrow>
+                      <a
+                        href={post.image}
+                        onClick={(e) => e.preventDefault()}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <CardContent>
+                          <img
+                            src={post.image}
+                            alt="Post"
+                            style={{
+                              width: "100%",
+                              height: "auto",
+                              maxHeight: "300px",
+                              borderRadius: 4,
+                              cursor: "zoom-in",
+                            }}
+                            onClick={() => handleImageClick(post.image)}
+                          />
+                        </CardContent>
+                      </a>
+                    </Tooltip>
+                  ) : (
+                    <CardContent>
+                      <Typography
+                        variant="h6"
+                        color="black"
+                        align="center"
+                        sx={{ padding: 2 }}
+                      >
+                        {post.text}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        align="center"
+                      >
+                        {post.image ? post.text : "Note"}
+                      </Typography>
+                    </CardContent>
+                  )}
                   <Typography variant="body2" color="text.secondary">
                     <div
                       style={{
@@ -191,7 +208,6 @@ export const MyCollection = () => {
                     <RemoveCircleOutlineOutlinedIcon />
                   </IconButton>
                 </Card>
-                {/* <div style={{backgroundColor: "black", width: "100%", height: "5px", marginTop: "30px"}}></div> */}
               </Grid>
             ))}
         </Grid>

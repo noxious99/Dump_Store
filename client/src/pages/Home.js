@@ -38,7 +38,7 @@ export const Home = () => {
         <h1>Welcome to Dump Store</h1>
         <p>The easy way to store and organize your images and text notes.</p>
         <button className="cta-button2">
-          <Link to="/login">Get Started</Link>
+          <Link to="/faq">Learn More</Link>
         </button>
       </div>
 

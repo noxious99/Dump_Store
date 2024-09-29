@@ -6,13 +6,13 @@ export const userUpdate = (id, userData) => async (dispatch) => {
   try {
     const response = await axios.put(
       `${API_URL}/api/user/update/${id}`,
-      userData,
+      userData, // This will now be FormData
       {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "multipart/form-data" }, // Change content type to multipart/form-data
       }
     );
-    dispatch({ type: "UPADTE_SUCCESS", payload: response.data });
+    dispatch({ type: "UPDATE_SUCCESS", payload: response.data });
   } catch (error) {
-    dispatch({ type: "UPADTE_FAILED", payload: error.message });
+    dispatch({ type: "UPDATE_FAILED", payload: error.message });
   }
 };

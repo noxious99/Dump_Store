@@ -6,6 +6,7 @@ import { CreateNew } from "../components/createNew";
 import { Info } from "../components/Info";
 import { MyCollection } from "../components/MyCollection";
 import { getPosts } from "../actions/postAction";
+import moment from "moment";
 
 //MUI
 import PermMediaRoundedIcon from "@mui/icons-material/PermMediaRounded";
@@ -26,7 +27,10 @@ export const Profile = () => {
   if (!user) {
     return <p>Loading...</p>;
   }
-  const { username, email, avatar, _id } = user;
+  const { username, email, avatar, _id, date } = user;
+  const formatDate = moment(date).fromNow();
+  const userDate = formatDate.toString();
+  console.log(userDate);
 
   const handlePaging = (val) => {
     setPaging(val);
@@ -39,9 +43,25 @@ export const Profile = () => {
       case 2:
         return <CreateNew />;
       case 3:
-        return <Info />;
+        return (
+          <Info
+            email={email}
+            totalPosts={totalPosts}
+            userDate={userDate}
+            buddiesCount={0}
+            currentGoal={0}
+          />
+        );
       default:
-        return <Info />;
+        return (
+          <Info
+            email={email}
+            totalPosts={totalPosts}
+            userDate={userDate}
+            buddiesCount={0}
+            currentGoal={0}
+          />
+        );
     }
   };
 
@@ -55,7 +75,7 @@ export const Profile = () => {
             </div>
             <div>
               <h3 style={{ color: "wheat", marginBottom: "10px" }}>
-                User: {username}
+                {username}
               </h3>
             </div>
           </div>

@@ -9,26 +9,36 @@ export const EditProfile = () => {
   const { id } = useParams();
   const [username, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [photo, setPhoto] = useState(null); // State for the uploaded photo
   const [isUpdated, setIsUpdated] = useState(false);
 
-  const { username: UserName, email: userEmail } = useSelector(
-    (state) => state.auth.userInfo || []
-  );
+  const {
+    username: UserName,
+    email: userEmail,
+    avatar: userAvatar,
+  } = useSelector((state) => state.auth.userInfo || []);
+
+  const profileImg = useSelector((state) => state.auth.userInfo.avatar || []);
 
   useEffect(() => {
     if (UserName && userEmail) {
       setName(UserName);
       setEmail(userEmail);
+      setPhoto(userAvatar);
     }
   }, [UserName, userEmail]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const userData = {
-      username,
-      email,
-    };
-    dispatch(userUpdate(id, userData)).then(() => {
+
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("email", email);
+    if (photo) {
+      formData.append("avatar", photo); // Append the uploaded photo
+    }
+
+    dispatch(userUpdate(id, formData)).then(() => {
       setIsUpdated(true);
       setTimeout(() => setIsUpdated(false), 3000);
     });
@@ -42,20 +52,43 @@ export const EditProfile = () => {
           <h2>Update Profile Details</h2>
         </div>
         <form onSubmit={handleSubmit}>
+          <label>User Name</label>
           <input
             type="text"
             placeholder="User Name"
             value={username}
             onChange={(e) => setName(e.target.value)}
-            required
           />
+          <label>User Email</label>
           <input
             type="email"
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <img
+                src={profileImg}
+                style={{
+                  width: "60px",
+                  height: "auto",
+                  alignSelf: "center",
+                  borderRadius: "50%",
+                  margin: "5px",
+                }}
+              />
+            </div>
+            <div>
+              <span>Current Avatar</span>
+            </div>
+          </div>
+          <input type="file" onChange={(e) => setPhoto(e.target.files[0])} />{" "}
           <button type="submit" className="buttonBasic">
             Update Profile
           </button>
