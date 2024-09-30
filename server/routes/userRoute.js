@@ -99,27 +99,24 @@ userRoute.get("/search", async (req, res) => {
 
 userRoute.put("/update/:id", upload.single("avatar"), async (req, res) => {
   try {
-    console.log(req.file);
     const { id } = req.params;
     const { username, email } = req.body;
     let avatar;
 
     const avatarFile = req.file;
 
-    if (!avatarFile) {
-      return res.status(400).json({ err: { mssg: "No file uploaded" } });
+    if (avatarFile) {
+      const cloudinaryResponse = await cloudinary.uploadOnCloudinary(
+        avatarFile.path
+      );
+      if (!cloudinaryResponse) {
+        return res
+          .status(500)
+          .json({ err: { mssg: "Failed to upload image to Cloudinary" } });
+      }
+      avatar = cloudinaryResponse.url;
     }
 
-    const cloudinaryResponse = await cloudinary.uploadOnCloudinary(
-      avatarFile.path
-    );
-    if (!cloudinaryResponse) {
-      return res
-        .status(500)
-        .json({ err: { mssg: "Failed to upload image to Cloudinary" } });
-    }
-    console.log(cloudinaryResponse);
-    avatar = cloudinaryResponse.url;
     const updatedUser = await User.findByIdAndUpdate(
       id,
       {

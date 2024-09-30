@@ -34,8 +34,9 @@ export const EditProfile = () => {
     const formData = new FormData();
     formData.append("username", username);
     formData.append("email", email);
-    if (photo) {
-      formData.append("avatar", photo); // Append the uploaded photo
+    // Only append the photo if it's been set (i.e., the user has chosen a new photo)
+    if (photo && photo !== userAvatar) {
+      formData.append("avatar", photo); // Append the uploaded photo if it's new
     }
 
     dispatch(userUpdate(id, formData)).then(() => {

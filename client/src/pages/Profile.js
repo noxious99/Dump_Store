@@ -23,7 +23,7 @@ export const Profile = () => {
   }, [dispatch]);
 
   const user = useSelector((state) => state.auth.userInfo);
-  const totalPosts = useSelector((state) => state.getPost.totalCount);
+  const totalPosts = useSelector((state) => state.getPost.totalCount || 0);
   if (!user) {
     return <p>Loading...</p>;
   }
@@ -89,13 +89,7 @@ export const Profile = () => {
             </div>
             <h4 style={{ textDecoration: "underline" }}>
               Total Collection:{" "}
-              {!totalPosts ? (
-                <p>Loading...</p>
-              ) : totalPosts === 0 ? (
-                <p>No posts available</p>
-              ) : (
-                totalPosts
-              )}
+              {totalPosts === 0 ? <p>No posts available</p> : totalPosts}
             </h4>
           </div>
         </div>
