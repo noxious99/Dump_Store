@@ -6,13 +6,12 @@ export const postAction = (postData) => async (dispatch) => {
   dispatch({ type: "POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.post(
-      `${API_URL}/api/post/`,
-      postData,
-      {
-        headers: { "x-auth-token": token },
-      }
-    );
+    const response = await axios.post(`${API_URL}/api/post/`, postData, {
+      headers: {
+        "x-auth-token": token,
+        "Content-Type": "multipart/form-data",
+      },
+    });
     dispatch({ type: "POST_SUCCESS", payload: response.data });
   } catch (error) {
     dispatch({ type: "POST_FAILED", payload: error.message });
@@ -23,10 +22,10 @@ export const getPosts = (page) => async (dispatch) => {
   dispatch({ type: "GET_POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.get(`${API_URL}/api/post/?page=${page}` , {
+    const response = await axios.get(`${API_URL}/api/post/?page=${page}`, {
       headers: { "x-auth-token": token },
     });
-    dispatch({ type: "GET_POST_SUCCESS", payload: response.data});
+    dispatch({ type: "GET_POST_SUCCESS", payload: response.data });
   } catch (error) {
     dispatch({ type: "GET_POST_SUCCESS", payload: error.message });
   }
@@ -70,12 +69,9 @@ export const deletePost = (id) => async (dispatch) => {
   dispatch({ type: "DELETE_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.delete(
-      `${API_URL}/api/post/${id}`,
-      {
-        headers: { "x-auth-token": token },
-      }
-    );
+    const response = await axios.delete(`${API_URL}/api/post/${id}`, {
+      headers: { "x-auth-token": token },
+    });
     dispatch({ type: "DELETE_SUCCESS", payload: response.data });
   } catch (error) {
     dispatch({ type: "DELETE_FAILED", payload: error.message });
@@ -86,8 +82,10 @@ export const getAllPosts = (page) => async (dispatch) => {
   dispatch({ type: "GET_ALL_POST_LOADING" });
   try {
     const token = localStorage.getItem("authToken");
-    const response = await axios.get(`${API_URL}/api/post/all?page=${page}`, {
-    });
+    const response = await axios.get(
+      `${API_URL}/api/post/all?page=${page}`,
+      {}
+    );
     dispatch({ type: "GET_ALL_POST_SUCCESS", payload: response.data });
   } catch (error) {
     dispatch({ type: "GET_ALL_POST_FAILURE", payload: error.message });

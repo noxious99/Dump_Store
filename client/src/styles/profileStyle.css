@@ -26,6 +26,11 @@
   box-shadow: 5px 5px 30px 10px rgb(0, 0, 0);
 }
 
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 @media (max-width: 600px) {
   .basicInfo {
     flex-direction: column;
@@ -46,7 +51,7 @@
 }
 
 .profilePic {
-  padding: 5px 0px 5px 10px;
+  padding: 5px;
 }
 
 .profilePic > img {

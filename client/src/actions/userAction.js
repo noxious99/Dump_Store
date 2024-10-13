@@ -8,7 +8,7 @@ export const userUpdate = (id, userData) => async (dispatch) => {
       `${API_URL}/api/user/update/${id}`,
       userData, // This will now be FormData
       {
-        headers: { "Content-Type": "multipart/form-data" }, // Change content type to multipart/form-data
+        headers: { "Content-Type": "multipart/form-data" },
       }
     );
     dispatch({ type: "UPDATE_SUCCESS", payload: response.data });

@@ -15,8 +15,8 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto",
       crop: "auto",
       gravity: "auto",
-      width: 300,
-      height: 300,
+      // width: 300,
+      // height: 300,
     });
 
     fs.unlinkSync(localFilePath);

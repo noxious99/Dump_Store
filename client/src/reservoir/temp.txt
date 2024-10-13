@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../styles/navbarStyle.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,7 +7,6 @@ import down from "../resources/imagesNicons/down.png";
 import icon from "../resources/imagesNicons/icon-01.png";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import axios from "axios";
-
 const API_URL = process.env.REACT_APP_API_URL;
 
 export const Navbar = () => {
@@ -20,7 +19,6 @@ export const Navbar = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const searchDropdownRef = useRef(null); // Reference for the search dropdown
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -54,23 +52,6 @@ export const Navbar = () => {
     }
   };
 
-  // Close the search dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        searchDropdownRef.current &&
-        !searchDropdownRef.current.contains(event.target)
-      ) {
-        setSearchResults([]); // Close the search results
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
-
   return (
     <div className="navShadow">
       <div className="NavbarContainer">
@@ -82,12 +63,12 @@ export const Navbar = () => {
           </div>
         </div>
         <div className="navMiddle">
-          <div id="searchBar" ref={searchDropdownRef}>
+          <div id="searchBar">
             <input
               type="text"
               placeholder="Search Buddies"
               value={searchTerm}
-              onChange={handleSearch}
+              onChange={handleSearch} // Update search term on change
             />
             <button type="submit" onClick={(e) => e.preventDefault()}>
               <PersonSearchIcon sx={{ fontSize: 35 }} />

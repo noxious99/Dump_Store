@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import FileBase from "react-file-base64";
 import { useDispatch, useSelector } from "react-redux";
 import { postAction } from "../actions/postAction";
 import "../styles/profileStyle.css";
@@ -6,22 +7,20 @@ import "../styles/profileStyle.css";
 export const CreateNew = () => {
   const [title, setTitle] = useState("");
   const [description, setdescription] = useState("");
-  const [photo, setPhoto] = useState("");
+  const [selectedFile, setSelectedFile] = useState("");
 
   const { isLoading, success, error } = useSelector((state) => state.post);
 
   const dispatch = useDispatch();
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = new FormData();
+    const post = {
+      title: title,
+      text: description,
+      image: selectedFile,
+    };
 
-    formData.append("title", title);
-    formData.append("text", description);
-    if (photo) {
-      formData.append("image", photo);
-    }
-
-    dispatch(postAction(formData));
+    dispatch(postAction(post));
   };
   return (
     <div className="postForm">
@@ -40,7 +39,13 @@ export const CreateNew = () => {
           placeholder="add a description"
         />
         <div id="fileSelect">
-          <input type="file" onChange={(e) => setPhoto(e.target.files[0])} />
+          <FileBase
+            type="file"
+            multiple={false}
+            onDone={({ base64 }) => setSelectedFile(base64)}
+            id="fileInput"
+            style={{ display: "none" }}
+          />
         </div>
         <button disabled={isLoading}>{isLoading ? "Uploading" : "Add"}</button>
         {success ? (

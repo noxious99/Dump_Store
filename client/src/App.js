@@ -12,6 +12,8 @@ import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { Buddies } from "./pages/Buddies";
 import { EditProfile } from "./pages/EditProfile";
+import { PostDetails } from "./pages/PostDetails";
+import { Chat } from "@mui/icons-material";
 
 function App() {
   const dispatch = useDispatch();
@@ -34,7 +36,12 @@ function App() {
             <Route path="/dashboard" element={<Allpost />} />
             <Route path="/Register" element={<Register />} />
             <Route path="/Login" element={<Login />} />
+            <Route path="/Chat" element={<Chat />} />
             <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
+            <Route
+              path="/PostDetails/:id"
+              element={!user ? <Login /> : <PostDetails />}
+            />
           </Routes>
         </main>
         <Footer />
