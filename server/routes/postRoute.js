@@ -1,7 +1,8 @@
 const express = require("express");
 const postRoute = express.Router();
-const cloudinary = require("../utils/cloudinary.js");
-const { upload } = require("../middleware/multerMiddleware.js");
+const cloudinary = require("../utils/cloudinaryV2.js");
+// const { upload } = require("../middleware/multerMiddleware.js");
+const upload = require("../middleware/multerMiddlewareV2.js");
 
 const Post = require("../Schemas/postSchema");
 const auth = require("../middleware/auth");
@@ -12,10 +13,12 @@ postRoute.post("/", auth, upload.single("image"), async (req, res) => {
   const { title, text } = req.body;
   try {
     const imageFile = req.file;
+    let image = null;
+
     if (imageFile) {
       const cloudinaryResponse = await cloudinary.uploadOnCloudinary(
-        imageFile.path
-      );
+        imageFile.buffer
+      ); // Pass the file buffer to the uploadOnCloudinary function
       if (!cloudinaryResponse) {
         return res
           .status(500)
@@ -23,18 +26,48 @@ postRoute.post("/", auth, upload.single("image"), async (req, res) => {
       }
       image = cloudinaryResponse.url;
     }
+
     const post = await new Post({
       title,
       text,
       author: req.user.id,
       image,
     });
-    post.save();
+    await post.save(); // Make sure to await the save operation
     res.status(200).json(post);
   } catch (err) {
+    console.error("Error uploading image:", err); // Log the error for debugging
     return res.status(400).json({ err: err });
   }
 });
+
+// postRoute.post("/", auth, upload.single("image"), async (req, res) => {
+//   const { title, text } = req.body;
+//   try {
+//     const imageFile = req.file;
+//     if (imageFile) {
+//       const cloudinaryResponse = await cloudinary.uploadOnCloudinary(
+//         imageFile.path
+//       );
+//       if (!cloudinaryResponse) {
+//         return res
+//           .status(500)
+//           .json({ err: { mssg: "Failed to upload image to Cloudinary" } });
+//       }
+//       image = cloudinaryResponse.url;
+//     }
+//     const post = await new Post({
+//       title,
+//       text,
+//       author: req.user.id,
+//       image,
+//     });
+//     post.save();
+//     res.status(200).json(post);
+//   } catch (err) {
+//     return res.status(400).json({ err: err });
+//   }
+// });
 
 // postRoute.post("/", auth, async (req, res) => {
 //   const { title, text, image } = req.body;
