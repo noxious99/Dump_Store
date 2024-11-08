@@ -13,7 +13,7 @@ import PermMediaRoundedIcon from "@mui/icons-material/PermMediaRounded";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import ContactsTwoToneIcon from "@mui/icons-material/ContactsTwoTone";
 import { yellow } from "@mui/material/colors";
-import { Switch } from "@mui/material";
+import SportsScoreIcon from "@mui/icons-material/SportsScore";
 
 export const Profile = () => {
   const [paging, setPaging] = useState("");
@@ -53,15 +53,7 @@ export const Profile = () => {
           />
         );
       default:
-        return (
-          <Info
-            email={email}
-            totalPosts={totalPosts}
-            userDate={userDate}
-            buddiesCount={0}
-            currentGoal={0}
-          />
-        );
+        return <MyCollection />;
     }
   };
 
@@ -79,7 +71,6 @@ export const Profile = () => {
               </h3>
             </div>
           </div>
-          <div></div>
           <div>
             <div className="editProfile">
               <Link to={`/EditProfile/${_id}`}>Edit Profile</Link>
@@ -91,6 +82,14 @@ export const Profile = () => {
               Total Collection:{" "}
               {totalPosts === 0 ? <p>No posts available</p> : totalPosts}
             </h4>
+          </div>
+          <div>
+            <div className="px-4 py-5 shadow-md border-2 rounded-xl bg-[#292929] mt-5 lg:mt-0">
+              <Link to="/Goal" className="flex justify-center items-center">
+                <SportsScoreIcon sx={{ fontSize: 25, color: "red" }} />
+                <p className="text-white">My Goals</p>
+              </Link>
+            </div>
           </div>
         </div>
         <div className="tabs">

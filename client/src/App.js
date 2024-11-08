@@ -14,6 +14,8 @@ import { Buddies } from "./pages/Buddies";
 import { EditProfile } from "./pages/EditProfile";
 import { PostDetails } from "./pages/PostDetails";
 import { Chat } from "@mui/icons-material";
+import { Goal } from "./pages/Goal";
+import { GoalDetails } from "./pages/GoalDetails";
 
 function App() {
   const dispatch = useDispatch();
@@ -33,10 +35,12 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/Buddies/:username" element={<Buddies />} />
             <Route path="/EditProfile/:id" element={<EditProfile />} />
+            <Route path="/GoalDetails/:id" element={<GoalDetails />} />
             <Route path="/dashboard" element={<Allpost />} />
             <Route path="/Register" element={<Register />} />
             <Route path="/Login" element={<Login />} />
             <Route path="/Chat" element={<Chat />} />
+            <Route path="/Goal" element={<Goal />} />
             <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
             <Route
               path="/PostDetails/:id"
