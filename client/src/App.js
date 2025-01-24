@@ -27,7 +27,7 @@ function App() {
   const user = useSelector((state) => state.auth.userInfo);
 
   return (
-    <div className="App">
+    <div className="App box-border max-w-[100vw]">
       <BrowserRouter>
         <Navbar />
         <main>

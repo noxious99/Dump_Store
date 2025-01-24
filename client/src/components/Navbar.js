@@ -33,62 +33,53 @@ export const Navbar = () => {
   }, [avatar]);
 
   return (
-    <div className="navShadow">
-      <div className="NavbarContainer">
-        <div className="navLeft">
-          <div id="iconNav">
-            <Link to="/">
-              <img src={icon} />
-            </Link>
+    <div className="box-border shadow-xl shadow-(0, 0, 0, 0.4) flex items-center justify-between md:justify-between gap-3 py-2">
+      <div >
+        <Link to="/">
+          <img src={icon} className="w-[50px] h-[auto] ml-2 lg:ml-5"/>
+        </Link>
+      </div>
+
+      <SearchBar />
+
+      <div className="navRight mr-3 lg:mr-5">
+        {!authenticated ? (
+          <div style={{ textDecoration: "none" }} >
+            <Link to="/Login" className="text-white bg-black px-4 py-3 rounded text-md">Login</Link>
           </div>
-        </div>
-
-        <SearchBar />
-
-        <div className="navRight">
-          {!authenticated ? (
-            <>
-              <div id="links">
-                <Link to="/Register">Register</Link>
-              </div>
-              <div id="links">
-                <Link to="/Login">Login</Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <div id="links" className="profile-container">
-                <div className="profile-menu" onClick={toggleDropdown}>
-                  <div className="profileOptions">
-                    <img src={avatar} alt="Profile Icon" />
-                    <img src={down} alt="Dropdown Icon" id="downIcon" />
-                  </div>
-                  {isDropdownOpen && (
-                    <ul className="dropdown">
-                      {username && (
-                        <li>
-                          <p>Welcome!! {username}</p>
-                        </li>
-                      )}
-                      <li>
-                        <Link to="/profile">Profile</Link>
-                      </li>
-                      <li>
-                        <Link to="/collection">Collections</Link>
-                      </li>
-                      <li>
-                        <a href="#" onClick={handleLogout}>
-                          Logout
-                        </a>
-                      </li>
-                    </ul>
-                  )}
+        ) : (
+          <>
+            <div id="links" className="profile-container">
+              <div className="profile-menu" onClick={toggleDropdown}>
+                <div className="profileOptions">
+                  <img src={avatar} alt="Profile Icon" />
+                  <img src={down} alt="Dropdown Icon" id="downIcon" />
                 </div>
+                {isDropdownOpen && (
+                  <ul className="dropdown">
+                    {username && (
+                      <li>
+                        <p>Welcome!! {username}</p>
+                      </li>
+                    )}
+                    <li>
+                      <Link to="/profile">Profile</Link>
+                    </li>
+                    <li>
+                      <Link to="/collection">Collections</Link>
+                    </li>
+                    <li>
+                      <a href="#" onClick={handleLogout}>
+                        Logout
+                      </a>
+                    </li>
+                  </ul>
+                )}
               </div>
-              <div id="links"></div>
-            </>
-          )}
-        </div>
+            </div>
+            <div id="links"></div>
+          </>
+        )}
       </div>
     </div>
   );

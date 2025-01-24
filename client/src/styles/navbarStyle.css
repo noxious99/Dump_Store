@@ -3,8 +3,8 @@
 }
 
 .NavbarContainer {
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   height: 70px;
   display: flex;
   justify-content: space-between; /* Use space-between for better spacing */
@@ -21,24 +21,20 @@
 }
 
 #iconNav > a > img {
-  height: 52px;
-  width: auto;
-  padding-left: 15px;
+  width: 40px;
+  border-color: rgba(0, 0, 0, 0.267);
+  height: auto;
+  padding-left: 20px;
 }
 
 .navLeft {
-  flex: 1;
   color: white;
-  padding-left: 20px;
   box-sizing: border-box;
 }
 
 .navRight {
   display: flex;
   align-items: center;
-  flex: 1;
-  justify-content: flex-end;
-  padding-right: 0px;
   box-sizing: border-box;
 }
 
@@ -186,7 +182,7 @@
 
 #searchBar > button {
   border: none;
-  background-color: rgb(126, 32, 32);
+  background-color: #7e2020;
   padding: 0px 3px 0px 3px;
   border-top-right-radius: 15px;
   transition: background-color 0.3s ease; /* Transition effect */
@@ -258,7 +254,7 @@
 
 @media (max-width: 600px) {
   #iconNav {
-    max-width: 100px;
+    max-width: 120px;
   }
   .navLeft {
     flex: 1;
@@ -268,10 +264,9 @@
     max-width: 85px;
   }
   #iconNav > a > img {
-    height: 40px;
-    width: auto;
-    padding-left: 0px;
-    margin-right: 0px;
+    height: auto;
+    width: 30px;
+    padding-left: 10px;
   }
   .NavbarContainer {
     height: 60px;
