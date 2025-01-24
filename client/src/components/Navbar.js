@@ -33,7 +33,7 @@ export const Navbar = () => {
   }, [avatar]);
 
   return (
-    <div className="box-border shadow-xl shadow-(0, 0, 0, 0.4) flex items-center justify-between md:justify-between gap-3 py-2">
+    <div className="box-border shadow-xl bg-[#1D1D1D] flex items-center justify-between md:justify-between gap-3 py-2">
       <div >
         <Link to="/">
           <img src={icon} className="w-[50px] h-[auto] ml-2 lg:ml-5"/>
