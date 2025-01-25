@@ -4,6 +4,10 @@ import { regAction } from "../actions/registerAction";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/regStyle.css";
 import { authAction } from "../actions/authAction";
+import { FaUserShield } from "react-icons/fa6";
+import { RiLockPasswordFill } from "react-icons/ri";
+import { MdEmail } from "react-icons/md";
+import { MdOutlinePassword } from "react-icons/md";
 
 export const Register = () => {
   const [username, setUsername] = useState("");
@@ -37,37 +41,62 @@ export const Register = () => {
   };
   return (
     <div className="flex justify-center items-center my-10">
-      <div className="registerContainer">
-        <div className="Title">
+      <div className="flex flex-col items-center text-white">
+        <div className="text-2xl">
           <p>Register</p>
         </div>
-        <form onSubmit={handleSubmit}>
-          <label>User Name:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <label>Email:</label>
-          <input
-            type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <label>Password:</label>
-          <input
-            type="text"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <label>Confirm Password:</label>
-          <input
-            type="text"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button type="submit" disabled={isLoading} className="bg-green-950 py-2 border-0 rounded text-white 
-          mt-4 mx-4 text-lg hover:bg-green-900">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 items-center bg-[#1D1D1D] 
+        px-4 py-6 rounded min-w-[300px] lg:min-w-[450px] my-5">
+          <div className="flex flex-col items-center">
+            <div className="flex flex-row gap-2 self-start items-center">
+              <p><FaUserShield className="text-xl p-0 m-0" /></p><label className="text-md">Username:</label>
+            </div>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex flex-row gap-2 self-start items-center">
+              <p><MdEmail className="text-xl p-0 m-0" /></p><label className="text-md">Email:</label>
+            </div>
+            <input
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your Email"
+              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex flex-row gap-2 self-start items-center">
+              <p><RiLockPasswordFill className="text-xl p-0 m-0"/></p><label className="text-md">Password:</label>
+            </div>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex flex-row gap-2 self-start items-center">
+              <p><MdOutlinePassword className="text-xl p-0 m-0"/></p><label className="text-md">Confirm Password:</label>
+            </div>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your password"
+              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+            />
+          </div>
+          <button type="submit" disabled={isLoading} className="bg-green-950 py-2 border-0 rounded w-full lg:w-[96%] 
+                                                  text-white mt-2 mx-4 text-md hover:bg-green-900">
             {isLoading ? "Creating..." : "REGISTER"}
           </button>
         </form>
@@ -76,10 +105,10 @@ export const Register = () => {
           <Link
             to="/Login"
             style={{
-              textDecoration: "none",
               color: "darkGreen",
               marginLeft: "5px",
             }}
+            className="underline underline-offset-3"
           >
             Login
           </Link>
