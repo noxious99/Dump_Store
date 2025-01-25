@@ -52,7 +52,7 @@ export const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username or email"
-              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
           </div>
           <div className="flex flex-col items-center">
@@ -64,11 +64,11 @@ export const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="bg-black text-white border-0 px-4 py-2 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
           </div>
-          <button type="submit" disabled={isLoading} className="bg-green-950 py-2 border-0 rounded w-full lg:w-[96%] 
-                                                  text-white mt-2 mx-4 text-md hover:bg-green-900">
+          <button type="submit" disabled={isLoading} className="bg-green-950 py-3 border-0 rounded w-full lg:w-[96%] 
+                                                  text-white mt-2 mx-4 text-md lg:text-lg hover:bg-green-900">
             {isLoading ? "Logging in..." : "LOGIN"}
           </button>
         </form>
