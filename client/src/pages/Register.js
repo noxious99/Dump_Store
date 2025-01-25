@@ -36,7 +36,7 @@ export const Register = () => {
     console.log(user);
   };
   return (
-    <div className="container">
+    <div className="flex justify-center items-center my-10">
       <div className="registerContainer">
         <div className="Title">
           <p>Register</p>
@@ -66,7 +66,8 @@ export const Register = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          <button type="submit" disabled={isLoading}>
+          <button type="submit" disabled={isLoading} className="bg-green-950 py-2 border-0 rounded text-white 
+          mt-4 mx-4 text-lg hover:bg-green-900">
             {isLoading ? "Creating..." : "REGISTER"}
           </button>
         </form>

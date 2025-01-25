@@ -36,13 +36,13 @@ export const Navbar = () => {
     <div className="box-border shadow-xl bg-[#1D1D1D] flex items-center justify-between md:justify-between gap-3 py-2">
       <div >
         <Link to="/">
-          <img src={icon} className="w-[50px] h-[auto] ml-2 lg:ml-5"/>
+          <img src={icon} className="w-[50px] h-[auto] ml-2 lg:ml-5 lg:mr-5"/>
         </Link>
       </div>
 
-      <SearchBar />
+      <SearchBar/>
 
-      <div className="navRight mr-3 lg:mr-5">
+      <div className="navRight mr-2 lg:mr-5">
         {!authenticated ? (
           <div style={{ textDecoration: "none" }} >
             <Link to="/Login" className="text-white bg-black px-4 py-3 rounded text-md">Login</Link>

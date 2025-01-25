@@ -37,9 +37,9 @@
   background-color: #242424;
   border: none;
   padding: 10px;
-  margin: 10px 0 20px 5px;
+  margin: 0px 0 20px 10px;
   border-radius: 5px;
-  width: 90%;
+  width: 87%;
   box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.623);
   color: white;
   font-size: 16px;
@@ -52,28 +52,6 @@
   background-color: #494949;
 }
 
-.logContainer > form > button {
-  width: 100px;
-  text-align: center;
-  margin-top: 10px;
-  height: 35px;
-  width: 200px;
-  padding: 0 10px;
-  border: none;
-  background-color: #000f05;
-  color: white;
-  font-size: 16px;
-  border-radius: 10px;
-  box-shadow: 3px 3px 15px rgb(7, 0, 0);
-  align-self: center;
-  margin-bottom: 10px;
-  transition: background-color 0.3 ease;
-}
-
-.logContainer > form > button:hover {
-  background-color: #003110;
-  box-shadow: 5px 5px 25px rgb(20, 0, 0);
-}
 
 .Title {
   font-size: 26px;

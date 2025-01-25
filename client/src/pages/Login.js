@@ -34,7 +34,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="container">
+    <div className="flex justify-center items-center my-10">
       <div className="logContainer">
         <div className="Title">
           <p>Log In</p>
@@ -54,7 +54,8 @@ export const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit" disabled={isLoading}>
+          <button type="submit" disabled={isLoading} className="bg-green-950 py-2 border-0 rounded text-white 
+          mt-4 mx-4 text-lg hover:bg-green-900">
             {isLoading ? "Logging in..." : "LOGIN"}
           </button>
         </form>
@@ -70,7 +71,7 @@ export const Login = () => {
           >
             Register
           </Link>
-      </div>
+        </div>
       </div>
     </div>
   );
