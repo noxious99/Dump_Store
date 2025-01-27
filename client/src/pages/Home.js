@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import FilterIcon from "@mui/icons-material/Filter";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import { grey } from "@mui/material/colors";
-import logoS from "../resources/imagesNicons/logoOff.png";
+import logoS from "../resources/imagesNicons/bg_img.webp";
 import "../styles/homeStyle.css";
 import { Link } from "react-router-dom";
 
@@ -28,7 +28,7 @@ export const Home = () => {
     <div>
       <div className="container">
         <div id="bgImage">
-          <img src={logoS} />
+          <img src={logoS} className="lg:min-w-[450px]"/>
         </div>
         <button className="cta-button">
           <Link to="/login">Get Started</Link>

@@ -20,16 +20,21 @@ userRoute.get("/auth", auth, async (req, res) => {
 
 // User Login
 userRoute.post("/login/", async (req, res) => {
-  const { username, password } = req.body;
+  const { logBody, password } = req.body;
 
   try {
-    let user = await User.findOne({ username });
+    let user;
+    if(!logBody.includes('@')){
+      user = await User.findOne({ username: logBody });
+    } else {
+      user = await User.findOne({ email: logBody });
+    }
     if (!user) {
-      return res.status(400).json({ err: "invalid credentials" });
+      return res.status(400).json({ err: "invalid Credentials" });
     } else {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ err: "invalid credentials" });
+        return res.status(400).json({ err: "invalid Credentials" });
       }
       const payload = {
         user: {
@@ -43,6 +48,7 @@ userRoute.post("/login/", async (req, res) => {
     }
   } catch (err) {
     res.status(400).json({ err: err });
+    console.log(err);
   }
 });
 

@@ -1,6 +1,7 @@
 const initialState = {
     isLoading: false,
     token: "",
+    error: "",
   };
   
   export const logReducer = (state = initialState, action) => {
@@ -14,11 +15,13 @@ const initialState = {
         return {
           isLoading: false,
           token: action.payload,
+          error: "",
         };
       case "LOGIN_FAILED":
         return {
           isLoading: false,
           token: action.payload,
+          error: action.payload,
         };
   
       default:

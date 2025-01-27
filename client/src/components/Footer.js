@@ -5,7 +5,7 @@ import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
 
 export const Footer = () => {
   return (
-    <div className="flex justify-around py-4 bg-[#1D1D1D] text-white shadow-xl">
+    <div className="flex justify-around py-10 lg:py-[60px] bg-[#1D1D1D] text-white shadow-xl">
       <div className="sector sector01">
         <p>
           <Link to="/policy">Our Policy</Link>

@@ -35,12 +35,13 @@ export const authReducer = (state = initialState, action) => {
         isLoading: false,
         isAuthenticated: true,
         userInfo: {
-          ...state.userInfo, // Keep existing fields (e.g., _id, avatar, etc.)
-          ...action.payload, // Overwrite only the updated fields (e.g., username, email)
+          ...state.userInfo,
+          ...action.payload,
         },
       };
     case "LOG_OUT":
       localStorage.removeItem("authToken");
+      window.location.href = "/login";
       return {
         isLoading: false,
         isAuthenticated: false,

@@ -40,13 +40,13 @@ export const Register = () => {
     console.log(user);
   };
   return (
-    <div className="flex justify-center items-center my-10">
-      <div className="flex flex-col items-center text-white">
+    <div className="flex justify-center items-center my-10 lg:my-[70px]">
+      <div className="flex flex-col items-center text-white lg:bg-black lg:py-8 lg:rounded-md">
         <div className="text-2xl">
           <p>Register</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 items-center bg-[#1D1D1D] 
-        px-4 py-6 rounded min-w-[300px] lg:min-w-[450px] my-5">
+        px-4 py-6 rounded lg:rounded-none min-w-[300px] lg:min-w-[450px] my-5">
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
               <p><FaUserShield className="text-xl p-0 m-0" /></p><label className="text-md">Username:</label>
@@ -73,7 +73,7 @@ export const Register = () => {
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><RiLockPasswordFill className="text-xl p-0 m-0"/></p><label className="text-md">Password:</label>
+              <p><RiLockPasswordFill className="text-xl p-0 m-0" /></p><label className="text-md">Password:</label>
             </div>
             <input
               type="text"
@@ -85,7 +85,7 @@ export const Register = () => {
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><MdOutlinePassword className="text-xl p-0 m-0"/></p><label className="text-md">Confirm Password:</label>
+              <p><MdOutlinePassword className="text-xl p-0 m-0" /></p><label className="text-md">Confirm Password:</label>
             </div>
             <input
               type="text"
