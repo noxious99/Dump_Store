@@ -54,3 +54,14 @@ solution.
 *2. Install dependencies:*
 
 ```npm install```
+
+*3. Run frontend:*
+
+```cd client```
+```npm start```
+
+*4. Run backend:*
+
+```cd server```
+```nodemon server```
+
