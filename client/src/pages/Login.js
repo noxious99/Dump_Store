@@ -36,7 +36,6 @@ export const Login = () => {
     if (authenticated) {
       navigate("/Profile");
     }
-    console.log(authenticated);
   }, [authenticated, navigate, loginError]);
 
 
@@ -67,7 +66,7 @@ export const Login = () => {
               placeholder="Enter your username or email"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error && error.includes("email") ? <div className="text-red-600 text-lg text-center">{error}</div> : null}
+            {error && error.includes("email") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
@@ -83,7 +82,7 @@ export const Login = () => {
               placeholder="Enter your password"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error && error.includes("password") ? <div className="text-red-600 text-lg text-center">{error}</div> : null}
+            {error && error.includes("password") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <button
             type="submit"

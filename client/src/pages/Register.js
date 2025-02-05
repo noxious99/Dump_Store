@@ -14,6 +14,7 @@ export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -26,18 +27,31 @@ export const Register = () => {
     if (authenticated) {
       navigate("/Profile");
     }
-    console.log(authenticated);
   }, [authenticated, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (username === "") {
+      return setError("Please enter your username");
+    }
+    if (email === "") {
+      return setError("Please enter your email");
+    }
+    if (password === "") {
+      return setError("Please enter your password");
+    }
+    if (confirmPassword === "") {
+      return setError("Passwords do not match");
+    }
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match");
+    }
     const user = {
       username: username,
       email: email,
       password: password,
     };
     dispatch(regAction(user));
-    console.log(user);
   };
   return (
     <div className="flex justify-center items-center my-10 lg:my-[70px]">
@@ -58,6 +72,7 @@ export const Register = () => {
               placeholder="Enter your username"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
+            {error && error.includes("username") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
@@ -70,30 +85,33 @@ export const Register = () => {
               placeholder="Enter your Email"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
+            {error && error.includes("email") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
               <p><RiLockPasswordFill className="text-xl p-0 m-0" /></p><label className="text-md">Password:</label>
             </div>
             <input
-              type="text"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
+            {error && error.includes("password") && !error.includes("confirm") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
               <p><MdOutlinePassword className="text-xl p-0 m-0" /></p><label className="text-md">Confirm Password:</label>
             </div>
             <input
-              type="text"
-              value={password}
+              type="password"
+              value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
+            {error && error.includes("match") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
           </div>
           <button type="submit" disabled={isLoading} className="bg-green-950 py-3 border-0 rounded w-full lg:w-[96%] 
                                                   text-white mt-2 mx-4 text-md lg:text-lg hover:bg-green-900">

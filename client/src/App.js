@@ -16,6 +16,7 @@ import { PostDetails } from "./pages/PostDetails";
 import { Chat } from "@mui/icons-material";
 import { Goal } from "./pages/Goal";
 import { GoalDetails } from "./pages/GoalDetails";
+import Faq from "./pages/Faq";
 
 function App() {
   const dispatch = useDispatch();
@@ -33,6 +34,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/faq" element={<Faq />} />
             <Route path="/Buddies/:username" element={<Buddies />} />
             <Route path="/EditProfile/:id" element={<EditProfile />} />
             <Route path="/GoalDetails/:id" element={<GoalDetails />} />

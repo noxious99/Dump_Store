@@ -28,7 +28,7 @@ export const Home = () => {
     <div>
       <div className="container">
         <div id="bgImage">
-          <img src={logoS} className="lg:min-w-[450px]"/>
+          <img src={logoS} className="lg:min-w-[550px]"/>
         </div>
         <button className="cta-button">
           <Link to="/login">Get Started</Link>
