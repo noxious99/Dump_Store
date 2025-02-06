@@ -27,8 +27,8 @@ const Faq = () => {
     ]
     return (
         <div className='flex-col justify-center items-center mb-10 md:mb-[80px]'>
-            <p className='text-gray-300 text-[60px] my-2 md:my-5 self-start px-5 md:px-10'> FAQ </p>
-            <div className='md:flex md:flex-wrap md:justify-center md:gap-8'>
+            <p className='text-gray-300 text-[60px] md:mt-5 md:mb-5 mb-5 self-start px-5 md:px-10'> FAQ </p>
+            <div className='md:flex md:flex-wrap md:justify-center md:gap-8 '>
                 {questionArray.map((element, index) => (
                     <div key={index} className='bg-[#1D1D1D] px-5 py-4 shadow-lg shadow-red-900/15 mb-5 md:w-[380px] md:rounded-lg'>
                         <div className='flex items-center gap-5  mb-1'>
