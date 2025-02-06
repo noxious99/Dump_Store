@@ -11,7 +11,8 @@ export const Login = () => {
   const [userLogBody, setUserLogBody] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  
+  const [showPassword, setShowPassword] = useState(false)
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -66,7 +67,7 @@ export const Login = () => {
               placeholder="Enter your username or email"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error && error.includes("email") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
+            {error && error.includes("email") ? <div className="text-red-600 text-sm text-center mt-1">{error}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
@@ -76,13 +77,16 @@ export const Login = () => {
               <label className="text-md">Password:</label>
             </div>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error && error.includes("password") ? <div className="text-red-600 text-md text-center">{error}</div> : null}
+            <div className="flex gap-2 items-center self-start mt-1"><input type="checkbox" id="checkbox" class="checkbox" onChange={() => setShowPassword(!showPassword)} />
+              <span className="text-sm">show password</span>
+            </div>
+            {error && error.includes("password") ? <div className="text-red-600 text-sm text-center">{error}</div> : null}
           </div>
           <button
             type="submit"
