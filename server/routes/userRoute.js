@@ -2,6 +2,7 @@ const express = require("express");
 const userRoute = express.Router();
 const User = require("../Schemas/userSchema");
 const gravatar = require("gravatar");
+const emailValidator = require("email-validator")
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
@@ -30,11 +31,11 @@ userRoute.post("/login/", async (req, res) => {
       user = await User.findOne({ email: logBody });
     }
     if (!user) {
-      return res.status(400).json({ err: "invalid Credentials" });
+      return res.status(400).json({ err: "Invalid Credentials" });
     } else {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ err: "invalid Credentials" });
+        return res.status(400).json({ err: "Invalid Credentials" });
       }
       const payload = {
         user: {
@@ -56,9 +57,17 @@ userRoute.post("/login/", async (req, res) => {
 userRoute.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
+    let userNameExist = await User.findOne({ username })
+    if(userNameExist) {
+      return res.status(400).json({ err: "username already exist, try a different one" });
+    }
+    let validate = emailValidator.validate(email)
+    if(!validate) {
+      return res.status(400).json({ err: "Invalid email address. Please provide a valid email." });
+    }
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ err: { mssg: "User Already Exist!!" } });
+      return res.status(400).json({ err: "A user with this email address already exists. Please use a different email." });
     } else {
       const avatar = gravatar.url(
         email,

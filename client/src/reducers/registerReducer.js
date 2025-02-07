@@ -1,6 +1,7 @@
 const initialState = {
   isLoading: false,
   token: "",
+  error: ""
 };
 
 export const regReducer = (state = initialState, action) => {
@@ -19,6 +20,7 @@ export const regReducer = (state = initialState, action) => {
       return {
         isLoading: false,
         token: action.payload,
+        error: action.payload
       };
 
     default:

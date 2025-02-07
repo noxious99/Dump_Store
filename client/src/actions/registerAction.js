@@ -16,6 +16,6 @@ export const regAction = (userData) => async (dispatch) => {
     dispatch({ type: "REGISTER_SUCCESS", payload: response.data });
     dispatch({ type: "AUTH_SUCCESS"});
   } catch (error) {
-    dispatch({ type: "REGISTER_FAILED", payload: error.message });
+    dispatch({ type: "REGISTER_FAILED", payload: error.response.data.err });
   }
 };

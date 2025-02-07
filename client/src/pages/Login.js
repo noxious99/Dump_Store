@@ -6,6 +6,7 @@ import { authAction } from "../actions/authAction";
 import "../styles/logStyle.css";
 import { FaUserShield } from "react-icons/fa6";
 import { RiLockPasswordFill } from "react-icons/ri";
+import { MdError } from "react-icons/md";
 
 export const Login = () => {
   const [userLogBody, setUserLogBody] = useState("");
@@ -44,9 +45,10 @@ export const Login = () => {
     <div className="flex justify-center items-center my-10 lg:my-[70px]">
       <div className="flex flex-col items-center text-white lg:bg-black lg:py-8 lg:rounded-md">
         {loginError ? (
-          <div className="text-red-600 text-xl text-center">{loginError}</div>
+          <div style={{border: '1px solid red'}} className="text-red-600 text-lg text-center bg-[#1d1d1d] py-2 lg:mx-5 w-full lg:max-w-[calc(100%-60px)] rounded mb-2">{loginError}</div>
         ) : null}
-        <div className="text-2xl">
+        <div className="flex items-center gap-2 text-2xl">
+          {error || loginError ? <MdError className="text-red-600 text-[40px]" /> : null} 
           <p>Log In</p>
         </div>
         <form
@@ -83,7 +85,7 @@ export const Login = () => {
               placeholder="Enter your password"
               className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            <div className="flex gap-2 items-center self-start mt-1"><input type="checkbox" id="checkbox" class="checkbox" onChange={() => setShowPassword(!showPassword)} />
+            <div className="flex gap-2 items-center self-start mt-2 ml-2"><input type="checkbox" id="checkbox" class="checkbox" onChange={() => setShowPassword(!showPassword)} />
               <span className="text-sm">show password</span>
             </div>
             {error && error.includes("password") ? <div className="text-red-600 text-sm text-center">{error}</div> : null}
