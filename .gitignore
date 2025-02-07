@@ -2,12 +2,10 @@
 /client/node_modules/
 /server/node_modules/
 
-.env
-.env.*
-client/.env
-client/.env.*
-server/.env
-server/.env.*
+
+/client/.env.production
+/client/.env.development
+/server/.env
 
 
 !env.example
