@@ -28,7 +28,7 @@ function App() {
   const user = useSelector((state) => state.auth.userInfo);
 
   return (
-    <div className="App box-border max-w-[1920px] flex justify-center mx-auto min-w-[360px]">
+    <div className="App box-border max-w-[2160px] flex justify-center mx-auto min-w-[360px]">
       <BrowserRouter>
         <Navbar />
         <main>

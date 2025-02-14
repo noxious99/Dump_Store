@@ -44,13 +44,10 @@ export const Register = () => {
     if (password === "") {
       newErrors.passwordError = "Please enter your password";
     }
-    if (password.length < 8) {
+    if (password.length < 8 && password !== "") {
       newErrors.passwordError = "Password must be at least 8 characters long";
     }
-    if (confirmPassword === "") {
-      newErrors.confirmPasswordError = "Please confirm your password";
-    }
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword || confirmPassword === "") {
       newErrors.passwordNotMatchedError = "Passwords do not match";
     }
 

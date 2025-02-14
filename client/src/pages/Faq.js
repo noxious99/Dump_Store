@@ -27,20 +27,23 @@ const Faq = () => {
     ]
     return (
         <div className='flex-col justify-center items-center mb-10 md:mb-[80px]'>
-            <p className='text-gray-300 text-[60px] md:mt-5 md:mb-5 mb-5 mt-3 self-start px-5 md:px-10'> FAQ </p>
+            <div className=' md:mt-10 md:mb-10 mb-8 mt-5 self-start px-5 md:px-10'>
+                <p className='text-gray-300 text-5xl'> FAQ </p>
+                <p className='text-gray-300 text-lg'>Some common questions</p>
+            </div>
             <div className='md:flex md:flex-wrap md:justify-center md:gap-8 '>
                 {questionArray.map((element, index) => (
-                    <div key={index} className='bg-[#1D1D1D] px-5 py-4 shadow-lg shadow-red-900/15 mb-5 md:w-[380px] md:rounded-lg'>
+                    <div key={index} className='bg-[#1D1D1D] px-5 py-4 shadow-lg shadow-red-900/15 mb-5 md:w-[400px] md:rounded-lg'>
                         <div className='flex items-center gap-5  mb-1'>
-                            <FaQuestionCircle className='text-red-600 text-2xl mr-2' />
-                            <p className='text-gray-200 text-lg'>{element.question}</p>
+                            <span><FaQuestionCircle className="text-red-600 w-[40px] h-[40px] md:w-[56px] md:h-[56px]" /></span>
+                            <p className='text-gray-200 text-lg mb-2'>{element.question}</p>
                         </div>
-                        <p className='text-gray-300 text-md'>{element.answer}</p>
+                        <p className='text-gray-300 text-[14px]'>{element.answer}</p>
                     </div>
                 ))}
-                <div className='bg-[#1D1D1D] px-5 py-4 shadow-lg shadow-red-900/15 mb-5 md:w-[380px] md:rounded-lg'>
+                <div className='bg-[#1D1D1D] px-5 py-4 shadow-lg shadow-red-900/15 mb-5 md:w-[400px] md:min-h-[260px] md:rounded-lg'>
                     <div className='flex items-center gap-5  mb-1'>
-                        <FaQuestionCircle className='text-red-600 text-2xl mr-2' />
+                    <span><FaQuestionCircle className="text-red-600 w-[40px] h-[40px] md:w-[56px] md:h-[56px]" /></span>
                         <p className='text-gray-200 text-lg'>6. How do I get started with Dump Store?</p>
                     </div>
                     <p className='text-gray-300 text-md'>To get started, simply click on the Get Started button on the

@@ -54,12 +54,12 @@ const SearchBar = () => {
             placeholder="Search Buddies"
             value={searchTerm}
             onChange={handleSearch}
-            className="flex-grow h-[28px] w-[112px] lg:h-[34px] md:w-[300px] bg-black border-0 py-2 px-4
+            className="flex-grow h-[20px] w-[112px] lg:h-[34px] md:w-[300px] bg-black border-0 py-2 px-4
              text-white rounded-l-md max-w-[600px] text-md lg:text-lg focus:ring-2 focus:ring-[#7e2020] focus:outline-none"
           />
           <button
             type="submit"
-            className="bg-[#7e2020] border-0 flex justify-center items-center h-[44px] lg:h-[50px] px-2 rounded-tr-2xl rounded-br-md"
+            className="bg-[#7e2020] border-0 flex justify-center items-center h-[36px] lg:h-[50px] px-2 rounded-tr-2xl rounded-br-md"
           >
             <MdOutlinePersonSearch className="text-2xl lg:text-4xl" />
           </button>
