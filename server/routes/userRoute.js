@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const userRoute = express.Router();
 const User = require("../Schemas/userSchema");
 const gravatar = require("gravatar");
@@ -16,6 +17,19 @@ userRoute.get("/auth", auth, async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(400).json({ err: err });
+  }
+});
+
+//profile info fetch
+userRoute.get("/profileinfo", auth, async (req, res) => {
+  try {
+    const userInfo = await User.findOne({_id: req.user.id}).select("username email avatar date _id");
+    if (!userInfo) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+    res.json(userInfo);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -152,6 +166,23 @@ userRoute.put("/update/:id", upload.single("avatar"), async (req, res) => {
     res.status(400).json({ err: error.message });
   }
 });
+
+// update user patch
+
+userRoute.patch("/update", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+    if(!user) {
+      return res.status(400).json({err: "user not found"})
+    }
+    const {email, username} = req.body
+    const updateUser = await User.findByIdAndUpdate(req.user.id, {email, username}, {new: true})
+    res.json(updateUser);
+  }
+  catch (err) {
+    res.status(400).json({ err: err });
+  }
+} )
 
 userRoute.get("/allUsers", async (req, res) => {
   try {
