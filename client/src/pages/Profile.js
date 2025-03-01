@@ -94,9 +94,11 @@ export const Profile = () => {
               <p className="text-gray-400 text-sm mt-[-8px] mr-[-8px]">{user.email}</p>
             </div>
             {isMobile ? (<div className="ml-2  mt-[-40px]">
-              <Link to={`/EditProfile/${user._id}`} className="flex-col items-center justify-center">
-                <FaUserEdit className="text-gray-400 mb-[-16px]" />
-                <p className="text-[10px] text-gray-400">Edit</p>
+              <Link to={`/EditProfile/${user._id}`}>
+              <span className="flex-col items-center justify-center">
+                <FaUserEdit className="text-gray-400 text-lg" />
+                <p className="text-[10px] text-gray-400 mt-[-12px]">Edit</p>
+              </span>
               </Link>
             </div>) : null}
           </div>

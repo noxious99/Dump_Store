@@ -17,6 +17,9 @@ import { Chat } from "@mui/icons-material";
 import { Goal } from "./pages/Goal";
 import { GoalDetails } from "./pages/GoalDetails";
 import Faq from "./pages/Faq";
+import MyCollection from "./pages/MyCollection";
+import ExpenseMain from "./components/ExpenseMain";
+import NotesMain from "./components/NotesMain";
 
 function App() {
   const dispatch = useDispatch();
@@ -35,15 +38,19 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/faq" element={<Faq />} />
-            <Route path="/Buddies/:username" element={<Buddies />} />
-            <Route path="/EditProfile/:id" element={<EditProfile />} />
+            <Route path="/buddies/:username" element={<Buddies />} />
+            <Route path="/editprofile/:id" element={<EditProfile />} />
             <Route path="/GoalDetails/:id" element={<GoalDetails />} />
             <Route path="/dashboard" element={<Allpost />} />
-            <Route path="/Register" element={<Register />} />
-            <Route path="/Login" element={<Login />} />
+            <Route path="/collection/*" element={<MyCollection/>} >
+              <Route path="expense" element={<ExpenseMain/>}/>
+              <Route path="notes" element={<NotesMain/>}/>
+            </Route>
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/Chat" element={<Chat />} />
             <Route path="/Goal" element={<Goal />} />
-            <Route path="/Profile" element={!user ? <Login /> : <Profile />} />
+            <Route path="/profile" element={!user ? <Login /> : <Profile />} />
             <Route
               path="/PostDetails/:id"
               element={!user ? <Login /> : <PostDetails />}

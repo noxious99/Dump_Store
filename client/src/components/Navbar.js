@@ -58,7 +58,7 @@ export const Navbar = () => {
                   <ul className="dropdown">
                     {username && (
                       <li>
-                        <p>Welcome!! {username}</p>
+                        <p className="mt-3">{username}</p>
                       </li>
                     )}
                     <li>

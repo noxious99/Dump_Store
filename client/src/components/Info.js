@@ -164,7 +164,7 @@ export const Info = ({
             {expand ? <IoMdArrowDropupCircle className="text-lg" /> : <IoMdArrowDropdownCircle className="text-lg" />}
           </div>
           {expand && (
-            <div className="flex flex-col gap-2 mt-[-20px]">
+            <div className="flex flex-col gap-5 mt-[-20px]">
               <div>Connected buddies: 0</div>
               <div>Total Post: 0</div>
               <div>Active since: 0</div>
