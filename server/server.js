@@ -7,6 +7,7 @@ const cors = require("cors");
 const userRoute = require("./routes/userRoute");
 const postRoute = require("./routes/postRoute");
 const goalRoute = require("./routes/goalRoute");
+const expenseRoute = require("./routes/expenseRoute");
 
 app = express();
 
@@ -45,3 +46,4 @@ serverConnect();
 app.use("/api/user/", userRoute);
 app.use("/api/post/", postRoute);
 app.use("/api/goal/", goalRoute);
+app.use("/api/expense/", expenseRoute);
