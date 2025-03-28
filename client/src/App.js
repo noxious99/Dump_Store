@@ -17,7 +17,7 @@ import { Chat } from "@mui/icons-material";
 import { Goal } from "./pages/Goal";
 import { GoalDetails } from "./pages/GoalDetails";
 import Faq from "./pages/Faq";
-import MyCollection from "./pages/MyCollection";
+import { MyCollection, MyCollectionWrapper }  from "./pages/MyCollection";
 import ExpenseMain from "./components/ExpenseMain";
 import NotesMain from "./components/NotesMain";
 
@@ -42,7 +42,9 @@ function App() {
             <Route path="/editprofile/:id" element={<EditProfile />} />
             <Route path="/GoalDetails/:id" element={<GoalDetails />} />
             <Route path="/dashboard" element={<Allpost />} />
+            <Route path="/collection" element={<MyCollectionWrapper/>} />
             <Route path="/collection/*" element={<MyCollection/>} >
+              {/* <Route index element={<ExpenseMain />} /> */}
               <Route path="expense" element={<ExpenseMain/>}/>
               <Route path="notes" element={<NotesMain/>}/>
             </Route>

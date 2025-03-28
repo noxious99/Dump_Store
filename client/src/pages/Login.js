@@ -36,7 +36,7 @@ export const Login = () => {
   useEffect(() => {
     dispatch(authAction());
     if (authenticated) {
-      navigate("/Profile");
+      navigate("/collection");
     }
   }, [authenticated, navigate, loginError]);
 

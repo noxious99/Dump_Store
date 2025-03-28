@@ -6,8 +6,7 @@
 /client/.env.production
 /client/.env.development
 /server/.env
+*.env
 
-
-!env.example
 !client/env.example
 !server/env.example

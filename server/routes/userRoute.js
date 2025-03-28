@@ -9,6 +9,7 @@ const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
 const cloudinary = require("../utils/cloudinary.js");
 const { upload } = require("../middleware/multerMiddleware.js");
+const forgotPassword = require("../controller/authController.js");
 
 // auth middleware
 userRoute.get("/auth", auth, async (req, res) => {
@@ -197,4 +198,5 @@ userRoute.delete("/", (req, res) => {
   res.send("user delete route");
 });
 
+userRoute.post("/forgotpassword", forgotPassword)
 module.exports = userRoute;

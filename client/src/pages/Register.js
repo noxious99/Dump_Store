@@ -27,7 +27,7 @@ export const Register = () => {
   useEffect(() => {
     dispatch(authAction());
     if (authenticated) {
-      navigate("/Profile");
+      navigate("/collection");
     }
   }, [authenticated, navigate, regError]);
 

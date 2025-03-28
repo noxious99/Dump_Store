@@ -11,13 +11,13 @@ const ExpenseMain = () => {
   }
   return (
     <>
-      <div className='w-[100%]'>
-        <span className="flex gap-5 items-start">
-          <button onClick={() => handleExpenseOption(1)} className="flex items-center px-4 py-2 bg-black text-gray-200 rounded gap-2   hover:bg-gray-800 hover:scale-[1.02]">
-            <GiPayMoney className="text-3xl" /> Log Expense
+      <div className='w-[100%] mb-12'>
+        <span className="flex gap-5 justify-between lg:justify-start lg:items-start">
+          <button onClick={() => handleExpenseOption(1)} className={`flex items-center px-3 py-3 lg:px-4 lg:py-2 ${showComponent == 1 ? 'bg-gray-800' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-gray-800 hover:scale-[1.02] `}>
+            <GiPayMoney className="text-xl lg:text-3xl" /> <p className='text-sm lg:text-lg'>Log Expense</p>
           </button>
-          <button onClick={() => handleExpenseOption(2)} className="flex items-center px-4 py-2 bg-black text-gray-200 rounded gap-2 transition-all duration-300 hover:bg-gray-800 hover:scale-[1.02]">
-            <FaRegHandshake className="text-3xl" /> Log Debt/Owe
+          <button onClick={() => handleExpenseOption(2)} className={`flex items-center px-3 py-3 lg:px-4 lg:py-2 ${showComponent != 1 ? 'bg-gray-800' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-gray-800 hover:scale-[1.02] `}>
+            <FaRegHandshake className="text-xl lg:text-3xl" /> <p className='text-sm lg:text-lg'>Log Debt/Owe</p>
           </button>
         </span>
         <div className='w-[100%] h-[2px] bg-[#6B7274] my-5'></div>
