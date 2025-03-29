@@ -5,7 +5,7 @@
 
 /client/.env.production
 /client/.env.development
-/server/.env
+server/.env
 *.env
 
 !client/env.example
