@@ -32,9 +32,10 @@ const ExpenseDetails = () => {
       try {
         const res = await axiosInstance.get(`api/expense/getsummary/monthly/${currentMonth + 1}/${new Date().getFullYear()}`);
         if (res.status == 200) {
-          setIncome(res.data.totalIncome)
-          setExpense(res.data.totalExpense)
-          setBalance(res.data.balance)
+      
+        if (res.data.totalIncome !== undefined)  setIncome(res.data.totalIncome)
+        if (res.data.totalExpense !== undefined)  setExpense(res.data.totalExpense)
+        setBalance(res.data.balance)
         }
       } catch (error) {
         console.log(error.err)
@@ -82,6 +83,8 @@ const ExpenseDetails = () => {
       setShowPopupIncome(false);
     }
   }
+  
+  console.log("hello : ", expense)
 
   const handleNextMonth = () => {
     setCurrentMonth((prev) => (prev + 1) % 12);
