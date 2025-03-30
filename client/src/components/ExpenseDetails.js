@@ -95,35 +95,35 @@ const ExpenseDetails = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-3 lg:justify-between text-lg lg:items-center">
+      <div className="flex flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-between text-lg lg:items-center">
 
-        <span className="flex gap-3 lg:items-center justify-between lg:mr-4">
-          <span className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-red-700 rounded">
-            <MdMoneyOff className="text-2xl" />
-            <button className="text-sm lg:text-lg" onClick={() => setShowPopupExpense(true)}> Add Expense </button>
+        <span className="flex gap-4 lg:items-center justify-between lg:mr-4">
+          <span className="flex w-[104px] lg:w-[135px] items-center justify-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-red-700 rounded">
+            <MdMoneyOff className="text-xl lg:text-2xl" />
+            <button className="text-xs lg:text-base" onClick={() => setShowPopupExpense(true)}> Add Expense </button>
           </span>
-          <span className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-green-700 rounded">
-            <GiReceiveMoney className="text-2xl" />
-            <button className="text-sm lg:text-lg" onClick={() => setShowPopupIncome(true)}> Add Income </button>
+          <span className="flex w-[104px] lg:w-[135px] justify-center items-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-green-700 rounded">
+            <GiReceiveMoney className="text-xl lg:text-2xl" />
+            <button className="text-xs lg:text-base" onClick={() => setShowPopupIncome(true)}> Add Income </button>
           </span>
         </span>
 
 
         <span className="flex flex-col lg:flex-row lg:gap-3 lg:items-center lg:ml-4">
-          <div className="flex items-center rounded-lg gap-3 justify-between lg:mr-4 mb-2 mt-2 lg:mb-0 lg:mt-0">
-            <button onClick={handlePrevMonth} className="text-5xl lg:text-2xl p-1 rounded-full">
+          <div className="flex items-center rounded-lg gap-3 justify-between lg:mr-4 mb-1 mt-1 lg:mb-0 lg:mt-0">
+            <button onClick={handlePrevMonth} className="text-3xl lg:text-2xl p-1 rounded-full">
               <GoTriangleLeft />
             </button>
-            <div className="text-xl lg:text-lg font-semibold">
+            <div className="text-lg font-semibold">
               <span>{months[currentMonth]}</span>
             </div>
-            <button onClick={handleNextMonth} className="text-5xl lg:text-2xl p-1 rounded-full">
+            <button onClick={handleNextMonth} className="text-3xl lg:text-2xl p-1 rounded-full">
               <GoTriangleRight />
             </button>
           </div>
 
           <span className="flex gap-2 items-center justify-evenly">
-            <MdOutlineWorkHistory className="text-5xl lg:text-4xl" />
+            <MdOutlineWorkHistory className="text-4xl lg:text-4xl" />
             <span className="flex flex-col lg:flex-row gap-1 text-sm lg:text-lg lg:items-center">Expense: <p className="text-red-400 text-base lg:text-xl font-semibold"> {expense} </p></span>
             <span className="flex flex-col lg:flex-row gap-1 text-sm lg:text-lg lg:items-center">Income: <p className="text-green-400 text-base lg:text-xl font-semibold"> {income} </p></span>
             <span className="flex flex-col lg:flex-row gap-1 text-sm lg:text-lg lg:items-center">Balance: <p className={`${balance > 0 ? 'text-green-400' : 'text-red-400'} text-base lg:text-xl font-semibold`}> {balance} </p></span>
@@ -131,7 +131,7 @@ const ExpenseDetails = () => {
         </span>
       </div>
 
-      <div className="w-[100%] h-[1px] bg-[#6B7274] my-5"></div>
+      <div className="w-[100%] h-[1px] bg-[#6B7274] my-2 lg:my-5"></div>
 
       {expanseList && expanseList.length > 0 ? (
         <div className="flex flex-col gap-2">

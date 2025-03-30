@@ -18,7 +18,7 @@ const MyCollection = () => {
     }, [])
     return (
         <>
-            <div className='flex flex-col lg:flex-row gap-0 lg:gap-10'>
+            <div className='flex flex-col max-w-[96vw] lg:flex-row gap-0 lg:gap-10'>
                 {!isLargeScreen && <div className='relative top-0 flex justify-center gap-6 mt-4'>
                     <Link to="./expense"> <button className={`flex w-[65px] flex-col gap-1 items-center text-gray-200 text-[9px] ${location.pathname === "/collection/expense" ? "bg-red-600 text-gray-100" : "bg-red-900 text-gray-200"} rounded-sm py-1`}>
                         <TbCoinTaka className='text-base' /> Expenses

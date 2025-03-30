@@ -1,13 +1,18 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 
-const postSchema = new schema(
+const noteSchema = new schema(
     {
         title: {type: String, required: true},
         content: {type: Object, required: true},
         author: {
             type: schema.Types.ObjectId,
             ref: 'users'
+        },
+        type: {
+            type: String,
+            enum: ['daily', 'permanent'],
+            required: true
         },
         createdAt: {
             type: Date,
@@ -20,4 +25,4 @@ const postSchema = new schema(
     }
 )
 
-module.exports = mongoose.model('Post', postSchema)
+module.exports = mongoose.model('Note', noteSchema)

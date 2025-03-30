@@ -8,6 +8,7 @@ const userRoute = require("./routes/userRoute");
 const postRoute = require("./routes/postRoute");
 const goalRoute = require("./routes/goalRoute");
 const expenseRoute = require("./routes/expenseRoute");
+const noteRoute = require("./routes/noteRoute");
 
 app = express();
 
@@ -47,3 +48,4 @@ app.use("/api/user/", userRoute);
 app.use("/api/post/", postRoute);
 app.use("/api/goal/", goalRoute);
 app.use("/api/expense/", expenseRoute);
+app.use("/api/note/", noteRoute);
