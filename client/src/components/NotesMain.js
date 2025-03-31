@@ -57,7 +57,7 @@ const NotesMain = () => {
     <div className="mx-auto mb-10">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {/* Editor Card - First Element */}
-        <div className="bg-yellow-100 w-[300px] p-4 rounded shadow-md lg:mr-10 lg:mb-5">
+        <div className="bg-yellow-100 w-[300px] p-2 lg:p-4 rounded shadow-md lg:mr-10 lg:mb-5">
           <p className='text-black text-sm lg:text-md mb-1'>Create note</p>
           <input
             type="text"
@@ -93,19 +93,23 @@ const NotesMain = () => {
 
         {notes.length > 0 ? (
           notes.map((note) => (
-<div 
-  key={note._id} 
-  className="bg-yellow-200 p-4 rounded shadow-md text-black h-48 lg:h-64 items-start relative overflow-auto" 
-  style={{
-    backgroundImage: `url('/images/text-pattern.svg')`,
-    backgroundSize: '100px 100px',
-    backgroundAttachment: 'local'
-  }}
->
-  <p className="text-xl font-semibold mb-2">{note.title}</p>
-  <div className="h-[1px] bg-black mb-2"></div>
-  <div className="ql-editor" dangerouslySetInnerHTML={{ __html: note.content }}></div>
-</div>
+            <div
+              key={note._id}
+              className="bg-yellow-200 p-4 rounded shadow-md text-black min-h-48 lg:min-h-64 items-start note-handwritten"
+            >
+              <p className="text-xl font-semibold mb-2">{note.title}</p>
+              <div className="h-[1px] bg-black mb-2"></div>
+              <div
+                className="min-h-[86%]"
+                style={{
+                  backgroundImage: `url('/images/text-pattern.svg')`,
+                  backgroundSize: '90px 92px',
+                  backgroundAttachment: 'local'
+                }}
+              >
+                <div className="ql-editor p-2 text-base lg:text-lg overflow-visible" dangerouslySetInnerHTML={{ __html: note.content }} ></div>
+              </div>
+            </div>
           ))
         ) : (
           <div className="bg-gray-100 p-4 rounded shadow-md flex items-center justify-center">
