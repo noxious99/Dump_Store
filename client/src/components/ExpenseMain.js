@@ -13,10 +13,10 @@ const ExpenseMain = () => {
     <>
       <div className='w-[100%] mb-12'>
         <span className="flex lg:gap-4 justify-between lg:justify-start lg:items-start">
-          <button onClick={() => handleExpenseOption(1)} className={`flex w-[128px] lg:w-[190px] justify-center items-center px-2 py-2 lg:px-4 lg:py-3 ${showComponent == 1 ? 'bg-gray-800' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-gray-800 hover:scale-[1.02] `}>
+          <button onClick={() => handleExpenseOption(1)} className={`flex w-[128px] h-[38px] lg:h-[44px] lg:w-[190px] justify-center items-center px-2 py-2 lg:px-4 lg:py-3 ${showComponent == 1 ? 'bg-[#7E2020] ring-1 ring-red-600 bg-opacity-55' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-[#7E2020] hover:bg-opacity-60 hover:scale-[1.02] `}>
             <GiPayMoney className="text-xl lg:text-2xl" /> <p className='text-xs lg:text-base'>Log Expense</p>
           </button>
-          <button onClick={() => handleExpenseOption(2)} className={`flex w-[128px] lg:w-[190px] justify-center items-center px-2 py-2 lg:px-4 lg:py-3 ${showComponent != 1 ? 'bg-gray-800' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-gray-800 hover:scale-[1.02] `}>
+          <button onClick={() => handleExpenseOption(2)} className={`flex w-[128px] h-[38px] lg:h-[44px] lg:w-[190px] justify-center items-center px-2 py-2 lg:px-4 lg:py-3 ${showComponent != 1 ? 'bg-[#7E2020] ring-1 ring-red-600 bg-opacity-55' : 'bg-black'} text-gray-200 rounded gap-2   hover:bg-[#7E2020] hover:bg-opacity-60 hover:scale-[1.02] `}>
             <FaRegHandshake className="text-xl lg:text-2xl" /> <p className='text-xs lg:text-base'>Log Debt/Owe</p>
           </button>
         </span>

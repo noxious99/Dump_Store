@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import CollectionNavigator from '../components/CollectionNavigator'
 import { Link, Outlet, Navigate, useLocation  } from 'react-router-dom'
-import { TbCoinTaka } from "react-icons/tb";
+import { TbBoxPadding, TbCoinTaka } from "react-icons/tb";
 import { GrNotes } from "react-icons/gr";
 import { GiStairsGoal } from "react-icons/gi";
 
@@ -18,8 +18,8 @@ const MyCollection = () => {
     }, [])
     return (
         <>
-            <div className='flex flex-col max-w-[96vw] lg:flex-row gap-0 lg:gap-10'>
-                {!isLargeScreen && <div className='relative top-0 flex justify-center gap-6 mt-4'>
+            <div className='flex flex-col max-w-[100vw] lg:flex-row gap-0 lg:gap-10'>
+                {!isLargeScreen && <div className='relative top-0 flex justify-between mt-4 mx-2'>
                     <Link to="./expense"> <button className={`flex w-[65px] flex-col gap-1 items-center text-gray-200 text-[9px] ${location.pathname === "/collection/expense" ? "bg-red-600 text-gray-100" : "bg-red-900 text-gray-200"} rounded-sm py-1`}>
                         <TbCoinTaka className='text-base' /> Expenses
                     </button> </Link>
@@ -34,8 +34,8 @@ const MyCollection = () => {
                     <CollectionNavigator />
                 </div>
                 }
-                <div className='w-full flex justify-center text-gray-200 text-md mx-2 mt-4 lg:mt-10 lg:mx-10'>
-                    <Outlet />
+                <div className='w-full box-border px-2 flex justify-center text-gray-200 text-md mt-4 lg:mt-10 lg:mx-10'>
+                    <Outlet/>
                 </div>
             </div>
         </>

@@ -37,7 +37,9 @@ const getMonthlyExpenses = async (req, res) => {
     const year = parseInt(req.params.year);
     try {
         const expenses = await Expense.find({ userId, month, year }).sort({ createdAt: -1 });
-        return res.status(200).json(expenses);
+        const incomes = await Income.find({ userId, month, year }).sort({ createdAt: -1 });
+        const logs = [...expenses, ...incomes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return res.status(200).json(logs);
     } catch (err) {
         res.status(500).json({ err: err.message || "Internal Server Error" });
     }

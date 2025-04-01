@@ -32,10 +32,19 @@ const ExpenseDetails = () => {
       try {
         const res = await axiosInstance.get(`api/expense/getsummary/monthly/${currentMonth + 1}/${new Date().getFullYear()}`);
         if (res.status == 200) {
-      
-        if (res.data.totalIncome !== undefined)  setIncome(res.data.totalIncome)
-        if (res.data.totalExpense !== undefined)  setExpense(res.data.totalExpense)
-        setBalance(res.data.balance)
+
+          if (res.data.totalIncome !== undefined) {
+            setIncome(res.data.totalIncome)
+          }
+          else {
+            setIncome(0)
+          }
+          if (res.data.totalExpense !== undefined) {
+            setExpense(res.data.totalExpense)
+          } else {
+            setExpense(0)
+          }
+          setBalance(res.data.balance)
         }
       } catch (error) {
         console.log(error.err)
@@ -83,7 +92,7 @@ const ExpenseDetails = () => {
       setShowPopupIncome(false);
     }
   }
-  
+
   console.log("hello : ", expense)
 
   const handleNextMonth = () => {
@@ -98,11 +107,11 @@ const ExpenseDetails = () => {
       <div className="flex flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-between text-lg lg:items-center">
 
         <span className="flex gap-4 lg:items-center justify-between lg:mr-4">
-          <span className="flex w-[104px] lg:w-[135px] items-center justify-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-red-700 rounded">
+          <span className="flex w-[104px] h-[22px] lg:h-[28px] lg:w-[135px] items-center justify-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-red-700 rounded bg-opacity-30 hover:bg-opacity-60 hover:ring-1 active:ring-1 ring-red-500">
             <MdMoneyOff className="text-xl lg:text-2xl" />
             <button className="text-xs lg:text-base" onClick={() => setShowPopupExpense(true)}> Add Expense </button>
           </span>
-          <span className="flex w-[104px] lg:w-[135px] justify-center items-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-green-700 rounded">
+          <span className="flex w-[104px] h-[22px] lg:h-[28px] lg:w-[135px] justify-center items-center gap-1 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-green-600 rounded bg-opacity-40 hover:bg-opacity-60 hover:ring-1 ring-green-500">
             <GiReceiveMoney className="text-xl lg:text-2xl" />
             <button className="text-xs lg:text-base" onClick={() => setShowPopupIncome(true)}> Add Income </button>
           </span>
@@ -145,10 +154,10 @@ const ExpenseDetails = () => {
                   <span>{months[currentMonth].slice(0, 3)}</span>
                   <span>{expense.date}</span>
                 </span>
-                <span className="capitalize text-gray-300">{expense.category}</span>
+                <span className="capitalize text-gray-300">{expense.hasOwnProperty("category") ? expense.category : expense.source}</span>
               </div>
 
-              <span className="text-red-400 text-lg font-semibold">
+              <span className={`${expense.hasOwnProperty("category") ? 'text-red-400' : 'text-green-400'} text-lg font-semibold`}>
                 ৳{expense.amount}
               </span>
             </div>

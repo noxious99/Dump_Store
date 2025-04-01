@@ -48,10 +48,11 @@ const AddMonthlyIncomeComponent = ({handlePopupIncomeDialog, addIncome}) => {
                             className="px-2 py-4 border rounded text-gray-200 bg-black"
                         >
                             <option value="">Select a source</option>
-                            <option value="travel">Salary</option>
-                            <option value="travel">Investments</option>
-                            <option value="travel">Bonus</option>
-                            <option value="miscellaneous">Miscellaneous</option>
+                            <option value="Salary">Salary</option>
+                            <option value="Investment">Investments</option>
+                            <option value="Bonus">Bonus</option>
+                            <option value="Gift">Gift</option>
+                            <option value="Miscellaneous">Miscellaneous</option>
                         </select>
                         {selectedOption && <p>You selected: {selectedOption}</p>}
                         <button
