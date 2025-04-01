@@ -21,7 +21,7 @@ const ExpenseDetails = () => {
     const getMonthlyExpenseSummary = async () => {
       try {
         const res = await axiosInstance.get(`api/expense/getexpense/monthly/${currentMonth + 1}/${new Date().getFullYear()}`);
-        if (res.status == 200) {
+        if (res.status === 200) {
           setExpenseList(res.data);
         }
       } catch (error) {
@@ -31,7 +31,7 @@ const ExpenseDetails = () => {
     const getMonthlySummary = async () => {
       try {
         const res = await axiosInstance.get(`api/expense/getsummary/monthly/${currentMonth + 1}/${new Date().getFullYear()}`);
-        if (res.status == 200) {
+        if (res.status === 200) {
 
           if (res.data.totalIncome !== undefined) {
             setIncome(res.data.totalIncome)
