@@ -5,6 +5,7 @@ import axiosInstance from "../utils/axiosInstance";
 import '../styles/qlEditor.css';
 import { MdNoteAdd } from "react-icons/md";
 import { FaRegWindowClose } from "react-icons/fa";
+import { MdDeleteForever } from "react-icons/md";
 
 const NotesMain = () => {
   const [value, setValue] = useState('');
@@ -14,7 +15,8 @@ const NotesMain = () => {
   const [maxNotes, setMaxNotes] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [showDeleteDialouge, setShowDeleteDialouge] = useState(false);
+  const [noteToBeDeleted, setNoteToBeDeleted] = useState([]);
   const modules = {
     toolbar: [
       ["italic", "underline", "strike"],
@@ -24,6 +26,27 @@ const NotesMain = () => {
     ]
   }
 
+  const handleDeleteDialouge = async (title, id) => {
+    const toBeDeleted = [title, id]
+    setShowDeleteDialouge(true);
+    setNoteToBeDeleted(toBeDeleted);
+  }
+  const handleNoteDelete = async (noteId) => {
+    try {
+      setIsLoading(true);
+      const res = await axiosInstance.delete(`/api/note/delete/${noteId}`);
+      if (res.status === 200) {
+        const updatedNotes = notes.filter(note => note._id !== noteId);
+        setNotes(updatedNotes);
+        setShowDeleteDialouge(false);
+        setNoteToBeDeleted(null);
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error.err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
@@ -76,7 +99,7 @@ const NotesMain = () => {
     <div className="w-full mb-10">
 
       <span disabled={maxNotes} onClick={() => !maxNotes && setShowPopupNoteEditor(true)}
-      className=" flex w-[104px] h-[22px] lg:h-[28px] lg:w-[135px] items-center justify-center gap-1 mt-4 lg:mt-0 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2
+        className=" flex w-[104px] h-[22px] lg:h-[28px] lg:w-[135px] items-center justify-center gap-1 mt-4 lg:mt-0 lg:gap-2 px-3 py-2 lg:px-4 lg:py-2
        bg-red-700 rounded bg-opacity-30 hover:bg-opacity-60 hover:ring-1 active:ring-1 ring-red-500">
         <MdNoteAdd className="text-xl lg:text-2xl" />
         <button disabled={maxNotes} className="text-xs lg:text-base"> Take Note </button>
@@ -91,8 +114,15 @@ const NotesMain = () => {
               key={note._id}
               className="bg-yellow-200 p-4 rounded shadow-md text-black min-w-[90%] min-h-[200px] lg:min-w-[250px] lg:max-w-[400px] items-start note-handwritten"
             >
-              <p className="text-xl font-semibold mb-1">{note.title}</p>
-              <p className="text-xs text-gray-700">{new Date(note.createdAt).toLocaleDateString('en-GB')}</p>
+              <div className='flex justify-between items-center mb-2'>
+                <span>
+                  <p className="text-xl font-semibold mb-1">{note.title}</p>
+                  <p className="text-xs text-gray-700">{new Date(note.createdAt).toLocaleDateString('en-GB')}</p>
+                </span>
+                <span>
+                  <button onClick={() => handleDeleteDialouge(note.title, note._id)} className='text-2xl text-red-700'><MdDeleteForever /></button>
+                </span>
+              </div>
               <div className="h-[1px] bg-black mb-2"></div>
               <div
                 className="min-h-[86%]"
@@ -112,6 +142,27 @@ const NotesMain = () => {
           </div>
         )}
       </div>
+      {showDeleteDialouge && (
+        <div className="fixed flex-col inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className='bg-[#1d1d1d] box-border min-w-[300px] px-7 py-7 justify-center rounded flex flex-col items-center'>
+            <div className='flex gap-1 items-center mb-3'>
+              <p>Delete note</p>
+              <p className='font-semibold underline underline-offset-1'>{noteToBeDeleted[0].length > 8 ? noteToBeDeleted[0].split(0, 7) + '..' + '?' : noteToBeDeleted[0] + '?'}</p>
+            </div>
+            <div className='flex gap-5 mt-2 items-center'>
+              <button disabled={isLoading} onClick={() => handleNoteDelete(noteToBeDeleted[1])}
+              className={`w-[90px] text-base text-gray-200 px-3 py-2 rounded ${isLoading ? 'bg-red-700' : 'bg-black'} hover:bg-red-700 transition-all duration-300`}>
+                {isLoading ? '...' : 'Delete'}
+              </button>
+              <button onClick={() => setShowDeleteDialouge(false)}
+              className='w-[90px] text-base text-gray-200 px-3 py-2 rounded bg-black hover:bg-gray-200 hover:text-black transition-all duration-300'>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+      }
 
       {showPopupNoteEditor && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
