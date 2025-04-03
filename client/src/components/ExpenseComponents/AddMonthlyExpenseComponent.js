@@ -17,8 +17,8 @@ const AddMonthlyExpenseComponent = ({ addExpense, handlePopupExpenseDialog }) =>
 
     const sanitizeInput = (input) => {
         const allowedChars = input.replace(/[^0-9+\-*/().\s]/g, '')
-        const trailRemoved = allowedChars.replace(/^[+\-*/]+|[+\-*/]+$/g, '');
-        const cleanVal = trailRemoved.replace(/(\+\+|\--|\*\*|\/\/|\+\-|\-\+|\*-|\*+|\-+)+/g, '+')
+        const cleanVal = allowedChars.replace(/^[+\-*/]+|[+\-*/]+$/g, '');
+        // const cleanVal = trailRemoved.replace(/(\+\+|\--|\*\*|\/\/|\+\-|\-\+|\*-|\*+|\-+)+/g, '+')
         return cleanVal
     }
 
@@ -47,6 +47,19 @@ const AddMonthlyExpenseComponent = ({ addExpense, handlePopupExpenseDialog }) =>
             const newValue = strVal.slice(0, -1);
             setCalcValue(newValue);
         }
+        else if (digit === '+' || digit === '-') {
+            if (calcValue.length === 0) {
+                setCalcValue(digit);
+            } else {
+                const lastChar = calcValue[calcValue.length - 1];
+                if (lastChar !== '+' && lastChar !== '-') {
+                    setCalcValue(calcValue + digit);
+                } else {
+                    const newValue = calcValue.slice(0, -1) + digit;
+                    setCalcValue(newValue);
+                }
+            }
+        }
         else {
             const newValue = calcValue + digit;
             setCalcValue(newValue);
@@ -61,7 +74,7 @@ const AddMonthlyExpenseComponent = ({ addExpense, handlePopupExpenseDialog }) =>
             setError("Please enter a valid amount");
             return;
         }
-        if (result === 0) {
+        if (result <= 0) {
             setError("Please enter a value more than 0");
             return;
         } 
