@@ -93,7 +93,7 @@ export const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-green-950 py-3 border-0 rounded w-full lg:w-[96%] text-white mt-2 mx-4 text-md lg:text-lg hover:bg-green-900"
+            className="bg-green-950 py-2 rounded w-full lg:w-[96%] text-white mt-2 mx-4 text-md lg:text-md hover:bg-green-900"
           >
             {isLoading ? "Logging in..." : "LOGIN"}
           </button>

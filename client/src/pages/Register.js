@@ -129,8 +129,9 @@ export const Register = () => {
             {error.confirmPasswordError ? <div className="text-red-600 text-sm text-center">{error.confirmPasswordError}</div> : null}
             {error.passwordNotMatchedError ? <div className="text-red-600 text-sm text-center">{error.passwordNotMatchedError}</div> : null}
           </div>
-          <button type="submit" disabled={isLoading} className="bg-green-950 py-3 border-0 rounded w-full lg:w-[96%] 
-                                                  text-white mt-2 mx-4 text-md lg:text-lg hover:bg-green-900">
+          <button type="submit" disabled={isLoading} 
+          className="bg-green-950 py-2 rounded w-full lg:w-[96%] 
+                                                  text-white mt-2 mx-4 text-md lg:text-md hover:bg-green-900">
             {isLoading ? "Creating..." : "REGISTER"}
           </button>
         </form>

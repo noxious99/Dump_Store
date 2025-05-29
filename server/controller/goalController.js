@@ -1,13 +1,14 @@
-const Goal = require("../Schemas/goalSchema");
+const Goal = require("../Schemas/goal/goalSchema");
 
 const PostGoal = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, category, targetDate } = req.body;
 
     const newGoal = await new Goal({
       title: title,
       author: req.user.id,
-      isDone: false,
+      category: category,
+      targetDate: targetDate
     });
 
     await newGoal.save();
@@ -17,7 +18,8 @@ const PostGoal = async (req, res) => {
   }
 };
 
-const GetGoalofUser = async (req, res) => {
+// get all goals of a user
+const GetGoalsOfUser = async (req, res) => {
   try {
     const id = req.user.id;
     const goals = await Goal.find({ author: id }).sort({ createdAt: -1 });
@@ -55,4 +57,4 @@ const PostObjective = async (req, res) => {
   }
 };
 
-module.exports = { PostGoal, PostObjective, GetGoalofUser, GetGoal };
+module.exports = { PostGoal, PostObjective, GetGoalsOfUser, GetGoal };

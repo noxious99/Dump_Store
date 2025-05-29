@@ -4,13 +4,13 @@ const Auth = require("../middleware/auth");
 const {
   PostGoal,
   PostObjective,
-  GetGoalofUser,
+  GetGoalsOfUser,
   GetGoal,
 } = require("../controller/goalController");
 
-goalRoute.post("/", Auth, PostGoal);
-goalRoute.get("/", Auth, GetGoalofUser);
-goalRoute.get("/:id", GetGoal);
+goalRoute.post("/create", Auth, PostGoal);
+goalRoute.get("/goals", Auth, GetGoalsOfUser);
+goalRoute.get("/goal/:id", GetGoal);
 goalRoute.post("/:id", PostObjective);
 
 module.exports = goalRoute;
