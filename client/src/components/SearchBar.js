@@ -54,7 +54,7 @@ const SearchBar = () => {
             placeholder="Search Buddies"
             value={searchTerm}
             onChange={handleSearch}
-            className="flex-grow h-[24px] w-[112px] lg:h-[28px] md:w-[300px] bg-black border-0 py-2 px-4
+            className="flex-grow h-[24px] w-[112px] lg:h-[28px] md:w-[300px] bg-dark border-0 py-2 px-4
              text-white rounded-l-md max-w-[600px] text-md focus:ring-2 focus:ring-[#7e2020] focus:outline-none"
           />
           <button

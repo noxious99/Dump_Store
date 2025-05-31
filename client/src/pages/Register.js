@@ -64,74 +64,75 @@ export const Register = () => {
   };
   return (
     <div className="flex justify-center items-center my-10 lg:my-[70px]">
-      <div className="flex flex-col items-center text-white lg:bg-black lg:py-8 lg:rounded-md">
+      <div className="flex flex-col items-center text-white lg:bg-dark lg:py-8 lg:rounded-md">
         <div className="flex items-center gap-2 text-2xl">
-          {Object.keys(error).length > 0 || regError ? <MdError className="text-red-600 text-[40px]" /> : null} 
+          {Object.keys(error).length > 0 || regError ? <MdError className="text-error text-[40px]" /> : null} 
           <p>Register</p>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6 items-center bg-[#1D1D1D] 
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 items-center bg-grey 
         px-4 py-6 rounded lg:rounded-none min-w-[300px] lg:min-w-[450px] my-5">
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><FaUserShield className="text-xl p-0 m-0" /></p><label className="text-md">Username:</label>
+              <p><FaUserShield className="text-xl p-0 m-0" /></p><label className="text-sm">Username:</label>
             </div>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
-              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-dark text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error.usernameError ? <div className="text-red-600 text-sm text-center">{error.usernameError}</div> : null}
-            {regError && regError.includes("username") ? <div className="text-red-600 text-sm text-center">{regError}</div> : null}
+            {error.usernameError ? <div className="text-error text-sm text-center">{error.usernameError}</div> : null}
+            {regError && regError.includes("username") ? <div className="text-error text-sm text-center">{regError}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><MdEmail className="text-xl p-0 m-0" /></p><label className="text-md">Email:</label>
+              <p><MdEmail className="text-xl p-0 m-0" /></p><label className="text-sm">Email:</label>
             </div>
             <input
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your Email"
-              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-dark text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error.emailError ? <div className="text-red-600 text-sm text-center">{error.emailError}</div> : null}
-            {regError && regError.includes("email") ? <div className="text-red-600 text-sm text-center">{regError}</div> : null}
+            {error.emailError ? <div className="text-error text-sm text-center">{error.emailError}</div> : null}
+            {regError && regError.includes("email") ? <div className="text-error text-sm text-center">{regError}</div> : null}
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><RiLockPasswordFill className="text-xl p-0 m-0" /></p><label className="text-md">Password:</label>
+              <p><RiLockPasswordFill className="text-xl p-0 m-0" /></p><label className="text-sm">Password:</label>
             </div>
             <input
               type={showPassword? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-dark text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error.passwordError ? <div className="text-red-600 text-sm text-center">{error.passwordError}</div> : null}
+            {error.passwordError ? <div className="text-error text-sm text-center">{error.passwordError}</div> : null}
           </div>
-          <div className="flex gap-2 items-center mt-2 self-start ml-2 md:ml-4"><input type="checkbox" id="checkbox" class="checkbox" onChange={() => setShowPassword(!showPassword)} />
+          <div className="flex gap-2 items-center mt-2 self-start ml-2 md:ml-4">
+            <input type="checkbox" id="checkbox" class="checkbox" onChange={() => setShowPassword(!showPassword)} />
             <span className="text-sm">show password</span>
           </div>
           <div className="flex flex-col items-center">
             <div className="flex flex-row gap-2 self-start items-center">
-              <p><MdOutlinePassword className="text-xl p-0 m-0" /></p><label className="text-md">Confirm Password:</label>
+              <p><MdOutlinePassword className="text-xl p-0 m-0" /></p><label className="text-sm">Confirm Password:</label>
             </div>
             <input
               type={showPassword? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
-              className="bg-black text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
+              className="bg-dark text-white border-0 px-4 py-3 min-w-[290px] lg:min-w-[400px] rounded"
             />
-            {error.confirmPasswordError ? <div className="text-red-600 text-sm text-center">{error.confirmPasswordError}</div> : null}
-            {error.passwordNotMatchedError ? <div className="text-red-600 text-sm text-center">{error.passwordNotMatchedError}</div> : null}
+            {error.confirmPasswordError ? <div className="text-error text-sm text-center">{error.confirmPasswordError}</div> : null}
+            {error.passwordNotMatchedError ? <div className="text-error text-sm text-center">{error.passwordNotMatchedError}</div> : null}
           </div>
           <button type="submit" disabled={isLoading} 
-          className="bg-green-950 py-2 rounded w-full lg:w-[96%] 
-                                                  text-white mt-2 mx-4 text-md lg:text-md hover:bg-green-900">
+          className="bg-btn-green py-2 rounded w-full lg:w-[96%] 
+                                                  text-white mt-2 mx-4 text-md lg:text-md hover:bg-btn-green-active">
             {isLoading ? "Creating..." : "REGISTER"}
           </button>
         </form>
