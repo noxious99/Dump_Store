@@ -31,14 +31,21 @@ module.exports = {
   			foregroundDark: '#0F172A',
   			heading: '#ffffff',
   			dark: '#0c0c0c',
-  			grey: '#1D1D1D',
-  			greyLite: '#f1f1fe',
-  			greyBlueLite: '#F1FAFE',
-  			error: '#db2525',
-  			error100: '#ffb5b5',
+  			grey: {
+				DEFAULT: '#1D1D1D',
+  				lite: '#F1FAFE',
+				x100: '#F1F6FE', 
+				x200: '#F1F1FE',
+			},
+  			error: {
+				DEFAULT:'#db2525',
+				x100: '#ffb5b5'
+			},
   			warning: '#F59E0B',
-  			success: '#84CC16',
-  			success100: '#dcffa3',
+  			success: {
+				DEFAULT: '#84CC16',
+  				x100: '#dcffa3',
+			},
   			btn: {
   				red: {
   					DEFAULT: '#802828',

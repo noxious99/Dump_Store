@@ -42,7 +42,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({iconColor, iconBg, heading, ti
         <Card className="w-[280px] lg:w-[320px]">
             <CardHeader>
                 <CardTitle className={`${iconBg} w-[36px] h-[36px] flex justify-center items-center rounded-full`}>
-                    <IconComponent className={`text-2xl text-${iconColor}`}/>
+                    <IconComponent className={`text-2xl ${iconColor}`}/>
                 </CardTitle>
                 <CardDescription className="text-base font-semibold text-dark">{heading}</CardDescription>
             </CardHeader>
