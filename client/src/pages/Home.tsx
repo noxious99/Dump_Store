@@ -16,30 +16,30 @@ const Home: React.FC = () => {
     const featureCardAttributes: Record<FeatureType, FeatureCardAttributes> = {
         spend: {
             lite: 'bg-primary-lite',
-            iconColor: 'primary',
+            iconColor: 'text-primary',
             heading: 'Money Spendature Tracker'
         },
         loan: {
-            lite: 'bg-error100',
-            iconColor: 'error',
+            lite: 'bg-error-x100',
+            iconColor: 'text-error',
             heading: 'Loan & Owe Tracker'
         },
         goal: {
-            lite: 'bg-success100',
-            iconColor: 'success',
+            lite: 'bg-success-x100',
+            iconColor: 'text-success',
             heading: 'Goal Tracker'
         }
     }
     const features: FeatureType[] = ['spend', 'loan', 'goal']
     return (
         <>
-            <div className="bg-greyPrimary flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-11 p-4 lg:p-12">
+            <div className="bg-grey-x100 flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-11 p-4 lg:p-12">
                 <div className="w-[400px] lg:w-[480px] flex flex-col gap-4">
-                    <div className="text-3xl text-center lg:text-left lg:text-4xl font-bold px-6 pt-4 lg:px-0 lg:pt-0">Master Your Money, Achieve Your Dreams</div>
-                    <div className="text-base text-center px-6 lg:px-0 lg:text-left">Take control of your money with FinTrack, the intuitive platform designed to
+                    <div className="text-3xl text-center lg:text-left lg:text-4xl font-bold px-6 pt-4 lg:px-0 lg:pb-8">Master Your Money, Achieve Your Dreams</div>
+                    <div className="text-base text-center px-6 lg:px-0 lg:text-left">Take control of your money with Tracero, the intuitive platform designed to
                         simplify expense tracking, loan management, and goal achievement.
                     </div>
-                    <Button className="bg-primary border-0 w-3/6 self-center lg:self-start rounded-2xl lg:w-[320px]">Get Started Now</Button>
+                    <Button variant="secondary" className="border-0 w-3/6 self-center lg:self-start rounded-2xl lg:w-[320px]">Get Started Now</Button>
                 </div>
 
                 <div className="w-[320px] lg:w-[420px] h-auto pb-6">
@@ -66,7 +66,7 @@ const Home: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-greyBlueLite flex justify-center items-center py-12 lg:pb-[120px]">
+            <div className="bg-grey-x200 flex justify-center items-center py-12 lg:pb-[120px]">
                 <div className="flex flex-col justify-center items-center lg:justify-start lg:items-start">
                     <div className="text-3xl lg:text-4xl font-semibold mb-6 lg:mb-12 px-6">Why FinTrack is Your Ideal Financial Partner</div>
                     <div className="flex flex-col gap-4 lg:gap-6 text-sm lg:text-base font-medium lg:px-6">
