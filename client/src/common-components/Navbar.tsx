@@ -17,19 +17,19 @@ const Navbar: React.FC = () => {
                     />
                 </Link>
                 <div className="hidden md:flex gap-2 ">
-                    <Button className="border-0 ">Sign In</Button>
-                    <Button className="border-0 bg-foreground text-dark hover:bg-secondary hover:text-foreground">Sign Up</Button>
+                    <Button className="border-0">Sign In</Button>
+                    <Button variant="secondary" className="border-0">Sign Up</Button>
                 </div>
 
                 <div className="md:hidden">
                     <Sheet>
                         <SheetTrigger asChild>
-                                <IoMdMenu className="text-2xl"/>
+                                <IoMdMenu className="text-2xl text-background"/>
                         </SheetTrigger>
                         <SheetContent side="right">
                                 <SheetDescription className="flex flex-col gap-6 p-6">
-                                    <Button className="border-0 w-full">Sign In</Button>
-                                    <Button variant="secondary" className="border-0 w-full text-foreground">Sign Up</Button>
+                                    <Button className="w-full">Sign In</Button>
+                                    <Button variant="secondary" className="w-full">Sign Up</Button>
                                 </SheetDescription>
                         </SheetContent>
                     </Sheet>

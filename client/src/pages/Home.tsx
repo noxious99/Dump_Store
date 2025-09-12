@@ -35,11 +35,11 @@ const Home: React.FC = () => {
         <>
             <div className="bg-grey-x100 flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-11 p-4 lg:p-12">
                 <div className="w-[400px] lg:w-[480px] flex flex-col gap-4">
-                    <div className="text-3xl text-center lg:text-left lg:text-4xl font-bold px-6 pt-4 lg:px-0 lg:pt-0">Master Your Money, Achieve Your Dreams</div>
+                    <div className="text-3xl text-center lg:text-left lg:text-4xl font-bold px-6 pt-4 lg:px-0 lg:pb-8">Master Your Money, Achieve Your Dreams</div>
                     <div className="text-base text-center px-6 lg:px-0 lg:text-left">Take control of your money with Tracero, the intuitive platform designed to
                         simplify expense tracking, loan management, and goal achievement.
                     </div>
-                    <Button variant="secondary" className="border-0 w-3/6 self-center lg:self-start rounded-2xl lg:w-[320px] text-foreground">Get Started Now</Button>
+                    <Button variant="secondary" className="border-0 w-3/6 self-center lg:self-start rounded-2xl lg:w-[320px]">Get Started Now</Button>
                 </div>
 
                 <div className="w-[320px] lg:w-[420px] h-auto pb-6">
