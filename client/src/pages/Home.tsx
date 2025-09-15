@@ -11,7 +11,6 @@ interface FeatureCardAttributes {
     heading: string;
 }
 
-
 const Home: React.FC = () => {
     const featureCardAttributes: Record<FeatureType, FeatureCardAttributes> = {
         spend: {
@@ -31,29 +30,42 @@ const Home: React.FC = () => {
         }
     }
     const features: FeatureType[] = ['spend', 'loan', 'goal']
+
     return (
         <>
-            <div className="bg-grey-x100 flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-11 p-4 lg:p-12">
-                <div className="w-[400px] lg:w-[480px] flex flex-col gap-4">
-                    <div className="text-3xl text-center lg:text-left lg:text-4xl font-bold px-6 pt-4 lg:px-0 lg:pb-8">Master Your Money, Achieve Your Dreams</div>
-                    <div className="text-base text-center px-6 lg:px-0 lg:text-left">Take control of your money with Tracero, the intuitive platform designed to
+            {/* HERO */}
+            <section className="bg-grey-x100 flex flex-col-reverse lg:flex-row items-center justify-center gap-10 px-6 lg:px-12 py-[60px] lg:py-[100px]">
+                <div className="w-full lg:w-[500px] flex flex-col gap-6 text-center lg:text-left">
+                    <h1 className="text-3xl lg:text-5xl font-bold leading-snug">
+                        Master Your Money, <br className="hidden lg:block" /> Achieve Your Dreams
+                    </h1>
+                    <p className="text-base lg:text-lg text-gray-700">
+                        Take control of your money with Tracero — the intuitive platform designed to
                         simplify expense tracking, loan management, and goal achievement.
-                    </div>
-                    <Button variant="secondary" className="border-0 w-3/6 self-center lg:self-start rounded-2xl lg:w-[320px]">Get Started Now</Button>
+                    </p>
+                    <Button
+                        variant="secondary"
+                        className="border-0 h-12 w-3/6 lg:w-[240px] self-center lg:self-start rounded-2xl text-base font-semibold"
+                    >
+                        Get Started Now
+                    </Button>
                 </div>
 
-                <div className="w-[320px] lg:w-[420px] h-auto pb-6">
+                <div className="w-[320px] lg:w-[460px] h-auto">
                     <img
                         src="/images/home_hero_image.png"
                         alt="Hero"
-                        className="w-full h-auto"
+                        className="w-full h-auto drop-shadow-md"
                     />
                 </div>
-            </div>
+            </section>
 
-            <div className="flex flex-col justify-center items-center my-8 lg:my-[60px]">
-                <div className="text-3xl font-semibold lg:text-4xl text-center px-6 pb-6 lg:pb-12">Power Your Finances, Reach Your Goals</div>
-                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* FEATURES */}
+            <section className="flex flex-col justify-center items-center py-[80px] lg:py-[120px] px-6">
+                <h2 className="text-3xl lg:text-4xl font-semibold text-center mb-10">
+                    Power Your Finances, Reach Your Goals
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {features.map((feature) => (
                         <FeatureCard
                             key={feature}
@@ -64,35 +76,32 @@ const Home: React.FC = () => {
                         />
                     ))}
                 </div>
-            </div>
+            </section>
 
-            <div className="bg-grey-x200 flex justify-center items-center py-12 lg:pb-[120px]">
-                <div className="flex flex-col justify-center items-center lg:justify-start lg:items-start">
-                    <div className="text-3xl lg:text-4xl font-semibold mb-6 lg:mb-12 px-6">Why FinTrack is Your Ideal Financial Partner</div>
-                    <div className="flex flex-col gap-4 lg:gap-6 text-sm lg:text-base font-medium lg:px-6">
-                        <div className="flex gap-2 items-center">
-                            <IoCheckmarkDone className="text-2xl"/>
-                            <p>Gain clear insights into your financial health.</p>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <IoCheckmarkDone className="text-2xl"/>
-                            <p>Understand your expenses at a glance.</p>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <IoCheckmarkDone className="text-2xl"/>
-                            <p>Turn big dreams into daily, achievable tasks.</p>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <IoCheckmarkDone className="text-2xl"/>
-                            <p>Easily track your loans and repayments.</p>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <IoCheckmarkDone className="text-2xl"/>
-                            <p>Know the impact of repayments before committing.</p>
-                        </div>
-                    </div>
+            {/* CHECKLIST */}
+            <section className="bg-grey-x200 flex justify-center items-center py-[80px] lg:py-[120px] px-6">
+                <div className="max-w-[720px] flex flex-col items-start">
+                    <h2 className="text-3xl font-semibold mb-10 text-center lg:text-left">
+                        Why Tracero is Your Ideal Financial Partner
+                    </h2>
+                    <ul className="flex flex-col gap-5 text-base font-medium">
+                        {[
+                            "Gain clear insights into your financial health.",
+                            "Understand your expenses at a glance.",
+                            "Turn big dreams into daily, achievable tasks.",
+                            "Easily track your loans and repayments.",
+                            "Know the impact of repayments before committing."
+                        ].map((text, i) => (
+                            <li key={i} className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success-x100">
+                                    <IoCheckmarkDone className="text-success text-xl" />
+                                </div>
+                                <p>{text}</p>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-            </div>
+            </section>
         </>
     )
 }

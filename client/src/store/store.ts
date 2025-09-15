@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { counterSlice } from '../feature-component/CounterSlice'
-import { userSlice } from '../feature-component/user/userSlice'
+import { userSlice } from '../feature-component/auth/userSlice'
 // ...
 
 export const store = configureStore({

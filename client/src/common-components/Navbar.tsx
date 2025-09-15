@@ -1,42 +1,65 @@
-import React from 'react'
-import logo from "../assets/tracero_logo.png"
-import {Link} from "react-router-dom"
-import {Button} from "@/components/ui/button.tsx";
-import {Sheet, SheetContent, SheetDescription, SheetTrigger} from "@/components/ui/sheet"
+import React from "react";
+import logo from "../assets/tracero_logo.png";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import { IoMdMenu } from "react-icons/io";
 
 const Navbar: React.FC = () => {
     return (
-        <>
-            <div className='bg-primary h-16 text-heading flex justify-between items-center px-4 lg:px-6'>
-                <Link to="/">
-                    <img
-                        src={logo}
-                        className="h-[36px] lg:h-[42px] w-auto lg:ml-4"
-                        alt="tracero"
-                    />
-                </Link>
-                <div className="hidden md:flex gap-2 ">
-                    <Button className="border-0">Sign In</Button>
-                    <Button variant="secondary" className="border-0">Sign Up</Button>
-                </div>
+        <nav className="bg-primary h-16 text-heading flex justify-between items-center px-4 lg:px-6">
+            {/* Logo */}
+            <Link to="/" className="flex items-center">
+                <img
+                    src={logo}
+                    className="h-[34px] sm:h-[38px] lg:h-[42px] w-auto"
+                    alt="Tracero"
+                />
+            </Link>
 
-                <div className="md:hidden">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                                <IoMdMenu className="text-2xl text-background"/>
-                        </SheetTrigger>
-                        <SheetContent side="right">
-                                <SheetDescription className="flex flex-col gap-6 p-6">
-                                    <Button className="w-full">Sign In</Button>
-                                    <Button variant="secondary" className="w-full">Sign Up</Button>
-                                </SheetDescription>
-                        </SheetContent>
-                    </Sheet>
-                </div>
+            {/* Desktop Links */}
+            <div className="hidden md:flex gap-3">
+                <Button asChild>
+                    <Link to="/auth?mode=signin">Sign In</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                    <Link to="/auth?mode=signup">Sign Up</Link>
+                </Button>
             </div>
-        </>
-    )
-}
 
-export default Navbar
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <button aria-label="Open menu">
+                            <IoMdMenu className="text-3xl text-background" />
+                        </button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="p-6">
+                        <SheetHeader>
+                            <SheetTitle className="text-lg font-semibold">
+                                Menu
+                            </SheetTitle>
+                        </SheetHeader>
+                        <div className="flex flex-col gap-4 mt-6">
+                            <Button asChild className="w-full">
+                                <Link to="/auth?mode=signin">Sign In</Link>
+                            </Button>
+                            <Button asChild variant="secondary" className="w-full">
+                                <Link to="/auth?mode=signup">Sign Up</Link>
+                            </Button>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
+        </nav>
+    );
+};
+
+export default Navbar;
