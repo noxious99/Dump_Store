@@ -1,4 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import type { LoginPayload } from '@/types/user'
+import type { RootState, AppDispatch } from '@/store/store'
+import { useDispatch, useSelector } from 'react-redux'
+import { loginUser } from './userSlice'
+import { Link, useNavigate } from 'react-router-dom'
 import signin_img from '../../assets/signin_avatar.png'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,26 +26,56 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Link } from 'react-router-dom'
+import { Eye, EyeOff } from "lucide-react";
+import { MdOutlineEmail } from "react-icons/md";
+import { MdOutlinePassword } from "react-icons/md";
+import { Loader2Icon } from "lucide-react"
 
 const Signin: React.FC = () => {
+    const [showPassword, setShowPassword] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+
+    const dispatch = useDispatch<AppDispatch>()
+    const navigate = useNavigate()
+
     const formSchema = z.object({
-        username: z.string().min(3, {
-            message: "Username must be at least 2 characters.",
-        }),
-        password: z.string().min(8, {
-            message: "Password must be at least 8 characters."
-        })
+        email: z
+            .string()
+            .min(3, { message: "Email must be at least 3 characters." })
+            .max(50, { message: "Email must not exceed 50 characters." })
+            .email({ message: "Please enter a valid email address." }),
+
+        password: z
+            .string()
+            .min(8, { message: "Password must be at least 8 characters." })
+            .max(32, { message: "Password must not exceed 32 characters." })
+        // .regex(/[0-9]/, { message: "Password must contain at least one number." })
+        // .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
+        // .regex(/[@$!%*?&]/, { message: "Password must contain at least one special character." }),
     })
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            username: "",
+            email: "",
+            password: ""
         },
     })
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        const payload: LoginPayload = {
+            identifier: values.email,
+            password: values.password,
+        };
+        setIsLoading(true)
+        await dispatch(loginUser(payload));
+        setIsLoading(false)
     }
+
+    const token = useSelector((state: RootState) => state.user.token)
+    useEffect (()=>{
+        if (token) {
+            navigate('/dashboard')
+        }
+    },[token, navigate])
     return (
         <>
             <div className='h-screen flex'>
@@ -66,7 +101,7 @@ const Signin: React.FC = () => {
                     <Card className="w-full max-w-[460px] py-4 px-4 lg:py-6 sm:py-8 lg:px-6 shadow-lg border border-border rounded-xl">
                         <CardHeader className="text-center xl:text-left">
                             <CardTitle className="text-2xl xl:text-3xl text-grey">
-                                Login to your account
+                                Sign In to your account
                             </CardTitle>
                             <CardDescription className='mb-4 text-gray-600'>
                                 Enter your credentials to access your account
@@ -78,15 +113,16 @@ const Signin: React.FC = () => {
                                     {/* Email */}
                                     <FormField
                                         control={form.control}
-                                        name="username"
+                                        name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-gray-700">Email</FormLabel>
+                                                <FormLabel className="text-gray-700"> <MdOutlineEmail /> Email</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        className='bg-white border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg'
+                                                        className='bg-white border border-gray-300 focus:border-primary 
+                                                                focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400'
                                                         type="email"
-                                                        placeholder="Enter your email"
+                                                        placeholder="your@email.com"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -94,20 +130,31 @@ const Signin: React.FC = () => {
                                             </FormItem>
                                         )}
                                     />
+
                                     {/* Password */}
                                     <FormField
                                         control={form.control}
                                         name="password"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-gray-700">Password</FormLabel>
+                                                <FormLabel className="text-gray-700"> <MdOutlinePassword /> Password</FormLabel>
                                                 <FormControl>
-                                                    <Input
-                                                        className='bg-white border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg'
-                                                        type="password"
-                                                        placeholder="Enter your password"
-                                                        {...field}
-                                                    />
+                                                    <div className="relative">
+                                                        <Input
+                                                            type={showPassword ? "text" : "password"}
+                                                            placeholder="Create a strong password"
+                                                            {...field}
+                                                            className="bg-white border border-gray-300 focus:border-primary 
+                                                                  focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400 pr-10"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                        >
+                                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                        </button>
+                                                    </div>
                                                 </FormControl>
                                                 <FormMessage className='text-error text-sm' />
                                             </FormItem>
@@ -121,8 +168,16 @@ const Signin: React.FC = () => {
                                 type="submit"
                                 className="w-full h-12 text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"
                                 onClick={form.handleSubmit(onSubmit)}
+                                disabled={isLoading}
                             >
-                                Login
+                                {isLoading ? (
+                                    <>
+                                        <Loader2Icon className="animate-spin mr-2" />
+                                        Sign In
+                                    </>
+                                ) : (
+                                    <p>Sign In</p>
+                                )}
                             </Button>
                             <span className="text-sm text-gray-500 font-medium">or</span>
                             <Button
@@ -130,7 +185,7 @@ const Signin: React.FC = () => {
                                 className="w-full h-12 text-base border border-gray-300 hover:bg-gray-50 rounded-lg"
                                 disabled
                             >
-                                Login with Google
+                                Sign In with Google
                             </Button>
                             <span className='my-4 flex gap-2 text-sm text-gray-600'>
                                 <p>Don't have an account?</p>

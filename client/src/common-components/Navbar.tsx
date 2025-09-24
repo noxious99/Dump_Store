@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../assets/tracero_logo.png";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,23 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import { IoMdMenu } from "react-icons/io";
+import { useDispatch, useSelector } from "react-redux";
+import { logout, selectUser } from "@/feature-component/auth/userSlice";
 
 const Navbar: React.FC = () => {
+    const [loggedinState, setLoggedinState] = useState(false)
+    const user = useSelector(selectUser)
+    const dispatch = useDispatch()
+    useEffect(() => {
+        if (user.token) {
+            setLoggedinState(true)
+        } else {
+            setLoggedinState(false)
+        }
+    }, [user])
+    const handleLogout = () => {
+        dispatch(logout())
+    }
     return (
         <nav className="bg-primary h-16 text-heading flex justify-between items-center px-4 lg:px-6">
             {/* Logo */}
@@ -25,12 +40,18 @@ const Navbar: React.FC = () => {
 
             {/* Desktop Links */}
             <div className="hidden md:flex gap-3">
-                <Button asChild>
-                    <Link to="/auth?mode=signin">Sign In</Link>
-                </Button>
-                <Button asChild variant="secondary">
-                    <Link to="/auth?mode=signup">Sign Up</Link>
-                </Button>
+                {!loggedinState ? (<>
+                    <Button asChild>
+                        <Link to="/auth?mode=signin">Sign In</Link>
+                    </Button>
+                    <Button asChild variant="secondary">
+                        <Link to="/auth?mode=signup">Sign Up</Link>
+                    </Button>
+                </>) : (
+                    <Button onClick={handleLogout} variant="secondary">
+                        Sign Out
+                    </Button>
+                )}
             </div>
 
             {/* Mobile Menu */}
@@ -48,12 +69,22 @@ const Navbar: React.FC = () => {
                             </SheetTitle>
                         </SheetHeader>
                         <div className="flex flex-col gap-4 mt-6">
-                            <Button asChild className="w-full">
-                                <Link to="/auth?mode=signin">Sign In</Link>
-                            </Button>
-                            <Button asChild variant="secondary" className="w-full">
-                                <Link to="/auth?mode=signup">Sign Up</Link>
-                            </Button>
+                            {
+                                !loggedinState ? (
+                                    <>
+                                        <Button asChild className="w-full">
+                                            <Link to="/auth?mode=signin">Sign In</Link>
+                                        </Button>
+                                        <Button asChild variant="secondary" className="w-full">
+                                            <Link to="/auth?mode=signup">Sign Up</Link>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button variant="secondary" className="w-full" onClick={handleLogout}>
+                                        Sign Out
+                                    </Button>
+                                )
+                            }
                         </div>
                     </SheetContent>
                 </Sheet>

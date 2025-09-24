@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import FeatureCard from "@/feature-component/home/Feature-Card.tsx";
 import { IoCheckmarkDone } from "react-icons/io5";
 
-type FeatureType = "spend" | "loan" | "goal"
+type FeatureType = "spend" | "goal" | "loan"
 
 interface FeatureCardAttributes {
     iconColor: string;
@@ -16,12 +16,12 @@ const Home: React.FC = () => {
         spend: {
             lite: 'bg-primary-lite',
             iconColor: 'text-primary',
-            heading: 'Money Spendature Tracker'
+            heading: 'Expense Tracker'
         },
         loan: {
             lite: 'bg-error-x100',
             iconColor: 'text-error',
-            heading: 'Loan & Owe Tracker'
+            heading: 'IOU Tracker'
         },
         goal: {
             lite: 'bg-success-x100',
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
             heading: 'Goal Tracker'
         }
     }
-    const features: FeatureType[] = ['spend', 'loan', 'goal']
+    const features: FeatureType[] = ['spend', 'goal', 'loan']
 
     return (
         <>
@@ -51,7 +51,7 @@ const Home: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="w-[320px] lg:w-[460px] h-auto">
+                <div className="w-[320px] lg:w-[480px] h-auto">
                     <img
                         src="/images/home_hero_image.png"
                         alt="Hero"
@@ -79,12 +79,13 @@ const Home: React.FC = () => {
             </section>
 
             {/* CHECKLIST */}
-            <section className="bg-grey-x200 flex justify-center items-center py-[80px] lg:py-[120px] px-6">
-                <div className="max-w-[720px] flex flex-col items-start">
-                    <h2 className="text-3xl font-semibold mb-10 text-center lg:text-left">
-                        Why Tracero is Your Ideal Financial Partner
+            <section className="bg-gradient-to-br from-grey-x100 via-grey-x200 to-grey-x100 flex justify-center items-center py-[80px] lg:py-[120px] px-6">
+                <div className="max-w-[720px] flex flex-col items-start backdrop-blur-sm rounded-2xl p-10">
+                    <h2 className="text-3xl font-semibold mb-10 text-center lg:text-left relative">
+                        Why Tracero is Your Ideal Daily Partner
+                        <span className="absolute -bottom-2 left-1/2 lg:left-0 w-20 h-1 bg-success rounded-full transform -translate-x-1/2 lg:translate-x-0"></span>
                     </h2>
-                    <ul className="flex flex-col gap-5 text-base font-medium">
+                    <ul className="flex flex-col gap-6 text-base font-medium lg:gap-8">
                         {[
                             "Gain clear insights into your financial health.",
                             "Understand your expenses at a glance.",
@@ -92,8 +93,11 @@ const Home: React.FC = () => {
                             "Easily track your loans and repayments.",
                             "Know the impact of repayments before committing."
                         ].map((text, i) => (
-                            <li key={i} className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success-x100">
+                            <li
+                                key={i}
+                                className="flex items-center gap-3 transition-all duration-300 hover:translate-x-2 hover:text-success"
+                            >
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success-x100 shadow-md">
                                     <IoCheckmarkDone className="text-success text-xl" />
                                 </div>
                                 <p>{text}</p>

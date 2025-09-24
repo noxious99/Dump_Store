@@ -1,26 +1,51 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route} from "react-router-dom";
-import Home from './pages/Home';
+import React, { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Home from './pages/Home-Page';
 import Navbar from './common-components/Navbar';
 import Footer from "@/common-components/Footer.tsx";
-import Auth from './pages/Auth';
+import Auth from './pages/Auth-Page';
+import Dashboard from './pages/Dashboard-Page';
+import { useDispatch } from 'react-redux';
+import { rehydrateUser } from './feature-component/auth/userSlice';
+import type { AppDispatch } from './store/store';
+import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
 
+const AppContent: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
+
+  useEffect(() => {
+    dispatch(rehydrateUser());
+  }, [dispatch]);
+
+  const hideFooterRoutes = ['/dashboard'];
+  const hideFooter = hideFooterRoutes.some((route) => 
+    location.pathname.startsWith(route)
+  );
+
+  return (
+    <div className="App box-border max-w-[2160px] flex justify-center min-w-[360px]">
+      <Navbar />
+      <main>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/auth' element={<Auth />} />
+          <Route element={<ProtectedRoutes/>}>
+            <Route path='/dashboard' element={<Dashboard />} />
+          </Route>
+        </Routes>
+      </main>
+      {!hideFooter && <Footer />}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   return (
-    <div className="App box-border max-w-[2160px] flex justify-center min-w-[360px]">
-      <BrowserRouter>
-      <Navbar/>
-        <main>
-          <Routes>
-            <Route path='/' element={<Home/>} />
-            <Route path='/auth' element={<Auth/>} />
-          </Routes>
-        </main>
-      <Footer/>
-      </BrowserRouter>
-    </div>
-  )
-}
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;

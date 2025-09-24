@@ -39,7 +39,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({iconColor, iconBg, heading, ti
     const IconComponent = icons[title];
     const ImageComponent = featureImages[title]
     return (
-        <Card className="w-[280px] lg:w-[320px]">
+        <Card className="w-[280px] lg:w-[320px] hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300">
             <CardHeader>
                 <CardTitle className={`${iconBg} w-[36px] h-[36px] flex justify-center items-center rounded-full`}>
                     <IconComponent className={`text-2xl ${iconColor}`}/>
