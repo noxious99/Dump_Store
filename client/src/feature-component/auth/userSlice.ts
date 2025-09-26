@@ -9,6 +9,7 @@ interface userState {
   id: string,
   username: string,
   name: string,
+  avatar: string,
   email: string,
   token: string,
   error: any,
@@ -19,6 +20,7 @@ const initialState: userState = {
   id: "",
   username: "",
   name: "",
+  avatar: "",
   email: "",
   token: "",
   error: ""
@@ -74,6 +76,7 @@ export const userSlice = createSlice({
       state.name = ""
       state.email = ""
       state.username = ""
+      state.avatar = ""
       localStorage.removeItem("ACCESS_TOKEN");
       state.token = ""
     }
@@ -93,6 +96,7 @@ export const userSlice = createSlice({
           state.id = info?.user.id ?? ""
           state.name = info?.user.name ?? ""
           state.username = info?.user.username ?? ""
+          state.avatar = info?.user.avatar ?? ""
           state.email = info?.user.email ?? ""
         }
       })
@@ -112,6 +116,7 @@ export const userSlice = createSlice({
           state.id = info?.user.id ?? ""
           state.name = info?.user.name ?? ""
           state.username = info?.user.username ?? ""
+          state.avatar = info?.user.avatar ?? ""
           state.email = info?.user.email ?? ""
         }
       })
@@ -127,6 +132,7 @@ export const userSlice = createSlice({
         state.id = action.payload.user.id;
         state.username = action.payload.user.username;
         state.name = action.payload.user.name;
+        state.avatar = action.payload.user.avatar;
         state.email = action.payload.user.email;
         state.token = action.payload.token;
       })

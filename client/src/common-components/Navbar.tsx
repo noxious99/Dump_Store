@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import logo from "../assets/tracero_logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Sheet,
     SheetContent,
@@ -9,14 +10,19 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { IoMdMenu } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, selectUser } from "@/feature-component/auth/userSlice";
+import UserMenu from "./UserMenu";
+import { IoMdMenu } from "react-icons/io";
+import { FiLogOut } from "react-icons/fi";
+import { FaRegUserCircle } from "react-icons/fa";
+import { MdOutlineSettings } from "react-icons/md";
 
 const Navbar: React.FC = () => {
     const [loggedinState, setLoggedinState] = useState(false)
     const user = useSelector(selectUser)
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     useEffect(() => {
         if (user.token) {
             setLoggedinState(true)
@@ -24,8 +30,9 @@ const Navbar: React.FC = () => {
             setLoggedinState(false)
         }
     }, [user])
-    const handleLogout = () => {
-        dispatch(logout())
+    const handleLogout = async () => {
+        await dispatch(logout())
+        navigate("/")
     }
     return (
         <nav className="bg-primary h-16 text-heading flex justify-between items-center px-4 lg:px-6">
@@ -48,9 +55,7 @@ const Navbar: React.FC = () => {
                         <Link to="/auth?mode=signup">Sign Up</Link>
                     </Button>
                 </>) : (
-                    <Button onClick={handleLogout} variant="secondary">
-                        Sign Out
-                    </Button>
+                    <UserMenu onLogOut={handleLogout} />
                 )}
             </div>
 
@@ -80,9 +85,28 @@ const Navbar: React.FC = () => {
                                         </Button>
                                     </>
                                 ) : (
-                                    <Button variant="secondary" className="w-full" onClick={handleLogout}>
-                                        Sign Out
-                                    </Button>
+                                    <>
+                                        <div className="font-semibold flex flex-col items-center mb-4">
+                                            <div className="flex gap-2 items-center mb-1">
+                                                <Avatar className="w-[30px] h-[30px]">
+                                                    <AvatarImage src={user.avatar} alt="User"  />
+                                                    <AvatarFallback>U</AvatarFallback>
+                                                    {user.avatar}
+                                                </Avatar>
+                                                <div>{user.username}</div>
+                                            </div>
+                                            <div className="text-xs">{user.email}</div>
+                                        </div>
+                                        <Button variant="secondary" className="w-full">
+                                            <FaRegUserCircle/> <Link to="/profile">Profile</Link>
+                                        </Button>
+                                        <Button variant="secondary" className="w-full">
+                                            <MdOutlineSettings/> <Link to="/settings">Settings</Link>
+                                        </Button>
+                                        <Button variant="secondary" className="w-full" onClick={handleLogout}>
+                                            <FiLogOut/> Sign Out
+                                        </Button>
+                                    </>
                                 )
                             }
                         </div>

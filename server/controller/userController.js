@@ -34,6 +34,7 @@ const userLogin = async (req, res) => {
                     username: user.username ?? "",
                     email: user.email,
                     name: user.name ?? "",
+                    avatar: user.avatar ?? "",
                 },
             };
             res.json({
