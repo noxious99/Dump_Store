@@ -1,82 +1,107 @@
-const { Expense, Income } = require('../Schemas/expenseSchema');
+const { Expense, Income, Budget } = require('../Schemas/expenseSchema');
+const { getMonthlyTotalExpense, getMonthlyTotalIncome, getMostSpendCategoryOfMonth, getCurrentMonthBudget } = require('../services/expenseServices')
 
 const addExpense = async (req, res) => {
     const userId = req.user.id;
-    const { amount, category, date, month, year } = req.body;
+    const { amount, category } = req.body;
     try {
-        if(!amount || !category || !date || !month || !year) {
-            return res.status(400).json({ err: 'Please fill in all fields' });
+        if (userId === null) {
+            return res.status(400).json({ msg: 'User not found' });
         }
-        if(userId === null) {
-            return res.status(400).json({ err: 'User not found' });
+        if (!amount || !category) {
+            return res.status(400).json({ msg: 'Please fill in all fields' });
         }
-        const newExpense = new Expense({ userId, amount, category, date, month, year });
+        const newExpense = new Expense({ userId, amount, category });
         await newExpense.save();
         res.status(201).json(newExpense);
-    } catch (err) {
-        res.status(500).json({ err: err });
+    } catch (error) {
+        res.status(400).json({ msg: error.message });
     }
-} 
+}
+
 
 const deleteExpenseRecord = async (req, res) => {
     const userId = req.user.id;
     const expenseId = req.params.id;
     try {
         const expense = await Expense.findOne({ userId, _id: expenseId });
-        if(!expense) {
-            return res.status(404).json({ err: 'Expense not found' });
+        if (!expense) {
+            return res.status(404).json({ msg: 'Expense not found' });
         }
-    } catch (err) {
-        res.status(500).json({ err: err.message });
+    } catch (error) {
+        res.status(400).json({ msg: error.message });
     }
 }
 
-const getMonthlyExpenses = async (req, res) => {
-    const userId = req.user.id;
-    const month = parseInt(req.params.month);
-    const year = parseInt(req.params.year);
-    try {
-        const expenses = await Expense.find({ userId, month, year }).sort({ createdAt: -1 });
-        const incomes = await Income.find({ userId, month, year }).sort({ createdAt: -1 });
-        const logs = [...expenses, ...incomes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        return res.status(200).json(logs);
-    } catch (err) {
-        res.status(500).json({ err: err.message || "Internal Server Error" });
-    }
-};
 
-const getDailyExpenses = async (req, res) => {
-    const userId = req.user.id;
-    const date = parseInt(req.params.date);
-    const month = parseInt(req.params.month);
-    const year = parseInt(req.params.year);
+const getExpenseDashboardSummary = async (req, res) => {
     try {
-        const expenses = await Expense.find({ userId, date, month, year })
-                                      .sort({ createdAt: -1 });
-        if (expenses.length === 0) {
-            return res.status(404).json({ err: "You haven't listed anything yet" });
+        const userId = req.user.id
+        console.log(userId)
+        if (!userId) {
+            return res.status(400).json({ msg: "User not found!" })
         }
-        res.json(expenses);
-    } catch (err) {
-        res.status(500).json({ err: err.message });
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 99)
+        const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
+        const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
+        const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
+        console.log("111111111111111111")
+        const monthBudget = await getCurrentMonthBudget(userId)
+        const data = {
+            totalSpend: totalSpend,
+            totalIncome: totalIncome,
+            topCategory: topCategory,
+            budget: monthBudget
+        }
+        return res.send(data)
+    } catch (error) {
+        return res.status(400).json({ msg: error.message })
     }
-};
+}
+
 
 const addIncome = async (req, res) => {
     const userId = req.user.id;
-    const { amount, source, date, month, year } = req.body;
+    const { amount, source } = req.body;
     try {
-        if(!amount || !source || !date || !month || !year) {
-            return res.status(400).json({ err: 'Please fill in all fields' });
+        if (!amount || !source) {
+            return res.status(400).json({ msg: 'Please fill in all fields' });
         }
-        if(userId === null) {
-            return res.status(400).json({ err: 'User not found' });
+        if (userId === null) {
+            return res.status(400).json({ msg: 'User not found' });
         }
-        const newIncome = new Income({ userId, amount, source, date, month, year });
+        const newIncome = new Income({ userId, amount, source });
         await newIncome.save();
         res.status(201).json(newIncome);
-    } catch (err) {
-        res.status(500).json({ err: err });
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+}
+
+
+const addMonthlyBudget = async (req, res) => {
+    let { name, budgetType, category, amount, period, startDate, endDate } = req.body
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const monthName = startOfMonth.toLocaleDateString('default', { month: 'long' });
+    try {
+        const userId = req.user.id
+        if (period === "monthly") {
+            startDate = startOfMonth
+            endDate = endOfMonth
+            budgetType = "overall"
+            name = `${monthName} Budget`
+        }
+        const newBudget = new Budget({
+            userId, name, budgetType, category, amount, period, startDate, endDate
+        })
+        await newBudget.save()
+        return res.status(201).json(newBudget);
+    } catch (error) {
+        return res.status(400).json({ msg: error.message })
     }
 }
 
@@ -88,7 +113,7 @@ const getMonthlySummary = async (req, res) => {
         const balance = 0
         const expenses = await Expense.find({ userId, month: month, year: year });
         const incomes = await Income.find({ userId, month: month, year: year });
-        if(expenses.length === 0 && incomes.length === 0) {
+        if (expenses.length === 0 && incomes.length === 0) {
             return res.status(200).json({ balance });
         } else {
             let totalExpense = 0;
@@ -106,4 +131,4 @@ const getMonthlySummary = async (req, res) => {
         res.status(500).json({ err: err });
     }
 }
-module.exports = { addExpense, getMonthlyExpenses, getDailyExpenses, addIncome, getMonthlySummary, deleteExpenseRecord };
+module.exports = { addExpense, addIncome, addMonthlyBudget, getMonthlySummary, deleteExpenseRecord, getExpenseDashboardSummary };

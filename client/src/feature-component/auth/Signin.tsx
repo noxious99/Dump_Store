@@ -142,7 +142,7 @@ const Signin: React.FC = () => {
                                                     <div className="relative">
                                                         <Input
                                                             type={showPassword ? "text" : "password"}
-                                                            placeholder="Create a strong password"
+                                                            placeholder="your password"
                                                             {...field}
                                                             className="bg-white border border-gray-300 focus:border-primary 
                                                                   focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400 pr-10"

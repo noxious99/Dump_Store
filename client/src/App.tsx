@@ -5,10 +5,12 @@ import Navbar from './common-components/Navbar';
 import Footer from "@/common-components/Footer.tsx";
 import Auth from './pages/Auth-Page';
 import Dashboard from './pages/Dashboard-Page';
+import ExpenseTracker from './pages/ExpenseTracker-Page';
+import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
+
 import { useDispatch } from 'react-redux';
 import { rehydrateUser } from './feature-component/auth/userSlice';
 import type { AppDispatch } from './store/store';
-import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
 
 const AppContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,6 +34,7 @@ const AppContent: React.FC = () => {
           <Route path='/auth' element={<Auth />} />
           <Route element={<ProtectedRoutes/>}>
             <Route path='/dashboard' element={<Dashboard />} />
+            <Route path='/expense-tracker' element={<ExpenseTracker />} />
           </Route>
         </Routes>
       </main>

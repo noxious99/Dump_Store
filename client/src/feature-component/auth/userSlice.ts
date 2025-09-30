@@ -16,7 +16,7 @@ interface userState {
 }
 
 const initialState: userState = {
-  loading: false,
+  loading: true,
   id: "",
   username: "",
   name: "",
@@ -59,7 +59,10 @@ export const rehydrateUser = createAsyncThunk("user/rehydrate", async (_, { reje
   if (!token) return rejectWithValue("No token found");
 
   const info = getUserFromToken(token);
-  if (!info) return rejectWithValue("Token invalid or expired");
+  if (!info) {
+    console.log("herre")
+    return rejectWithValue("Token invalid or expired")
+  };
 
   try {
     return { user: info.user, token };
