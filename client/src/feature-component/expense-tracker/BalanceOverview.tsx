@@ -6,8 +6,15 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-const BalanceOverview: React.FC = () => {
-        const [isBalanceOpen, setIsBalanceOpen] = useState(true)
+import type { ExpenseDetails } from '@/types/expenseTracker'
+
+const BalanceOverview: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData }) => {
+    const [isBalanceOpen, setIsBalanceOpen] = useState(true)
+
+    const totalIncome = expenseData?.totalIncome?.amount ?? 0
+    const totalSpend = expenseData?.totalSpend?.amount ?? 0
+    const walletBalance = totalIncome - totalSpend
+
     return (
         <>
             <Collapsible
@@ -26,12 +33,21 @@ const BalanceOverview: React.FC = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <div className="flex flex-col gap-2 p-3">
-                            <div className="rounded-lg bg-success-x100 dark:bg-success/10 px-5 py-2 border border-success/20">
-                                <div className="text-xs font-medium text-success/70 dark:text-success/60 mb-1 uppercase tracking-wide">
+                            <div className={`rounded-lg px-5 py-2 border ${walletBalance < 50
+                                    ? 'bg-warning/10 border-warning/20 dark:bg-warning/10'
+                                    : 'bg-success-x100 border-success/20 dark:bg-success/10'
+                                }`}>
+                                <div className={`text-xs font-medium mb-1 uppercase tracking-wide ${walletBalance < 50
+                                        ? 'text-warning/70 dark:text-warning/60'
+                                        : 'text-success/70 dark:text-success/60'
+                                    }`}>
                                     Wallet Balance
                                 </div>
-                                <div className="text-lg font-bold text-success dark:text-success">
-                                    $1,200
+                                <div className={`text-lg font-bold ${walletBalance < 50
+                                        ? 'text-warning dark:text-warning'
+                                        : 'text-success dark:text-success'
+                                    }`}>
+                                    ${walletBalance}
                                 </div>
                             </div>
                             <div className="rounded-lg bg-error-x100 dark:bg-error/10 px-5 py-2 border border-error/20">
@@ -39,15 +55,15 @@ const BalanceOverview: React.FC = () => {
                                     Total Expense
                                 </div>
                                 <div className="text-lg font-bold text-error dark:text-error">
-                                    $1,200
+                                    ${totalSpend}
                                 </div>
                             </div>
                             <div className="rounded-lg bg-primary-lite dark:bg-primary/10 px-5 py-2 border border-primary/20">
                                 <div className="text-xs font-medium text-primary/70 dark:text-primary/60 mb-1 uppercase tracking-wide">
-                                    Net Balance
+                                    Total Income
                                 </div>
                                 <div className="text-lg font-bold text-primary dark:text-primary">
-                                    $0
+                                    ${totalIncome}
                                 </div>
                             </div>
                         </div>

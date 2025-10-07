@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const {addExpense, deleteExpenseRecord, addMonthlyBudget,
-       addIncome, getMonthlySummary, getExpenseDashboardSummary} = require('../controller/expenseController');
+       addIncome, getMonthlySummary, getExpenseDashboardSummary,
+       getExpenseDetailsOfMonth} = require('../controller/expenseController');
 const auth = require('../middleware/auth');
 
 router.post('/', auth, addExpense);
 router.delete('/', auth, deleteExpenseRecord);
+router.get("/details", auth, getExpenseDetailsOfMonth)
 
 
 router.post('/add-income', auth, addIncome);

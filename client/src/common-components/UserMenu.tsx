@@ -13,6 +13,8 @@ import { selectUser } from '@/feature-component/auth/userSlice'
 import { FiLogOut } from "react-icons/fi"
 import { FaRegUserCircle } from "react-icons/fa"
 import { MdOutlineSettings } from "react-icons/md"
+import { RiDashboardFill } from 'react-icons/ri'
+import { Link } from 'react-router-dom'
 
 interface UserMenuProps {
     onLogOut: () => void;
@@ -60,6 +62,13 @@ const UserMenu: React.FC<UserMenuProps> = ({
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                    className="cursor-pointer focus:bg-secondary"
+                >
+                    <RiDashboardFill className="mr-3 h-4 w-4" />
+                    <Link to='/dashboard'>Dashboard</Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem
                     className="cursor-pointer focus:bg-secondary"

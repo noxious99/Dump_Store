@@ -20,7 +20,7 @@ const AppContent: React.FC = () => {
     dispatch(rehydrateUser());
   }, [dispatch]);
 
-  const hideFooterRoutes = ['/dashboard'];
+  const hideFooterRoutes = ['/dashboard', '/expense-tracker'];
   const hideFooter = hideFooterRoutes.some((route) => 
     location.pathname.startsWith(route)
   );

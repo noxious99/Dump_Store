@@ -57,18 +57,13 @@ const getMostSpendCategoryOfMonth = async (userId, startOfMonth, endOfMonth) => 
             $sort: { totalAmount: -1 }
         },
         {
-            $limit: 1
+            $limit: 3
         }
     ])
-
-    return result.length > 0 ?
-        {
-            category: result[0]._id,
-            amount: result[0].totalAmount
-        } : {
-            category: "",
-            amount: 0
-        }
+    return result.length > 0 ? result.map(r => ({
+        category: r._id,
+        amount: r.totalAmount
+    })) : [];
 }
 
 
@@ -100,13 +95,36 @@ const getCurrentMonthBudget = async (userId) => {
             }
         }
     ]);
-    console.log(result)
     return result.length > 0 ? result[0] : {};
 };
+
+
+const getUserExpenseRecordsListOfMonth = async (userId, startOfMonth, endOfMonth) => {
+    console.log(startOfMonth, endOfMonth)
+    const recordList = await Expense.aggregate([
+        {
+            $match: {
+                userId,
+                createdAt: {
+                    $gte: startOfMonth,
+                    $lte: endOfMonth
+                }
+            }
+        },
+        {
+            $sort: {
+                createdAt: -1
+            }
+        }
+    ])
+    console.log("recordList: ", recordList)
+    return recordList ? recordList : []
+}
 
 module.exports = {
     getMonthlyTotalExpense,
     getMonthlyTotalIncome,
     getMostSpendCategoryOfMonth,
-    getCurrentMonthBudget
+    getCurrentMonthBudget,
+    getUserExpenseRecordsListOfMonth
 };

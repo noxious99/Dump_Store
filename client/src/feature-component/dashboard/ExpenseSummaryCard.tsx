@@ -10,12 +10,7 @@ import {
 import { Wallet, UtensilsCrossed, ArrowRight, Target } from 'lucide-react'
 import { AlertTriangle, } from 'lucide-react'
 import axiosInstance from '@/utils/axiosInstance';
-
-let daysLeft = 0
-const now = new Date()
-const currentDay = now.getDate();
-const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-daysLeft = lastDayOfMonth - currentDay;
+import { Button } from '@/components/ui/button';
 
 const ExpenseSummaryCard: React.FC = () => {
     const [walletBalance, setWalletBalance] = useState(0)
@@ -26,28 +21,51 @@ const ExpenseSummaryCard: React.FC = () => {
         name: "",
         amount: 0
     })
+    const [daysLeft, setDaysLeft] = useState(0)
 
     useEffect(() => {
+        // Calculate days left inside useEffect to avoid recalculation on every render
+        const now = new Date()
+        const currentDay = now.getDate();
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const calculatedDaysLeft = lastDayOfMonth - currentDay;
+        setDaysLeft(calculatedDaysLeft)
+
         const fetchSummary = async () => {
             try {
-                let res = await axiosInstance.get("/v1/expenses/dashboard-summary")
-                let balance = res.data["totalIncome"].amount - res.data["totalSpend"].amount
-                let totalSpend = res.data["totalSpend"].amount
-                let budget = res.data["budget"].amount
-                let topCategory = res.data["topCategory"]
-                let usedPercent = Math.round((totalSpend / budget) * 100);
+                const res = await axiosInstance.get("/v1/expenses/dashboard-summary")
+
+                // Safely extract values with fallbacks
+                const totalIncomeAmount = res.data?.totalIncome?.amount || 0
+                const totalSpendAmount = res.data?.totalSpend?.amount || 0
+                const budgetAmount = res.data?.budget?.amount || 0
+                const topCategory = res.data?.topCategory[0] || { category: "None", amount: 0 }
+
+                const balance = totalIncomeAmount - totalSpendAmount
+                const calculatedUsedPercent = budgetAmount > 0
+                    ? Math.round((totalSpendAmount / budgetAmount) * 100)
+                    : 0
+
                 setWalletBalance(balance)
-                setTotalSpend(totalSpend)
-                setBudget(budget)
-                setTopSpendCategory({ name: topCategory.category, amount: topCategory.amount })
-                setUsedPercent(usedPercent)
+                setTotalSpend(totalSpendAmount)
+                setBudget(budgetAmount)
+                setTopSpendCategory({
+                    name: topCategory.category || "None",
+                    amount: topCategory.amount || 0
+                })
+                setUsedPercent(calculatedUsedPercent)
             } catch (error) {
-                console.log(error)
+                console.error("Error fetching expense summary:", error)
             }
         }
         fetchSummary()
     }, [])
 
+    const remainingBudget = budget - totalSpend
+    const dailyBudget = daysLeft > 0 ? (remainingBudget / daysLeft).toFixed(2) : "0.00"
+    const categoryPercent = totalSpend > 0
+        ? Math.floor((topSpendCategory.amount / totalSpend) * 100)
+        : 0
 
     return (
         <Card className='w-full max-w-none border-border hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-grey-x100/20 h-full flex flex-col'>
@@ -60,8 +78,9 @@ const ExpenseSummaryCard: React.FC = () => {
                         <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate leading-tight">
                             Expense Tracker
                         </CardTitle>
-                        <CardDescription className="text-success font-medium text-xs sm:text-sm md:text-base leading-tight">
-                            Everything in Budget!
+                        <CardDescription className={`font-medium text-xs sm:text-sm md:text-base leading-tight ${usedPercent > 90 ? 'text-error' : usedPercent > 70 ? 'text-warning' : 'text-success'
+                            }`}>
+                            {usedPercent > 90 ? 'Budget Alert!' : usedPercent > 70 ? 'Watch Spending' : 'Everything in Budget!'}
                         </CardDescription>
                     </div>
                 </div>
@@ -75,7 +94,10 @@ const ExpenseSummaryCard: React.FC = () => {
                             <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                             <span className="font-medium text-xs sm:text-sm">Wallet Balance</span>
                         </div>
-                        <span className="font-bold text-base sm:text-lg md:text-xl text-success">{walletBalance}</span>
+                        <span className={`font-bold text-base sm:text-lg md:text-xl ${walletBalance < 0 ? 'text-error' : 'text-success'
+                            }`}>
+                            ${walletBalance.toFixed(0)}
+                        </span>
                     </div>
                 </div>
 
@@ -87,62 +109,101 @@ const ExpenseSummaryCard: React.FC = () => {
                             <span className="font-medium text-xs sm:text-sm">Monthly Budget</span>
                         </div>
                         <div className="text-right">
-                            <span className="font-bold text-base sm:text-lg md:text-xl text-foreground">${totalSpend}</span>
-                            <div className="text-xs text-muted-foreground">${budget}</div>
+                            <span className="font-bold text-base sm:text-lg md:text-xl text-foreground">
+                                ${totalSpend.toFixed(0)}
+                            </span>
+                            <div className="text-xs text-muted-foreground">
+                                of ${budget.toFixed(0)}
+                            </div>
                         </div>
                     </div>
 
                     {/* Progress Bar Container */}
-                    <div className="bg-muted/30 p-3 rounded-md">
-                        <div className="w-full bg-grey-x200 rounded-full h-2 mb-2">
-                            <div
-                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${usedPercent}%` }}
-                            ></div>
+                    {budget > 0 ? (
+                        <div className="bg-muted/30 p-3 rounded-md">
+                            <div className="w-full bg-grey-x200 rounded-full h-2 mb-2">
+                                <div
+                                    className={`h-2 rounded-full transition-all duration-300 ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'
+                                        }`}
+                                    style={{ width: `${Math.min(usedPercent, 100)}%` }}
+                                ></div>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>{usedPercent}% used</span>
+                                <span>${remainingBudget.toFixed(0)} left</span>
+                            </div>
                         </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>{usedPercent}% used</span>
-                            <span>${budget - totalSpend} left</span>
+                    ) : (
+                        <div className="bg-muted/30 p-2 rounded-md text-center text-xs text-muted-foreground flex flex-col gap-1 justify-center">
+                            No budget set
+                            <Button
+                                variant="link"
+                                className='text-primary underline underline-offset-2 h-auto p-0 text-xs inline'
+                            >
+                                Add a Budget
+                            </Button>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Top Category */}
-                <div className="py-2 sm:py-3">
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <UtensilsCrossed className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span className="font-medium text-xs sm:text-sm">Top Category</span>
+                {topSpendCategory.name && topSpendCategory.amount > 0 ? (
+                    <div className="py-2 sm:py-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <UtensilsCrossed className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="font-medium text-xs sm:text-sm">Top Category</span>
+                            </div>
+                            <span className="font-bold text-base sm:text-lg text-warning capitalize">
+                                {topSpendCategory.name}
+                            </span>
                         </div>
-                        <span className="font-bold text-base sm:text-lg text-warning">{topSpendCategory.name}</span>
-                    </div>
-                    <div className="flex justify-end">
-                        <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                            ${topSpendCategory.amount} ({Math.floor((topSpendCategory.amount / totalSpend) * 100)}%)
+                        <div className="flex justify-end">
+                            <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
+                                ${topSpendCategory.amount.toFixed(0)} ({categoryPercent}%)
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="py-2 sm:py-3 text-center text-xs text-muted-foreground">
+                        No spending data yet
+                    </div>
+                )}
 
                 {/* Smart Insights - Mobile Optimized */}
-                <div className="pt-2 sm:pt-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs sm:text-sm font-medium text-muted-foreground">Budget Alert</span>
-                        <span className="text-xs sm:text-sm text-warning font-medium bg-warning/10 px-2 py-1 rounded-md">
-                            Watch spending
-                        </span>
-                    </div>
-                    <div className="bg-warning/10 p-3 rounded-md border border-warning/20">
-                        <div className="flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                                <div className="text-xs font-medium text-warning mb-1">Daily Budget Alert</div>
-                                <div className="text-xs text-muted-foreground">
-                                    ${(budget - totalSpend)/daysLeft} per day for next {daysLeft} days
+                {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
+                    <div className="pt-2 sm:pt-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Budget Alert</span>
+                            <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-md ${usedPercent > 90
+                                    ? 'text-error bg-error/10'
+                                    : usedPercent > 70
+                                        ? 'text-warning bg-warning/10'
+                                        : 'text-success bg-success/10'
+                                }`}>
+                                {usedPercent > 90 ? 'Critical' : usedPercent > 70 ? 'Watch spending' : 'On track'}
+                            </span>
+                        </div>
+                        <div className={`p-3 rounded-md border ${usedPercent > 90
+                                ? 'bg-error/10 border-error/20'
+                                : 'bg-warning/10 border-warning/20'
+                            }`}>
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${usedPercent > 90 ? 'text-error' : 'text-warning'
+                                    }`} />
+                                <div className="min-w-0 flex-1">
+                                    <div className={`text-xs font-medium mb-1 ${usedPercent > 90 ? 'text-error' : 'text-warning'
+                                        }`}>
+                                        Daily Budget Alert
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                        ${dailyBudget} per day for next {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </CardContent>
 
             <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">

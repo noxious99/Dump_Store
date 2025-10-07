@@ -1,9 +1,16 @@
 const { Expense, Income, Budget } = require('../Schemas/expenseSchema');
-const { getMonthlyTotalExpense, getMonthlyTotalIncome, getMostSpendCategoryOfMonth, getCurrentMonthBudget } = require('../services/expenseServices')
+const {
+    getMonthlyTotalExpense,
+    getMonthlyTotalIncome,
+    getMostSpendCategoryOfMonth,
+    getCurrentMonthBudget,
+    getUserExpenseRecordsListOfMonth,
+} = require('../services/expenseServices')
+
 
 const addExpense = async (req, res) => {
     const userId = req.user.id;
-    const { amount, category } = req.body;
+    const { amount, category, note } = req.body;
     try {
         if (userId === null) {
             return res.status(400).json({ msg: 'User not found' });
@@ -11,7 +18,7 @@ const addExpense = async (req, res) => {
         if (!amount || !category) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
-        const newExpense = new Expense({ userId, amount, category });
+        const newExpense = new Expense({ userId, amount, category, note });
         await newExpense.save();
         res.status(201).json(newExpense);
     } catch (error) {
@@ -34,6 +41,25 @@ const deleteExpenseRecord = async (req, res) => {
 }
 
 
+const addIncome = async (req, res) => {
+    const userId = req.user.id;
+    const { amount, source, note } = req.body;
+    try {
+        if (!amount || !source) {
+            return res.status(400).json({ msg: 'Please fill in all fields' });
+        }
+        if (userId === null) {
+            return res.status(400).json({ msg: 'User not found' });
+        }
+        const newIncome = new Income({ userId, amount, source, note });
+        await newIncome.save();
+        res.status(201).json(newIncome);
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+}
+
+
 const getExpenseDashboardSummary = async (req, res) => {
     try {
         const userId = req.user.id
@@ -47,7 +73,6 @@ const getExpenseDashboardSummary = async (req, res) => {
         const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
         const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
         const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
-        console.log("111111111111111111")
         const monthBudget = await getCurrentMonthBudget(userId)
         const data = {
             totalSpend: totalSpend,
@@ -58,25 +83,6 @@ const getExpenseDashboardSummary = async (req, res) => {
         return res.send(data)
     } catch (error) {
         return res.status(400).json({ msg: error.message })
-    }
-}
-
-
-const addIncome = async (req, res) => {
-    const userId = req.user.id;
-    const { amount, source } = req.body;
-    try {
-        if (!amount || !source) {
-            return res.status(400).json({ msg: 'Please fill in all fields' });
-        }
-        if (userId === null) {
-            return res.status(400).json({ msg: 'User not found' });
-        }
-        const newIncome = new Income({ userId, amount, source });
-        await newIncome.save();
-        res.status(201).json(newIncome);
-    } catch (error) {
-        res.status(500).json({ msg: error.message });
     }
 }
 
@@ -105,6 +111,52 @@ const addMonthlyBudget = async (req, res) => {
     }
 }
 
+
+const getExpenseDetailsOfMonth = async (req, res) => {
+    let { date } = req.query
+    try {
+        const userId = req.user.id
+        if (!userId) {
+            return res.status(400).json({ msg: "User Not Found" })
+        }
+        const selectedDate = new Date(date);
+        console.log("sl: ", selectedDate)
+        if (isNaN(selectedDate)) {
+            return res.status(400).json({ msg: "Invalid date format" });
+        }
+        const startOfMonth = new Date(Date.UTC(
+            selectedDate.getUTCFullYear(),
+            selectedDate.getUTCMonth(),
+            1,
+            0, 0, 0, 0
+        ));
+        console.log("st: ", startOfMonth)
+
+        const endOfMonth = new Date(Date.UTC(
+            selectedDate.getUTCFullYear(),
+            selectedDate.getUTCMonth() + 1,
+            0,
+            23, 59, 59, 999
+        ));
+        console.log("en: ", endOfMonth)
+        const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
+        const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
+        const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
+        const expenseRecords = await getUserExpenseRecordsListOfMonth(userId, startOfMonth, endOfMonth)
+
+        const content = {
+            totalSpend,
+            totalIncome,
+            topCategory,
+            expenseRecords
+        }
+        return res.status(200).json(content)
+    } catch (error) {
+        return res.status(400).json({ msg: error.message })
+    }
+}
+
+
 const getMonthlySummary = async (req, res) => {
     const userId = req.user.id;
     const month = parseInt(req.params.month);
@@ -131,4 +183,10 @@ const getMonthlySummary = async (req, res) => {
         res.status(500).json({ err: err });
     }
 }
-module.exports = { addExpense, addIncome, addMonthlyBudget, getMonthlySummary, deleteExpenseRecord, getExpenseDashboardSummary };
+
+
+module.exports = {
+    addExpense, addIncome, addMonthlyBudget,
+    getMonthlySummary, deleteExpenseRecord, getExpenseDashboardSummary,
+    getExpenseDetailsOfMonth,
+};

@@ -17,6 +17,7 @@ import { IoMdMenu } from "react-icons/io";
 import { FiLogOut } from "react-icons/fi";
 import { FaRegUserCircle } from "react-icons/fa";
 import { MdOutlineSettings } from "react-icons/md";
+import { RiDashboardFill } from "react-icons/ri";
 
 const Navbar: React.FC = () => {
     const [loggedinState, setLoggedinState] = useState(false)
@@ -89,7 +90,7 @@ const Navbar: React.FC = () => {
                                         <div className="font-semibold flex flex-col items-center mb-4">
                                             <div className="flex gap-2 items-center mb-1">
                                                 <Avatar className="w-[30px] h-[30px]">
-                                                    <AvatarImage src={user.avatar} alt="User"  />
+                                                    <AvatarImage src={user.avatar} alt="User" />
                                                     <AvatarFallback>U</AvatarFallback>
                                                     {user.avatar}
                                                 </Avatar>
@@ -98,13 +99,16 @@ const Navbar: React.FC = () => {
                                             <div className="text-xs">{user.email}</div>
                                         </div>
                                         <Button variant="secondary" className="w-full">
-                                            <FaRegUserCircle/> <Link to="/profile">Profile</Link>
+                                            <RiDashboardFill /> <Link to="/dashboard">Dashboard</Link>
                                         </Button>
                                         <Button variant="secondary" className="w-full">
-                                            <MdOutlineSettings/> <Link to="/settings">Settings</Link>
+                                            <FaRegUserCircle /> <Link to="/profile">Profile</Link>
+                                        </Button>
+                                        <Button variant="secondary" className="w-full">
+                                            <MdOutlineSettings /> <Link to="/settings">Settings</Link>
                                         </Button>
                                         <Button variant="secondary" className="w-full" onClick={handleLogout}>
-                                            <FiLogOut/> Sign Out
+                                            <FiLogOut /> Sign Out
                                         </Button>
                                     </>
                                 )

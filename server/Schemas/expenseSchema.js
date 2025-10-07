@@ -14,6 +14,9 @@ const expenseSchema = new Schema({
         type: String,
         required: true,
     },
+    note: {
+        type: String
+    }
 },
     { timestamps: true }
 );
@@ -31,6 +34,9 @@ const incomeSchema = new Schema({
         type: String,
         required: true,
     },
+    note: {
+        type: String
+    }
 },
     { timestamps: true }
 );

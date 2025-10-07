@@ -1,26 +1,88 @@
 import { Button } from '@/components/ui/button'
 import { FaCaretLeft } from "react-icons/fa6";
 import { FaCaretRight } from "react-icons/fa6";
-import React, { useState } from 'react'
-import { ChevronsUpDown } from "lucide-react"
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import React, { useEffect, useState } from 'react'
+import BalanceOverview from '@/feature-component/expense-tracker/BalanceOverview';
+import ExpenseSummary from '@/feature-component/expense-tracker/ExpenseSummary';
+import axiosInstance from '@/utils/axiosInstance';
+import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder';
+import type { ExpenseDetails, ExpensePayload, IncomePayload } from '@/types/expenseTracker';
+import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder';
+import { categoryEmojiMap } from '@/utils/constant';
+import { Loader2 } from 'lucide-react';
 
 const ExpenseTracker: React.FC = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [expenseDetails, setExpenseDetails] = useState<ExpenseDetails>({
+        expenseRecords: [],
+        totalSpend: { amount: 0 },
+        totalIncome: { amount: 0 },
+    });
+    const [isLoadingFetch, setIsLoadingFetch] = useState(false);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isAddIncomeDialogOpen, setIsAddIncomeDialogOpen] = useState(false);
+
     const handleMonthChange = (direction: "left" | "right") => {
         setCurrentDate(prevDate => {
             const newMonth = direction === "right" ? prevDate.getMonth() + 1 : prevDate.getMonth() - 1;
             return new Date(prevDate.getFullYear(), newMonth);
         });
     };
+
     const formattedMonth = currentDate.toLocaleString("default", { month: "short", year: "numeric" });
 
-    const [isBalanceOpen, setIsBalanceOpen] = useState(true)
-    const [isSummaryOpen, setIsSummaryOpen] = useState(true)
+    const handleAddExpense = async (val: ExpensePayload) => {
+        try {
+            const res = await axiosInstance.post("/v1/expenses", val);
+            setExpenseDetails((prev) => ({
+                ...prev,
+                expenseRecords: [res.data, ...(prev.expenseRecords || [])],
+                totalSpend: {
+                    amount: (prev.totalSpend?.amount || 0) + res.data.amount,
+                }
+            }));
+            setIsAddDialogOpen(false);
+        } catch (error) {
+            console.error("Error adding expense:", error);
+        }
+    };
+
+    const handleAddIncome = async (val: IncomePayload) => {
+        try {
+            const res = await axiosInstance.post("/v1/expenses/add-income", val);
+            setExpenseDetails((prev) => ({
+                ...prev,
+                totalIncome: {
+                    amount: (prev.totalIncome?.amount || 0) + res.data.amount
+                }
+            }));
+            setIsAddIncomeDialogOpen(false);
+        } catch (error) {
+            console.error("Error adding income:", error);
+        }
+    };
+
+    useEffect(() => {
+        const dateParam = currentDate.toLocaleDateString("en-CA");
+        const fetchExpenseDetails = async () => {
+            setIsLoadingFetch(true);
+            try {
+                const res = await axiosInstance.get("/v1/expenses/details", {
+                    params: {
+                        date: dateParam
+                    }
+                });
+                const expenseData = res.data;
+                console.log(res.data);
+                setExpenseDetails(expenseData);
+            } catch (error) {
+                console.error("Error fetching expenses:", error);
+            } finally {
+                setIsLoadingFetch(false);
+            }
+        };
+        fetchExpenseDetails();
+    }, [currentDate]);
 
     return (
         <>
@@ -32,6 +94,7 @@ const ExpenseTracker: React.FC = () => {
                         <button
                             onClick={() => handleMonthChange("left")}
                             className='p-2 hover:bg-primary-lite dark:hover:bg-primary/20 rounded-lg transition-colors'
+                            disabled={isLoadingFetch}
                         >
                             <FaCaretLeft className='text-primary text-xl' />
                         </button>
@@ -41,193 +104,94 @@ const ExpenseTracker: React.FC = () => {
                         <button
                             onClick={() => handleMonthChange("right")}
                             className='p-2 hover:bg-primary-lite dark:hover:bg-primary/20 rounded-lg transition-colors'
+                            disabled={isLoadingFetch}
                         >
                             <FaCaretRight className='text-primary text-xl' />
                         </button>
                     </div>
                     <div className='flex flex-col md:flex-row items-center gap-3'>
-                        <Button className='bg-success hover:bg-success/90 text-white font-medium shadow-sm'>
-                            Add to Wallet
-                        </Button>
-                        <Button className='bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm'>
+                        <Button
+                            className='bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm'
+                            onClick={() => setIsAddDialogOpen(true)}
+                            disabled={isLoadingFetch}
+                        >
                             Add Expense
                         </Button>
+                        <Button
+                            className='bg-success hover:bg-success/90 text-white font-medium shadow-sm'
+                            onClick={() => setIsAddIncomeDialogOpen(true)}
+                            disabled={isLoadingFetch}
+                        >
+                            Add to Wallet
+                        </Button>
                     </div>
                 </div>
 
-                <div className='flex flex-col md:flex-row gap-4 w-full mb-6'>
-                    {/* Balance Overview */}
-                    <Collapsible
-                        open={isBalanceOpen}
-                        onOpenChange={setIsBalanceOpen}
-                        className="w-full max-w-[400px] max-h-[380px]"
-                    >
-                        <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                            <CollapsibleTrigger asChild>
-                                <button className="w-full flex items-center justify-between px-5 py-4 bg-grey-x100 dark:bg-card hover:bg-grey-x200 dark:hover:bg-accent/10 transition-colors">
-                                    <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
-                                        Balance Overview
-                                        <ChevronsUpDown className='w-4 h-4 text-muted-foreground' />
-                                    </div>
-                                </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <div className="flex flex-col gap-2 p-3">
-                                    <div className="rounded-lg bg-success-x100 dark:bg-success/10 px-5 py-2 border border-success/20">
-                                        <div className="text-xs font-medium text-success/70 dark:text-success/60 mb-1 uppercase tracking-wide">
-                                            Wallet Balance
-                                        </div>
-                                        <div className="text-lg font-bold text-success dark:text-success">
-                                            $1,200
-                                        </div>
-                                    </div>
-                                    <div className="rounded-lg bg-error-x100 dark:bg-error/10 px-5 py-2 border border-error/20">
-                                        <div className="text-xs font-medium text-error/70 dark:text-error/60 mb-1 uppercase tracking-wide">
-                                            Total Expense
-                                        </div>
-                                        <div className="text-lg font-bold text-error dark:text-error">
-                                            $1,200
-                                        </div>
-                                    </div>
-                                    <div className="rounded-lg bg-primary-lite dark:bg-primary/10 px-5 py-2 border border-primary/20">
-                                        <div className="text-xs font-medium text-primary/70 dark:text-primary/60 mb-1 uppercase tracking-wide">
-                                            Net Balance
-                                        </div>
-                                        <div className="text-lg font-bold text-primary dark:text-primary">
-                                            $0
-                                        </div>
-                                    </div>
-                                </div>
-                            </CollapsibleContent>
-                        </div>
-                    </Collapsible>
-
-                    {/* Expense Summary */}
-                    <Collapsible
-                        open={isSummaryOpen}
-                        onOpenChange={setIsSummaryOpen}
-                        className="flex-1"
-                    >
-                        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                            <CollapsibleTrigger asChild>
-                                <button className="w-full flex items-center justify-between px-5 py-4 bg-grey-x100 dark:bg-card hover:bg-grey-x200 dark:hover:bg-accent/10 transition-colors">
-                                    <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
-                                        Expense Summary
-                                        <ChevronsUpDown className='w-4 h-4 text-muted-foreground' />
-                                    </div>
-                                </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <div className="flex flex-col p-5 gap-5">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold text-foreground">Food</span>
-                                            <span className="text-sm font-medium text-muted-foreground">$1,200</span>
-                                        </div>
-                                        <div className="relative h-3 bg-grey-x100 dark:bg-border/30 rounded-full overflow-hidden">
-                                            <div
-                                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-chart-1 to-warning rounded-full transition-all duration-700 ease-out shadow-sm"
-                                                style={{ width: `50%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold text-foreground">Cloth</span>
-                                            <span className="text-sm font-medium text-muted-foreground">$1,200</span>
-                                        </div>
-                                        <div className="relative h-3 bg-grey-x100 dark:bg-border/30 rounded-full overflow-hidden">
-                                            <div
-                                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-secondary to-chart-2 rounded-full transition-all duration-700 ease-out shadow-sm"
-                                                style={{ width: `20%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold text-foreground">Others</span>
-                                            <span className="text-sm font-medium text-muted-foreground">$1,200</span>
-                                        </div>
-                                        <div className="relative h-3 bg-grey-x100 dark:bg-border/30 rounded-full overflow-hidden">
-                                            <div
-                                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-chart-3 to-chart-5 rounded-full transition-all duration-700 ease-out shadow-sm"
-                                                style={{ width: `30%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CollapsibleContent>
-                        </div>
-                    </Collapsible>
-                </div>
-                {/* Expense List Section */}
-                <div className='w-full'>
-                    <div className='flex items-center justify-between mb-4'>
-                        <h3 className='text-lg font-semibold text-foreground'>Recent Expenses</h3>
-                        <span className='text-sm text-muted-foreground'>5 transactions</span>
+                {isLoadingFetch ? (
+                    <div className='flex flex-col items-center justify-center py-12 gap-3'>
+                        <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                        <p className='text-sm text-muted-foreground'>Loading your records...</p>
                     </div>
-
-                    <div className='space-y-2'>
-                        {/* Expense Item Example */}
-                        <div className='rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow'>
-                            <div className='flex items-center justify-between'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-10 h-10 rounded-full bg-chart-1/10 flex items-center justify-center'>
-                                        <span className='text-chart-1 font-semibold'>🍔</span>
-                                    </div>
-                                    <div>
-                                        <div className='font-semibold text-foreground'>Lunch at Restaurant</div>
-                                        <div className='text-xs text-muted-foreground'>Food • Sep 30, 2025</div>
-                                    </div>
-                                </div>
-                                <div className='text-right'>
-                                    <div className='font-bold text-error'>-$45.50</div>
-                                </div>
-                            </div>
+                ) : (
+                    <>
+                        <div className='flex flex-col md:flex-row gap-4 w-full mb-6'>
+                            <BalanceOverview expenseData={expenseDetails} />
+                            <ExpenseSummary expenseData={expenseDetails} />
                         </div>
 
-                        {/* More expense items will be added here */}
-                        <div className='rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow'>
-                            <div className='flex items-center justify-between'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center'>
-                                        <span className='text-secondary font-semibold'>👕</span>
-                                    </div>
-                                    <div>
-                                        <div className='font-semibold text-foreground'>New T-Shirt</div>
-                                        <div className='text-xs text-muted-foreground'>Cloth • Sep 29, 2025</div>
-                                    </div>
-                                </div>
-                                <div className='text-right'>
-                                    <div className='font-bold text-error'>-$28.00</div>
-                                </div>
+                        <div className='w-full'>
+                            <div className='flex items-center justify-between mb-4 mt-2'>
+                                <h3 className='text-lg font-semibold text-foreground'>Recent Expenses</h3>
+                                <span className='text-sm font-semibold text-muted-foreground flex items-center gap-1'>
+                                    {expenseDetails?.expenseRecords?.length || 0} <p>records</p>
+                                </span>
                             </div>
-                        </div>
 
-                        <div className='rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow'>
-                            <div className='flex items-center justify-between'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-10 h-10 rounded-full bg-chart-3/10 flex items-center justify-center'>
-                                        <span className='text-chart-3 font-semibold'>🎮</span>
-                                    </div>
-                                    <div>
-                                        <div className='font-semibold text-foreground'>Gaming Subscription</div>
-                                        <div className='text-xs text-muted-foreground'>Others • Sep 28, 2025</div>
-                                    </div>
+                            {expenseDetails?.expenseRecords?.length ? (
+                                <div className='space-y-2'>
+                                    {expenseDetails.expenseRecords.map((expense) => (
+                                        <div className='rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow' key={expense._id}>
+                                            <div className='flex items-center justify-between'>
+                                                <div className='flex items-center gap-3'>
+                                                    <div className='w-10 h-10 rounded-full bg-chart-1/10 flex items-center justify-center'>
+                                                        <span className='text-xl'>
+                                                            {categoryEmojiMap[expense.category] || "🔀"}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <div className='font-semibold text-foreground capitalize'>{expense.category}</div>
+                                                        <div className='text-xs text-muted-foreground font-medium'>{expense.note || 'No note'} • {new Date(expense.createdAt).toLocaleDateString()}</div>
+                                                    </div>
+                                                </div>
+                                                <div className='text-right'>
+                                                    <div className='font-bold text-error'>-${expense.amount}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className='text-right'>
-                                    <div className='font-bold text-error'>-$15.99</div>
+                            ) : (
+                                <div className='py-8 text-center text-sm font-medium text-muted-foreground'>
+                                    No expenses recorded this month
                                 </div>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                </div>
-
+                    </>
+                )}
             </div>
-        </>
-    )
-}
 
-export default ExpenseTracker
+            <ExpenseAdder
+                addExpense={handleAddExpense}
+                handlePopupExpenseDialog={setIsAddDialogOpen}
+                isOpen={isAddDialogOpen}
+            />
+            <IncomeAdder
+                addIncome={handleAddIncome}
+                handlePopupIncomeDialog={setIsAddIncomeDialogOpen}
+                isOpen={isAddIncomeDialogOpen}
+            />
+        </>
+    );
+};
+
+export default ExpenseTracker;
