@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import {logout} from "@/feature-component/auth/userSlice"
+import { logout } from "@/feature-component/auth/userSlice";
 
 interface User {
     id: string,
@@ -9,21 +9,24 @@ interface User {
     avatar: string
 }
 interface MyJwtPayload {
-  user: User;
-  exp: number;
-  iat?: number;
+    user: User;
+    exp: number;
+    iat?: number;
 }
 
 export function getUserFromToken(token: string): MyJwtPayload | null {
     try {
         const decoded = jwtDecode<MyJwtPayload>(token);
+        const currentTime = Date.now() / 1000;
+        const isTokenExpired = decoded.exp < currentTime;
         console.log("decode: ", decoded)
-        if (!decoded.user) {
+        if (!decoded.user || isTokenExpired) {
             logout()
             return null
         }
         return decoded;
     } catch (error) {
-        return null;
+        logout()
+        return null
     }
 }
