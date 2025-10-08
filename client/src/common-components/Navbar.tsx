@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
         navigate("/")
     }
     return (
-        <nav className="bg-primary h-16 text-heading flex justify-between items-center px-4 lg:px-6">
+        <nav className="bg-primary h-[68px] text-heading flex justify-between items-center px-4 lg:px-6">
             {/* Logo */}
             <Link to="/" className="flex items-center">
                 <img

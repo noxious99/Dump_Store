@@ -34,50 +34,53 @@ const Home: React.FC = () => {
     return (
         <>
             {/* HERO */}
-            <section className="bg-gradient-to-b from-[#C9C7DD] to-[#E7E7E7] flex flex-col-reverse lg:flex-row items-center justify-center gap-10 px-6 lg:px-12 py-[60px] lg:py-[100px]">
-                <div className="w-full lg:w-[500px] flex flex-col gap-6 text-center lg:text-left">
-                    <h1 className="text-3xl lg:text-5xl font-bold leading-snug">
+            <section className="bg-gradient-to-b from-[#C9C7DD] to-[#E7E7E7] flex flex-col-reverse lg:flex-row items-center justify-center gap-16 px-6 lg:px-12 py-20 lg:py-28">
+                <div className="w-full lg:w-[540px] flex flex-col gap-6 text-center lg:text-left">
+                    <h1 className="text-3xl lg:text-5xl font-bold leading-tight text-gray-900">
                         Master Your Money, <br className="hidden lg:block" /> Achieve Your Dreams
                     </h1>
-                    <p className="text-base lg:text-lg text-gray-700">
+                    <p className="text-lg lg:text-xl text-gray-600 leading-relaxed">
                         Take control of your money with Tracero — the intuitive platform designed to
                         simplify expense tracking, loan management, and goal achievement.
                     </p>
                     <Button
                         variant="secondary"
-                        className="border-0 h-12 w-3/6 lg:w-[240px] self-center lg:self-start rounded-lg text-base font-semibold"
+                        className="border-0 h-12 w-3/5 lg:w-[240px] self-center lg:self-start rounded-lg text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                         Get Started Now
                     </Button>
                 </div>
 
-                <div className="w-[320px] lg:w-[480px] h-auto">
-                    <div className="relative w-full">
+                <div className="w-[340px] lg:w-[500px] hidden md:block">
+                    <div className="relative w-full ">
                         <img
                             src="/images/hero_image.jpg"
                             alt="Hero"
-                            className="w-[500px] h-auto drop-shadow-lg rounded-lg"
+                            className=" w-full h-auto drop-shadow-2xl rounded-xl"
                         />
                         <img
                             src="/images/hero_image_3.png"
                             alt="Hero Overlay"
-                            className="w-[200px] h-auto drop-shadow-lg rounded-lg absolute bottom-0 left-0 translate-x-[-10%] translate-y-[20%]"
+                            className=" w-[210px] h-auto drop-shadow-2xl rounded-xl absolute bottom-0 left-0 translate-x-[-12%] translate-y-[18%] hover:scale-105 transition-transform duration-300"
                         />
                         <img
                             src="/images/hero_image_2.png"
                             alt="Hero Accent"
-                            className="w-[180px] h-auto drop-shadow-lg rounded-lg absolute top-0 right-0 translate-x-[30%] translate-y-[-30%]"
+                            className=" w-[190px] h-auto drop-shadow-2xl rounded-xl absolute top-0 right-0 translate-x-[28%] translate-y-[-28%] hover:scale-105 transition-transform duration-300"
                         />
                     </div>
                 </div>
             </section>
 
             {/* FEATURES */}
-            <section className="flex flex-col justify-center items-center py-[80px] lg:py-[120px] px-6">
-                <h2 className="text-3xl lg:text-4xl font-semibold text-center mb-10">
+            <section className="flex flex-col justify-center items-center py-[80px] lg:py-[120px] px-6 bg-gray-50">
+                <h2 className="text-3xl lg:text-4xl font-semibold text-center mb-4">
                     Power Your Finances, Reach Your Goals
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <p className="text-gray-600 text-center mb-12 max-w-2xl">
+                    Everything you need to manage your financial life effectively
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     {features.map((feature) => (
                         <FeatureCard
                             key={feature}
