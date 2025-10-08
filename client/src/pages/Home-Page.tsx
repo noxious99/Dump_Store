@@ -34,7 +34,7 @@ const Home: React.FC = () => {
     return (
         <>
             {/* HERO */}
-            <section className="bg-gradient-to-b from-[#C9C7DD] to-[#E7E7E7] flex flex-col-reverse lg:flex-row items-center justify-center gap-16 px-6 lg:px-12 py-20 lg:py-28">
+            <section className="bg-gradient-to-b from-[#C1C2DE] to-[#EEEEEE] flex flex-col-reverse lg:flex-row items-center justify-center gap-16 px-6 lg:px-12 py-20 lg:py-28">
                 <div className="w-full lg:w-[540px] flex flex-col gap-6 text-center lg:text-left">
                     <h1 className="text-3xl lg:text-5xl font-bold leading-tight text-gray-900">
                         Master Your Money, <br className="hidden lg:block" /> Achieve Your Dreams
@@ -56,7 +56,7 @@ const Home: React.FC = () => {
                         <img
                             src="/images/hero_image.jpg"
                             alt="Hero"
-                            className=" w-full h-auto drop-shadow-2xl rounded-xl"
+                            className=" w-full h-auto rounded-xl"
                         />
                         <img
                             src="/images/hero_image_3.jpg"
