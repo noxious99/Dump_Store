@@ -1,5 +1,5 @@
 import React from 'react';
-import feature_img_spend from '../../assets/feature_img_spend.png'
+import feature_img_spend from '../../assets/feature_img_expense.png'
 import feature_img_loan from '../../assets/feature_img_loan.png'
 import feature_img_goal from '../../assets/feature_img_goal.png'
 import { MdAttachMoney } from "react-icons/md";
@@ -36,6 +36,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({iconColor, iconBg, heading, ti
         loan: feature_img_loan,
         goal: feature_img_goal
     }
+    const featureTextBody = {
+        spend: "Effortlessly categorize your expenses, visualize spending patterns, and stay within budget with intuitive charts and reports.",
+        loan: "Easily record, track, and manage money lent or borrowed — keep every IOU organized and settle balances with confidence.",
+        goal: "Set clear goals, track your progress, and stay motivated with visual milestones that turn ambitions into achievements."
+    }
     const IconComponent = icons[title];
     const ImageComponent = featureImages[title]
     return (
@@ -46,11 +51,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({iconColor, iconBg, heading, ti
                 </CardTitle>
                 <CardDescription className="text-base font-semibold text-dark">{heading}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-sm">Effortlessly categorize your expenses, visualize spending patterns, and stay within budget with intuitive charts and reports.</p>
+            <CardContent className='h-[96px]'>
+                <p className="text-sm mb-4">{featureTextBody[title]}</p>
             </CardContent>
-            <CardFooter>
-                <img src={ImageComponent} alt="Feature" className="w-full h-auto"/>
+            <CardFooter >
+                <img src={ImageComponent} alt="Feature" className="w-full h-auto rounded-lg"/>
             </CardFooter>
         </Card>
     );

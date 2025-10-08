@@ -34,7 +34,7 @@ const Home: React.FC = () => {
     return (
         <>
             {/* HERO */}
-            <section className="bg-grey-x100 flex flex-col-reverse lg:flex-row items-center justify-center gap-10 px-6 lg:px-12 py-[60px] lg:py-[100px]">
+            <section className="bg-gradient-to-b from-[#C9C7DD] to-[#E7E7E7] flex flex-col-reverse lg:flex-row items-center justify-center gap-10 px-6 lg:px-12 py-[60px] lg:py-[100px]">
                 <div className="w-full lg:w-[500px] flex flex-col gap-6 text-center lg:text-left">
                     <h1 className="text-3xl lg:text-5xl font-bold leading-snug">
                         Master Your Money, <br className="hidden lg:block" /> Achieve Your Dreams
@@ -45,18 +45,30 @@ const Home: React.FC = () => {
                     </p>
                     <Button
                         variant="secondary"
-                        className="border-0 h-12 w-3/6 lg:w-[240px] self-center lg:self-start rounded-2xl text-base font-semibold"
+                        className="border-0 h-12 w-3/6 lg:w-[240px] self-center lg:self-start rounded-lg text-base font-semibold"
                     >
                         Get Started Now
                     </Button>
                 </div>
 
                 <div className="w-[320px] lg:w-[480px] h-auto">
-                    <img
-                        src="/images/home_hero_image.png"
-                        alt="Hero"
-                        className="w-full h-auto drop-shadow-md"
-                    />
+                    <div className="relative w-full">
+                        <img
+                            src="/images/hero_image.jpg"
+                            alt="Hero"
+                            className="w-[500px] h-auto drop-shadow-lg rounded-lg"
+                        />
+                        <img
+                            src="/images/hero_image_3.png"
+                            alt="Hero Overlay"
+                            className="w-[200px] h-auto drop-shadow-lg rounded-lg absolute bottom-0 left-0 translate-x-[-10%] translate-y-[20%]"
+                        />
+                        <img
+                            src="/images/hero_image_2.png"
+                            alt="Hero Accent"
+                            className="w-[180px] h-auto drop-shadow-lg rounded-lg absolute top-0 right-0 translate-x-[30%] translate-y-[-30%]"
+                        />
+                    </div>
                 </div>
             </section>
 
