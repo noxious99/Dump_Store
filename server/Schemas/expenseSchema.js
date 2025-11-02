@@ -10,8 +10,9 @@ const expenseSchema = new Schema({
         type: Number,
         required: true,
     },
-    category: {
-        type: String,
+    categoryId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
         required: true,
     },
     note: {
@@ -41,51 +42,24 @@ const incomeSchema = new Schema({
     { timestamps: true }
 );
 
-const budgetSchema = new Schema({
+const monthlyBudgetSchema = new Schema({
     userId: {
         type: String,
         required: true,
         index: true
-    },
-    name: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    budgetType: {
-        type: String,
-        enum: ['overall', 'category'],
-        required: true,
-        default: 'category'
-    },
-    category: {
-        type: String,
-        required: function() {
-            return this.budgetType === 'category';
-        }
     },
     amount: {
         type: Number,
         required: true,
         min: 0
     },
-    period: {
+    month: {
         type: String,
-        enum: ['weekly', 'monthly', 'quarterly', 'yearly'],
-        required: true,
-        default: 'monthly'
-    },
-    startDate: {
-        type: Date,
         required: true
     },
-    endDate: {
-        type: Date,
+    year: {
+        type: String,
         required: true
-    },
-    isActive: {
-        type: Boolean,
-        default: true
     },
     alertThreshold: {
         type: Number,
@@ -93,16 +67,54 @@ const budgetSchema = new Schema({
         min: 0,
         max: 100
     },
-    description: {
-        type: String,
-        trim: true
+}, {
+    timestamps: true
+});
+monthlyBudgetSchema.index({ userId: 1, month: 1, year: 1 }, { unique: true });
+
+const budgetAllocationSchema = new Schema({
+    budgetId: {
+        type: Schema.Types.ObjectId,
+        ref: 'MonthlyBudget',
+        required: true,
+        index: true
     },
+    categoryId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true,
+    },
+    allocatedAmount: {
+        type: Number,
+        required: true,
+        min: 0
+    }
 }, {
     timestamps: true
 });
 
+const categorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  isDefault: {
+    type: Boolean,
+    default: false,
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+}, { timestamps: true });
+
+
 const Expense = mongoose.model('Expense', expenseSchema);
 const Income = mongoose.model('Income', incomeSchema);
-const Budget = mongoose.model('Budget', budgetSchema);
+const MonthlyBudget = mongoose.model('MonthlyBudget', monthlyBudgetSchema);
+const BudgetAllocation = mongoose.model('BudgetAllocation', budgetAllocationSchema);
+const Category = mongoose.model('Category', categorySchema);
 
-module.exports = { Expense, Income, Budget };
+module.exports = { Expense, Income, MonthlyBudget, BudgetAllocation, Category };

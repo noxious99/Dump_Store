@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Delete } from "lucide-react";
+import { Delete, Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -17,22 +17,33 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import type { ExpensePayload } from "@/types/expenseTracker";
+import { categoryEmojiMap } from "@/utils/constant";
 
-interface ExpenseAdderProps {
+type Category = {
+    _id: string;
+    name: string;
+}
+
+type ExpenseAdderProps = {
     addExpense: (expenseData: ExpensePayload) => void;
     handlePopupExpenseDialog: (isOpen: boolean) => void;
     isOpen: boolean;
+    isLoading: boolean;
+    categories: Category[];
 }
+
 const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
     addExpense,
     handlePopupExpenseDialog,
-    isOpen
+    isOpen,
+    isLoading,
+    categories
 }) => {
     const [error, setError] = useState("");
     const [calcValue, setCalcValue] = useState("");
     const [addExpenseData, setAddExpenseData] = useState({
         amount: 0,
-        category: "",
+        categoryId: "",
         note: "",
     });
 
@@ -104,7 +115,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             setError("Please enter a value more than 0");
             return;
         }
-        if (addExpenseData.category === "") {
+        if (addExpenseData.categoryId === "") {
             setError("Please select a category");
             return;
         }
@@ -182,20 +193,20 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                         </Button>
                     </div>
                     <Select
-                        value={addExpenseData.category}
+                        value={addExpenseData.categoryId}
                         onValueChange={(value) =>
-                            setAddExpenseData({ ...addExpenseData, category: value })
+                            setAddExpenseData({ ...addExpenseData, categoryId: value })
                         }
                     >
                         <SelectTrigger className="h-12">
                             <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                            {categoryOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                            {categories.map((option) => (
+                                <SelectItem key={option._id} value={option._id}>
                                     <span className="flex items-center gap-2">
-                                        <span>{option.emoji}</span>
-                                        <span>{option.label}</span>
+                                        {categoryEmojiMap[option.name] || "🔀"}
+                                        <span className="capitalize">{option.name}</span>
                                     </span>
                                 </SelectItem>
                             ))}
@@ -212,8 +223,16 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                         type="button"
                         onClick={handleSubmit}
                         className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                        disabled={isLoading}
                     >
-                        Add Expense
+                        {isLoading ? (
+                            <>
+                                <Loader2Icon className="animate-spin mr-2" />
+                                Add Expense
+                            </>
+                        ) : (
+                            <p>Add Expense</p>
+                        )}
                     </Button>
                 </div>
             </DialogContent>

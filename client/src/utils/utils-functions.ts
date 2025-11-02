@@ -19,7 +19,6 @@ export function getUserFromToken(token: string): MyJwtPayload | null {
         const decoded = jwtDecode<MyJwtPayload>(token);
         const currentTime = Date.now() / 1000;
         const isTokenExpired = decoded.exp < currentTime;
-        console.log("decode: ", decoded)
         if (!decoded.user || isTokenExpired) {
             logout()
             return null
@@ -29,4 +28,12 @@ export function getUserFromToken(token: string): MyJwtPayload | null {
         logout()
         return null
     }
+}
+
+export const getDaysLeftOfCurrentMonth = () => {
+    const now = new Date();
+    const currentDay = now.getDate();
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysLeft = lastDayOfMonth - currentDay;
+    return daysLeft;
 }

@@ -16,17 +16,20 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import type { IncomePayload } from "@/types/expenseTracker";
+import { Loader2Icon } from "lucide-react";
 
 interface IncomeAdderProps {
     addIncome: (incomeData: IncomePayload) => void;
     handlePopupIncomeDialog: (isOpen: boolean) => void;
     isOpen: boolean;
+    isLoading: boolean
 }
 
 const IncomeAdder: React.FC<IncomeAdderProps> = ({
     addIncome,
     handlePopupIncomeDialog,
-    isOpen
+    isOpen,
+    isLoading
 }) => {
     const [error, setError] = useState("");
     const [addIncomeData, setAddIncomeData] = useState({
@@ -74,9 +77,8 @@ const IncomeAdder: React.FC<IncomeAdderProps> = ({
                         value={addIncomeData.amount || ""}
                         onChange={(e) => {
                             const value = e.target.value;
-                            // Allow only numbers and decimal point
                             if (value === "" || /^\d*\.?\d*$/.test(value)) {
-                                setError(""); // Clear error if valid
+                                setError("");
                                 setAddIncomeData({
                                     ...addIncomeData,
                                     amount: parseFloat(value) || 0
@@ -117,8 +119,16 @@ const IncomeAdder: React.FC<IncomeAdderProps> = ({
                         type="button"
                         onClick={handleSubmit}
                         className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                        disabled={isLoading}
                     >
-                        Add to Wallet
+                        {isLoading ? (
+                            <>
+                                <Loader2Icon className="animate-spin mr-2" />
+                                Add to Wallet
+                            </>
+                        ) : (
+                            <p>Add to Wallet</p>
+                        )}
                     </Button>
                 </div>
             </DialogContent>

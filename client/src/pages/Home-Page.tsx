@@ -61,12 +61,12 @@ const Home: React.FC = () => {
                         <img
                             src="/images/hero_image_3.jpg"
                             alt="Hero Overlay"
-                            className=" w-[210px] h-auto drop-shadow-2xl rounded-xl absolute bottom-0 left-0 translate-x-[-12%] translate-y-[18%] hover:scale-105 transition-transform duration-300"
+                            className="w-[140px] lg:w-[210px] h-auto drop-shadow-2xl rounded-xl absolute bottom-0 left-0 translate-x-[-12%] translate-y-[18%] hover:scale-105 transition-transform duration-300"
                         />
                         <img
                             src="/images/hero_image_2.jpg"
                             alt="Hero Accent"
-                            className=" w-[190px] h-auto drop-shadow-2xl rounded-xl absolute top-0 right-0 translate-x-[28%] translate-y-[-28%] hover:scale-105 transition-transform duration-300"
+                            className="w-[120px] lg:w-[160px] h-auto drop-shadow-2xl rounded-xl absolute top-0 right-0 translate-x-[28%] translate-y-[-28%] hover:scale-105 transition-transform duration-300"
                         />
                     </div>
                 </div>

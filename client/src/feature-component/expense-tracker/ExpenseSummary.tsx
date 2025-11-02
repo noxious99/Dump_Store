@@ -6,9 +6,13 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-import type { ExpenseDetails } from '@/types/expenseTracker'
+type TopCategory = {
+    categoryId: string,
+    name: string,
+    amount: number
+}
 
-const ExpenseSummary: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData }) => {
+const ExpenseSummary: React.FC<{ topCategory: TopCategory[] , totalSpend: number }> = ({ topCategory, totalSpend }) => {
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
 
     const makeRoundNumber = (val: number): number => {
@@ -27,7 +31,7 @@ const ExpenseSummary: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData
         return gradients[index % gradients.length]
     }
 
-    const totalSpendAmount = expenseData?.totalSpend?.amount ?? 1
+    const totalSpendAmount = totalSpend
 
     return (
         <>
@@ -36,7 +40,7 @@ const ExpenseSummary: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData
                 onOpenChange={setIsSummaryOpen}
                 className="flex-1"
             >
-                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden flex flex-col">
                     <CollapsibleTrigger asChild>
                         <button className="w-full flex items-center justify-between px-5 py-4 bg-grey-x100 dark:bg-card hover:bg-grey-x200 dark:hover:bg-accent/10 transition-colors">
                             <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
@@ -45,13 +49,13 @@ const ExpenseSummary: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData
                             </div>
                         </button>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className='py-1'>
-                        {expenseData?.topCategory?.length ? (
-                            expenseData.topCategory.map((expense, index) => (
-                                <div className="flex flex-col px-5 py-3 gap-5" key={expense.category}>
-                                    <div className="space-y-2">
+                    <CollapsibleContent className='py-3'>
+                        {topCategory?.length ? (
+                            <div className="flex flex-col gap-2 px-4">
+                                {topCategory.map((expense, index) => (
+                                    <div className="h-[60px] flex flex-col gap-2 justify-center" key={expense.categoryId}>
                                         <div className="flex items-center justify-between">
-                                            <span className="font-semibold text-foreground capitalize">{expense.category}</span>
+                                            <span className="font-semibold text-foreground capitalize">{expense.name}</span>
                                             <span className="text-sm font-medium text-muted-foreground">${expense.amount}</span>
                                         </div>
                                         <div className="relative h-3 bg-grey-x100 dark:bg-border/30 rounded-full overflow-hidden">
@@ -61,8 +65,8 @@ const ExpenseSummary: React.FC<{ expenseData: ExpenseDetails }> = ({ expenseData
                                             ></div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                ))}
+                            </div>
                         ) : (
                             <div className="py-4 text-center text-sm text-muted-foreground">
                                 No expenses recorded this month

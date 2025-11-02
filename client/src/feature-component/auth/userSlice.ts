@@ -60,7 +60,6 @@ export const rehydrateUser = createAsyncThunk("user/rehydrate", async (_, { reje
 
   const info = getUserFromToken(token);
   if (!info) {
-    console.log("herre")
     return rejectWithValue("Token invalid or expired")
   };
 
@@ -76,12 +75,12 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
+      state.token = ""
       state.name = ""
       state.email = ""
       state.username = ""
       state.avatar = ""
       localStorage.removeItem("ACCESS_TOKEN");
-      state.token = ""
     }
   },
   extraReducers: (builder) => {

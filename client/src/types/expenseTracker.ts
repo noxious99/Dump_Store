@@ -2,7 +2,10 @@ export interface ExpenseRecord {
     _id: string;
     userId: string;
     amount: number;
-    category: string;
+    category: {
+        _id: string,
+        name: string
+    };
     createdAt: string;
     updatedAt: string;
     note: string;
@@ -16,15 +19,28 @@ export interface ExpenseDetails {
         amount: number;
     };
     topCategory?: Array<{
-        category: string;
+        categoryId: string,
+        name: string;
         amount: number;
     }>;
     expenseRecords?: ExpenseRecord[];
+    monthlyBudget: {
+        _id: string,
+        amount: number,
+        alertThreshold: number,
+        allocationCount: number
+    }
+}
+
+export interface BalanceData {
+    totalIncome: number,
+    totalExpense: number,
+    walletBalance: number
 }
 
 export interface ExpensePayload {
     amount: number;
-    category: string;
+    categoryId: string;
     note: string;
 }
 
