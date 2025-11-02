@@ -1,6 +1,5 @@
 const express = require("express");
-const dotenv = require("dotenv");
-dotenv.config();
+require('dotenv-flow').config();
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -11,28 +10,45 @@ const expenseRoute = require("./routes/expenseRoute");
 const noteRoute = require("./routes/noteRoute");
 
 app = express();
-
 app.use(
   cors({
     origin: "*",
   })
 );
-
-// app.use(cors({
-//   origin: "*", // Allows all origins
-//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allowed methods
-//   allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"], // Allowed headers
-//   credentials: true, // Allow credentials (cookies, authorization headers)
-//   preflightContinue: false, // Pass the CORS preflight response to the next handler
-// }));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(express.json());
 
+
+const api_prefix = process.env.API_PREFIX ?? "/api/v1";
+// Api end-points
+app.use(`${api_prefix}/user`, userRoute);
+app.use(`${api_prefix}/posts`, postRoute);
+app.use(`${api_prefix}/goals`, goalRoute);
+app.use(`${api_prefix}/expenses`, expenseRoute);
+app.use(`${api_prefix}/notes`, noteRoute);
+
+// Test route
+app.get(`${api_prefix}/test`, (req, res) => {
+  res.json({ message: 'API is working', prefix: api_prefix });
+});
+
+// 404 handler for debugging
+app.use('*', (req, res) => {
+  console.log('404 - Route not found:', req.method, req.originalUrl);
+  res.status(404).json({ 
+    error: 'Route not found', 
+    method: req.method, 
+    url: req.originalUrl,
+  });
+});
+
+
 const PORT = process.env.PORT || 8000;
+const DB_URI = process.env.MONGODB_URI
 const serverConnect = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(DB_URI);
     console.log("DB connected");
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`server running at ${PORT}`);
@@ -43,9 +59,3 @@ const serverConnect = async () => {
 };
 
 serverConnect();
-
-app.use("/api/user/", userRoute);
-app.use("/api/post/", postRoute);
-app.use("/api/goal/", goalRoute);
-app.use("/api/expense/", expenseRoute);
-app.use("/api/note/", noteRoute);

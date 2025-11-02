@@ -1,15 +1,21 @@
 const express = require("express");
-const mongoose = require("mongoose");
+require('dotenv-flow').config();
 const userRoute = express.Router();
 const User = require("../Schemas/userSchema");
-const gravatar = require("gravatar");
-const emailValidator = require("email-validator")
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
 const cloudinary = require("../utils/cloudinary.js");
 const { upload } = require("../middleware/multerMiddleware.js");
 const forgotPassword = require("../controller/authController.js");
+
+const {userLogin, userRegistration} = require("../controller/userController.js")
+
+// User Login
+userRoute.post("/login", userLogin)
+  
+
+// User Registration
+userRoute.post("/register", userRegistration);
+
 
 // auth middleware
 userRoute.get("/auth", auth, async (req, res) => {
@@ -34,86 +40,6 @@ userRoute.get("/profileinfo", auth, async (req, res) => {
   }
 });
 
-// User Login
-userRoute.post("/login/", async (req, res) => {
-  const { logBody, password } = req.body;
-
-  try {
-    let user;
-    if(!logBody.includes('@')){
-      user = await User.findOne({ username: logBody });
-    } else {
-      user = await User.findOne({ email: logBody });
-    }
-    if (!user) {
-      return res.status(400).json({ err: "Invalid Credentials" });
-    } else {
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ err: "Invalid Credentials" });
-      }
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-      const token = await jwt.sign(payload, "talarchaabi", {
-        expiresIn: "10h",
-      });
-      res.send(token);
-    }
-  } catch (err) {
-    res.status(400).json({ err: err });
-    console.log(err);
-  }
-});
-
-// User Registration
-userRoute.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
-  try {
-    let userNameExist = await User.findOne({ username })
-    if(userNameExist) {
-      return res.status(400).json({ err: "username already exist, try a different one" });
-    }
-    let validate = emailValidator.validate(email)
-    if(!validate) {
-      return res.status(400).json({ err: "Invalid email address. Please provide a valid email." });
-    }
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ err: "A user with this email address already exists. Please use a different email." });
-    } else {
-      const avatar = gravatar.url(
-        email,
-        {
-          s: "200",
-          r: "pg",
-          d: "retro",
-        },
-        true
-      );
-      user = new User({
-        username,
-        email,
-        avatar,
-        password,
-      });
-    }
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    await user.save();
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-    const token = jwt.sign(payload, "talarchaabi", { expiresIn: "10h" });
-    res.send(token);
-  } catch (err) {
-    res.status(400).json({ err: "Credential not matched" });
-  }
-});
 
 userRoute.get("/search", async (req, res) => {
   try {

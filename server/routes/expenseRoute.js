@@ -1,16 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const {addExpense, deleteExpenseRecord,
-       getMonthlyExpenses, getDailyExpenses, addIncome, getMonthlySummary} = require('../controller/expenseController');
+
+const {
+       addExpense,
+       deleteExpenseRecord,
+       addMonthlyBudget,
+       addIncome,
+       getMonthlySummary,
+       getExpenseDashboardSummary,
+       getExpenseDetailsOfMonth,
+       getMonthlyBudget,
+       allocateBudgetByCategory,
+       getBudgetBreakdown,
+       getCategoryList,
+} = require('../controller/expenseController');
+
 const auth = require('../middleware/auth');
 
-router.post('/addexpense', auth, addExpense);
-router.delete('/deleteexpense/:id', auth, deleteExpenseRecord);
-router.get('/getexpense/monthly/:month/:year', auth, getMonthlyExpenses);
-router.get('/getexpense/daily/:date/:month/:year', auth, getDailyExpenses);
+router.post('/', auth, addExpense);
+router.delete('/', auth, deleteExpenseRecord);
+router.get("/details", auth, getExpenseDetailsOfMonth)
+router.post('/add-income', auth, addIncome);
 
-router.post('/addincome', auth, addIncome);
+// Budget Section
+router.post('/monthly-budget', auth, addMonthlyBudget)
+router.get('/monthly-budget', auth, getMonthlyBudget)
+router.post('/budget-allocate', auth, allocateBudgetByCategory)
+router.get('/budget-allocate', auth, getBudgetBreakdown)
 
+// Summary Section
+router.get('/dashboard-summary', auth, getExpenseDashboardSummary)
 router.get('/getsummary/monthly/:month/:year', auth, getMonthlySummary);
+
+router.get('/category', auth, getCategoryList)
 
 module.exports = router;
