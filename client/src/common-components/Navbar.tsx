@@ -21,6 +21,7 @@ import { RiDashboardFill } from "react-icons/ri";
 
 const Navbar: React.FC = () => {
     const [loggedinState, setLoggedinState] = useState(false)
+    const [isOpen, setIsOpen] = useState(false);
     const user = useSelector(selectUser)
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -62,7 +63,7 @@ const Navbar: React.FC = () => {
 
             {/* Mobile Menu */}
             <div className="md:hidden">
-                <Sheet>
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
                     <SheetTrigger asChild>
                         <button aria-label="Open menu">
                             <IoMdMenu className="text-3xl text-background" />
@@ -78,10 +79,10 @@ const Navbar: React.FC = () => {
                             {
                                 !loggedinState ? (
                                     <>
-                                        <Button asChild className="w-full">
+                                        <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
                                             <Link to="/auth?mode=signin">Sign In</Link>
                                         </Button>
-                                        <Button asChild variant="secondary" className="w-full">
+                                        <Button asChild variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <Link to="/auth?mode=signup">Sign Up</Link>
                                         </Button>
                                     </>
@@ -98,13 +99,13 @@ const Navbar: React.FC = () => {
                                             </div>
                                             <div className="text-xs">{user.email}</div>
                                         </div>
-                                        <Button variant="secondary" className="w-full">
+                                        <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <RiDashboardFill /> <Link to="/dashboard">Dashboard</Link>
                                         </Button>
-                                        <Button variant="secondary" className="w-full">
+                                        <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <FaRegUserCircle /> <Link to="/profile">Profile</Link>
                                         </Button>
-                                        <Button variant="secondary" className="w-full">
+                                        <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <MdOutlineSettings /> <Link to="/settings">Settings</Link>
                                         </Button>
                                         <Button variant="secondary" className="w-full" onClick={handleLogout}>

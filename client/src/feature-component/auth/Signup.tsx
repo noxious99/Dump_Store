@@ -118,37 +118,39 @@ const Signup: React.FC = () => {
         </div>
 
         {/* Right Section */}
-        <div className='h-full flex items-center justify-center bg-secondary-lite px-4 lg:px-32 w-full'>
-          <Card className="w-full max-w-[460px] py-4 px-4 lg:py-6 sm:py-8 lg:px-6 shadow-lg border border-border rounded-xl">
-            <CardHeader className="text-center xl:text-left">
-              <CardTitle className="text-2xl xl:text-3xl text-grey">
+        <div className='min-h-screen flex items-center justify-center bg-secondary-lite px-4 py-20 lg:px-32 w-full'>
+          <Card className="w-full max-w-[460px] py-4 px-4 sm:py-6 sm:px-8 lg:py-6 lg:px-6 shadow-lg border border-border rounded-xl">
+            <CardHeader className="text-center xl:text-left p-4 sm:p-6">
+              <CardTitle className="text-xl sm:text-2xl xl:text-3xl text-grey">
                 Create your account
               </CardTitle>
-              <CardDescription className='mb-4 text-gray-600'>
+              <CardDescription className='text-sm sm:text-sm text-gray-600'>
                 Fill in your details to create a new account
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
                   {/* Email */}
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700"> <MdOutlineEmail /> Email</FormLabel>
+                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
+                          <MdOutlineEmail /> Email
+                        </FormLabel>
                         <FormControl>
                           <Input
                             className='bg-white border border-gray-300 focus:border-primary 
-                            focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400'
+                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 text-sm sm:text-base'
                             type="email"
                             placeholder="your@email.com"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage className='text-error text-sm' />
+                        <FormMessage className='text-error text-xs sm:text-sm' />
                       </FormItem>
                     )}
                   />
@@ -159,17 +161,19 @@ const Signup: React.FC = () => {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700"> <FaRegUserCircle /> Username</FormLabel>
+                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
+                          <FaRegUserCircle /> Username
+                        </FormLabel>
                         <FormControl>
                           <Input
                             className='bg-white border border-gray-300 focus:border-primary 
-                            focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400'
+                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 text-sm sm:text-base'
                             type="text"
                             placeholder="Pick a unique username"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage className='text-error text-sm' />
+                        <FormMessage className='text-error text-xs sm:text-sm' />
                       </FormItem>
                     )}
                   />
@@ -180,7 +184,9 @@ const Signup: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700"> <MdOutlinePassword /> Password</FormLabel>
+                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
+                          <MdOutlinePassword /> Password
+                        </FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -188,7 +194,7 @@ const Signup: React.FC = () => {
                               placeholder="Create a strong password"
                               {...field}
                               className="bg-white border border-gray-300 focus:border-primary 
-                              focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400 pr-10"
+                      focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 pr-10 text-sm sm:text-base"
                             />
                             <button
                               type="button"
@@ -199,7 +205,7 @@ const Signup: React.FC = () => {
                             </button>
                           </div>
                         </FormControl>
-                        <FormMessage className='text-error text-sm' />
+                        <FormMessage className='text-error text-xs sm:text-sm' />
                       </FormItem>
                     )}
                   />
@@ -210,12 +216,14 @@ const Signup: React.FC = () => {
                     name="confirm_password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700"> <RiLockPasswordLine /> Confirm Password</FormLabel>
+                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
+                          <RiLockPasswordLine /> Confirm Password
+                        </FormLabel>
                         <FormControl>
                           <div className='relative'>
                             <Input
                               className='bg-white border border-gray-300 focus:border-primary 
-                            focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-12 rounded-lg placeholder:text-gray-400 pr-10'
+                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 pr-10 text-sm sm:text-base'
                               type={showConfirmPassword ? "text" : "password"}
                               placeholder="Re-enter your password"
                               {...field}
@@ -229,7 +237,7 @@ const Signup: React.FC = () => {
                             </button>
                           </div>
                         </FormControl>
-                        <FormMessage className='text-error text-sm' />
+                        <FormMessage className='text-error text-xs sm:text-sm' />
                       </FormItem>
                     )}
                   />
@@ -237,31 +245,31 @@ const Signup: React.FC = () => {
               </Form>
             </CardContent>
 
-            <CardFooter className="flex-col gap-3 sm:gap-2">
+            <CardFooter className="flex-col gap-2 sm:gap-3 p-4 sm:p-6">
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"
+                className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"
                 onClick={form.handleSubmit(onSubmit)}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <Loader2Icon className="animate-spin mr-2" />
+                    <Loader2Icon className="animate-spin mr-2" size={18} />
                     Sign Up
                   </>
                 ) : (
                   <p>Sign Up</p>
                 )}
               </Button>
-              <span className="text-sm text-gray-500 font-medium">or</span>
+              <span className="text-xs sm:text-sm text-gray-500 font-medium">or</span>
               <Button
                 variant="outline"
-                className="w-full h-12 text-base border border-gray-300 hover:bg-gray-50 rounded-lg"
+                className="w-full h-10 sm:h-12 text-sm sm:text-base border border-gray-300 hover:bg-gray-50 rounded-lg"
                 disabled
               >
                 Sign up with Google
               </Button>
-              <span className='my-4 flex gap-2 text-sm text-gray-600'>
+              <span className='mt-2 sm:mt-4 flex gap-2 text-xs sm:text-sm text-gray-600'>
                 <p>Already have an account?</p>
                 <Link to="/auth?mode=signin">
                   <p className='text-primary font-semibold hover:underline'>Sign In</p>
