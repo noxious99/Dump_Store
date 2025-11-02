@@ -47,18 +47,6 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         note: "",
     });
 
-    const categoryOptions = [
-        { value: "travel", label: "Travel", emoji: "🚗" },
-        { value: "food", label: "Food", emoji: "🍔" },
-        { value: "rent", label: "Rent", emoji: "🏠" },
-        { value: "utility", label: "Utility", emoji: "💡" },
-        { value: "groceries", label: "Groceries", emoji: "🛒" },
-        { value: "entertainment", label: "Entertainment", emoji: "🎬" },
-        { value: "subscriptions", label: "Subscriptions", emoji: "📺" },
-        { value: "clothing", label: "Clothing", emoji: "👕" },
-        { value: "health", label: "Health", emoji: "💊" },
-        { value: "miscellaneous", label: "Miscellaneous", emoji: "🔀" },
-    ];
 
     const sanitizeInput = (input: string) => {
         const allowedChars = input.replace(/[^0-9+\-*/().\s]/g, '');

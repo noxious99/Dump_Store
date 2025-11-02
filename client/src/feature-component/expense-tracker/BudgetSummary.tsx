@@ -22,7 +22,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { categoryEmojiMap, categoryMap } from '@/utils/constant'
+import { categoryEmojiMap } from '@/utils/constant'
 import { getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
 import axiosInstance from '@/utils/axiosInstance'
 
@@ -50,9 +50,6 @@ interface BudgetBreakdownData {
     categories: Category[]
 }
 
-const totalBudget = 2500
-const totalAllocated = 1600
-const remaining = totalBudget - totalAllocated
 const daysLeft = getDaysLeftOfCurrentMonth()
 
 const dummyBudgetData: BudgetDetails = {
@@ -70,14 +67,12 @@ const dummyBudgetData: BudgetDetails = {
 const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, onBudgetUpdate: any, categories: any }> = ({ budgetData = dummyBudgetData, budgetSummary, onBudgetUpdate, categories }) => {
     const [isBudgetOpen, setIsBudgetOpen] = useState(true)
     const [isAddBudgetMenuOpen, setAddBudgetMenuOpen] = useState(false)
-    const [allocations, setAllocations] = useState<Allocation[]>(budgetData.allocations)
     const [totalAllocated, setTotalAllocated] = useState<number>(0)
     const [newAllocation, setNewAllocation] = useState({
         categoryId: "",
         amount: 0
     })
     const [newBudgetAmount, setNewBudgetAmount] = useState<string>("")
-    const [newAmount, setNewAmount] = useState<number>(0)
     const [budgetBreakdownData, setBudgetBreakdownData] = useState<BudgetBreakdownData | null>({
         amount: 0,
         remaining: 0,
@@ -86,7 +81,6 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
         categories: []
     })
     const [showBudgetBreakdownDialog, setShowBudgetBreakdownDialog] = useState(false)
-    const [categoryList, setCategoryList] = useState([])
     const [showAddCategory, setShowAddCategory] = useState(false)
 
     const totalBudget = budgetData.totalBudget
@@ -111,9 +105,9 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
     const totalAllocatedAmount = () => {
         let amount = 0
         if (budgetBreakdownData) {
-            amount = budgetBreakdownData.categories.reduce((acc, item) => acc + item.allocatedAmount || 0, 0)
+           amount = budgetBreakdownData.categories.reduce((acc, item) => acc + item.allocatedAmount || 0, 0)
         }
-        setTotalAllocated(0)
+        setTotalAllocated(amount)
     }
     const handleAddNewAllocation = async () => {
         try {

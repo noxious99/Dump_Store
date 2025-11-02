@@ -115,19 +115,6 @@ const ExpenseTracker: React.FC = () => {
             setIsIncomeAddingLoading(false)
         }
     };
-    const handleBudgetUpdate = async (val: any) => {
-        await fetchExpenseDetails()
-        // console.log(val);
-        // setExpenseDetails((prev) => ({
-        //     ...prev,
-        //     monthlyBudget: {
-        //         _id: val._id,
-        //         amount: val.amount,
-        //         alertThreshold: val.alertThreshold || prev.monthlyBudget?.alertThreshold || 80,
-        //         allocationCount: val.allocationCount || prev.monthlyBudget?.allocationCount || 0
-        //     }
-        // }));
-    }
     const fetchCategoryList = async () => {
         try {
             const res = await axiosInstance.get("/v1/expenses/category")
@@ -136,6 +123,11 @@ const ExpenseTracker: React.FC = () => {
             console.log(error)
         }
     }
+
+    const handleBudgetUpdate = async () => {
+        console.log("update budget")
+    }
+
     useEffect(() => {
         fetchCategoryList();
     }, [])

@@ -21,7 +21,6 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 const ExpenseSummaryCard: React.FC = () => {
     const [walletBalance, setWalletBalance] = useState(0)
@@ -81,7 +80,7 @@ const ExpenseSummaryCard: React.FC = () => {
             const body = {
                 amount: newBudgetAmount
             }
-            const res = await axiosInstance.post("/v1/expenses/monthly-budget", body)
+            await axiosInstance.post("/v1/expenses/monthly-budget", body)
             setNewBudgetAmount("")
             await fetchSummary()
         } catch (error) {
