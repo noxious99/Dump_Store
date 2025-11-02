@@ -1,5 +1,5 @@
 const express = require("express");
-require('dotenv-flow').config();
+require('dotenv').config();
 const User = require("../Schemas/userSchema");
 const gravatar = require("gravatar");
 const emailValidator = require("email-validator")

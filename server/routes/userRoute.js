@@ -1,5 +1,5 @@
 const express = require("express");
-require('dotenv-flow').config();
+require('dotenv').config();
 const userRoute = express.Router();
 const User = require("../Schemas/userSchema");
 const auth = require("../middleware/auth");

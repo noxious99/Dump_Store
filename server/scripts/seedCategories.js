@@ -1,5 +1,5 @@
 process.env.NODE_ENV = 'development';
-require('dotenv-flow').config({ path: require('path').resolve(__dirname, '..') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '..') });
 
 const mongoose = require('mongoose');
 const { Category } = require('../Schemas/expenseSchema');

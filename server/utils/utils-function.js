@@ -1,4 +1,4 @@
-export const getMonthBoundaries = (dateVal) => {
+const getMonthBoundaries = (dateVal) => {
     const startOfMonth = new Date(Date.UTC(
         dateVal.getUTCFullYear(),
         dateVal.getUTCMonth(),
@@ -15,3 +15,5 @@ export const getMonthBoundaries = (dateVal) => {
 
     return { startOfMonth, endOfMonth };
 }
+
+module.exports = {getMonthBoundaries}
