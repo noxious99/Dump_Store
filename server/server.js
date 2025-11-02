@@ -1,5 +1,7 @@
 const express = require("express");
-require('dotenv-flow').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv-flow').config();
+}
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
