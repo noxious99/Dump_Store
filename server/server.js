@@ -8,6 +8,7 @@ const postRoute = require("./routes/postRoute");
 const goalRoute = require("./routes/goalRoute");
 const expenseRoute = require("./routes/expenseRoute");
 const noteRoute = require("./routes/noteRoute");
+const healthRouter = require("./routes/healthRoute")
 
 app = express();
 app.use(
@@ -27,6 +28,7 @@ app.use(`${api_prefix}/posts`, postRoute);
 app.use(`${api_prefix}/goals`, goalRoute);
 app.use(`${api_prefix}/expenses`, expenseRoute);
 app.use(`${api_prefix}/notes`, noteRoute);
+app.use(`${api_prefix}/utils`, healthRouter);
 
 // Test route
 app.get(`${api_prefix}/test`, (req, res) => {
