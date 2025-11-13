@@ -160,6 +160,7 @@ const Signin: React.FC = () => {
                                             </FormItem>
                                         )}
                                     />
+                                    <Link to="/reset-password" className='text-sm text-gray-800 -mt-2'>Forgot password?</Link>
                                 </form>
                             </Form>
                         </CardContent>

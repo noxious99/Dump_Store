@@ -15,6 +15,11 @@ export interface User {
   avatar: string;
 }
 
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   token: string;
