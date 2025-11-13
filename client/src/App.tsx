@@ -6,6 +6,7 @@ import Footer from "@/common-components/Footer.tsx";
 import Auth from './pages/Auth-Page';
 import Dashboard from './pages/Dashboard-Page';
 import ExpenseTracker from './pages/ExpenseTracker-Page';
+import ResetPassword from './pages/ResetPassword-Page';
 import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
 
 import { useDispatch } from 'react-redux';
@@ -32,6 +33,7 @@ const AppContent: React.FC = () => {
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/auth' element={<Auth />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
           <Route element={<ProtectedRoutes/>}>
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/expense-tracker' element={<ExpenseTracker />} />

@@ -5,7 +5,7 @@ const User = require("../Schemas/userSchema");
 const auth = require("../middleware/auth");
 const cloudinary = require("../utils/cloudinary.js");
 const { upload } = require("../middleware/multerMiddleware.js");
-const forgotPassword = require("../controller/authController.js");
+const { forgotPassword, resetPassword } = require("../controller/authController.js");
 
 const {userLogin, userRegistration} = require("../controller/userController.js")
 
@@ -124,5 +124,6 @@ userRoute.delete("/", (req, res) => {
   res.send("user delete route");
 });
 
-userRoute.post("/forgotpassword", forgotPassword)
+userRoute.post("/password/forgot", forgotPassword)
+userRoute.post("/password/reset", resetPassword)
 module.exports = userRoute;
