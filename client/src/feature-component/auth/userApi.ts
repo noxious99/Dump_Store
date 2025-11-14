@@ -11,8 +11,7 @@ export const loginApi = async (
     );
     return res.data;
   } catch (error: any) {
-    console.error(error.response);
-    return error.response.data?.msg || "Something went wrong during login"
+    return error?.msg || "Something went wrong during login"
   }
 };
 
@@ -24,9 +23,9 @@ export const signupApi = async (
       "/v1/user/register",
       payload
     );
+    console.log("33333: ", res)
     return res.data;
   } catch (error: any) {
-    console.error(error.response);
-    return error.response.data?.msg || "Something went wrong during signup"
+    return error?.msg || "Something went wrong during signup"
   }
 }

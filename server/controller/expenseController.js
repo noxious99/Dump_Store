@@ -203,8 +203,7 @@ const getBudgetBreakdown = async (req, res) => {
         });
         const date = new Date(`${budget.month} 28, ${budget.year}`)
         const { startOfMonth, endOfMonth } = getMonthBoundaries(date)
-        const spendOfCategory = await getSpendOfCategorysOfMonth(allocatedCategoryIds, startOfMonth, endOfMonth)
-        console.log("spc: ", spendOfCategory)
+        const spendOfCategory = await getSpendOfCategorysOfMonth(userId, allocatedCategoryIds, startOfMonth, endOfMonth)
         const categoriesWithSpend = formattedAllocatedCategory.map(category => ({
             ...category,
             spent: spendOfCategory[category.categoryId.toString()] || 0,

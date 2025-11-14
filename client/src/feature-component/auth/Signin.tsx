@@ -34,6 +34,7 @@ import { Loader2Icon } from "lucide-react"
 const Signin: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [loginFailedMessage, setLoginFailedMessage] = useState("")
 
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
@@ -41,17 +42,10 @@ const Signin: React.FC = () => {
     const formSchema = z.object({
         email: z
             .string()
-            .min(3, { message: "Email must be at least 3 characters." })
-            .max(50, { message: "Email must not exceed 50 characters." })
             .email({ message: "Please enter a valid email address." }),
 
         password: z
             .string()
-            .min(8, { message: "Password must be at least 8 characters." })
-            .max(32, { message: "Password must not exceed 32 characters." })
-        // .regex(/[0-9]/, { message: "Password must contain at least one number." })
-        // .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-        // .regex(/[@$!%*?&]/, { message: "Password must contain at least one special character." }),
     })
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -66,16 +60,22 @@ const Signin: React.FC = () => {
             password: values.password,
         };
         setIsLoading(true)
-        await dispatch(loginUser(payload));
+        const res: any = await dispatch(loginUser(payload));
+        if (res.error) {
+            let errorMsg = res.payload
+            setLoginFailedMessage(errorMsg)
+        } else {
+            setLoginFailedMessage("")
+        }
         setIsLoading(false)
     }
 
     const token = useSelector((state: RootState) => state.user.token)
-    useEffect (()=>{
+    useEffect(() => {
         if (token) {
             navigate('/dashboard')
         }
-    },[token, navigate])
+    }, [token, navigate])
     return (
         <>
             <div className='h-screen flex'>
@@ -165,6 +165,7 @@ const Signin: React.FC = () => {
                             </Form>
                         </CardContent>
                         <CardFooter className="flex-col gap-3 sm:gap-2">
+                            {loginFailedMessage && <div className='text-sm text-error font-semibold pb-1'>{loginFailedMessage}</div>}
                             <Button
                                 type="submit"
                                 className="w-full h-12 text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"

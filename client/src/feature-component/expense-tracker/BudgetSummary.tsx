@@ -23,7 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { categoryEmojiMap } from '@/utils/constant'
-import { getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
+import { getDateInfo, getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
 import axiosInstance from '@/utils/axiosInstance'
 
 interface Allocation {
@@ -97,7 +97,6 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
             }
             const res = await axiosInstance.post("/v1/expenses/monthly-budget", payload)
             onBudgetUpdate(res.data.newBudget)
-            console.log(res.data)
         } catch (error) {
             console.log(error)
         }
@@ -105,7 +104,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
     const totalAllocatedAmount = () => {
         let amount = 0
         if (budgetBreakdownData) {
-           amount = budgetBreakdownData.categories.reduce((acc, item) => acc + item.allocatedAmount || 0, 0)
+            amount = budgetBreakdownData.categories.reduce((acc, item) => acc + item.allocatedAmount || 0, 0)
         }
         setTotalAllocated(amount)
     }
@@ -155,6 +154,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
             setShowBudgetBreakdownDialog(true)
         }
     }
+    const { monthName } = getDateInfo();
     return (
         <>
             <Collapsible
@@ -166,7 +166,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                     <CollapsibleTrigger asChild>
                         <button className="w-full flex items-center justify-between px-5 py-4 bg-grey-x100 dark:bg-card hover:bg-grey-x200 dark:hover:bg-accent/10 transition-colors">
                             <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
-                                October Budget Breakdown
+                                {monthName} Budget Breakdown
                                 <ChevronsUpDown className='w-4 h-4 text-muted-foreground' />
                             </div>
                         </button>
@@ -214,28 +214,32 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
 
                             </div> :
                             <>
-                                {!isAddBudgetMenuOpen ? <div className='flex flex-col justify-center items-center p-4 text-sm font-medium '>
-                                    <div>No budget set for this month</div>
-                                    <div>
-                                        <Button
-                                            className='text-primary underline-offset-2 underline font-semibold' variant="ghost"
-                                            onClick={() => setAddBudgetMenuOpen(true)}
-                                        >
-                                            Add Budget
-                                        </Button>
-                                    </div>
-                                </div>
-                                    :
-                                    <div className='flex gap-4 p-6'>
-                                        <Input type='number' placeholder="Enter amount more than 0"
-                                            value={newBudgetAmount}
-                                            onChange={(e) =>
-                                                setNewBudgetAmount(e.target.value)
-                                            }
-                                            className="flex-1 placeholder:text-gray-400 text-sm" />
-                                        <Button size="default" onClick={handleAddNewBudget}>Allocate</Button>
-                                    </div>}
-                            </>}
+                                {
+                                    !isAddBudgetMenuOpen ?
+                                        <div className='flex flex-col justify-center items-center p-4 text-sm font-medium '>
+                                            <div>No budget set for this month</div>
+                                            <div>
+                                                <Button
+                                                    className='text-primary underline-offset-2 underline font-semibold' variant="ghost"
+                                                    onClick={() => setAddBudgetMenuOpen(true)}
+                                                >
+                                                    Add Budget
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        :
+                                        <div className='flex gap-4 p-6'>
+                                            <Input type='number' placeholder="Enter amount more than 0"
+                                                value={newBudgetAmount}
+                                                onChange={(e) =>
+                                                    setNewBudgetAmount(e.target.value)
+                                                }
+                                                className="flex-1 placeholder:text-gray-400 text-sm" />
+                                            <Button size="default" onClick={handleAddNewBudget}>Allocate</Button>
+                                        </div>
+                                }
+                            </>
+                        }
                     </CollapsibleContent>
                 </div>
             </Collapsible>
