@@ -12,6 +12,7 @@ import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
 import { useDispatch } from 'react-redux';
 import { rehydrateUser } from './feature-component/auth/userSlice';
 import type { AppDispatch } from './store/store';
+import { Toaster } from 'sonner'
 
 const AppContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,6 +29,11 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="App box-border max-w-[2160px] flex justify-center min-w-[360px]">
+      <Toaster
+        duration={1000}
+        richColors
+        closeButton
+      />
       <Navbar />
       <main>
         <Routes>

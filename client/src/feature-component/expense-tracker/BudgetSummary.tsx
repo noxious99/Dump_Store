@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ChevronsUpDown, Pencil, } from "lucide-react"
+import { TiTick } from "react-icons/ti"
+import { IoClose } from "react-icons/io5";
 import {
     Collapsible,
     CollapsibleContent,
@@ -22,6 +24,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { toast } from "sonner"
+
 import { categoryEmojiMap } from '@/utils/constant'
 import { getDateInfo, getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
 import axiosInstance from '@/utils/axiosInstance'
@@ -40,6 +44,7 @@ interface BudgetDetails {
 }
 
 interface Category {
+    _id: string,
     allocatedAmount: number;
 }
 interface BudgetBreakdownData {
@@ -49,25 +54,14 @@ interface BudgetBreakdownData {
     year: string,
     categories: Category[]
 }
-
 const daysLeft = getDaysLeftOfCurrentMonth()
 
-const dummyBudgetData: BudgetDetails = {
-    totalBudget: 5000,
-    totalAllocated: 3200,
-    daysLeft: daysLeft,
-    allocations: [
-        { categoryId: "1", category: "Food", allocatedAmount: 1200 },
-        { categoryId: "2", category: "Rent", allocatedAmount: 1500 },
-        { categoryId: "3", category: "Transport", allocatedAmount: 400 },
-        { categoryId: "4", category: "Health", allocatedAmount: 100 },
-    ]
-}
-
-const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, onBudgetUpdate: any, categories: any }> = ({ budgetData = dummyBudgetData, budgetSummary, onBudgetUpdate, categories }) => {
+const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, onBudgetUpdate: any, categories: any }> = ({ budgetSummary, onBudgetUpdate, categories }) => {
     const [isBudgetOpen, setIsBudgetOpen] = useState(true)
     const [isAddBudgetMenuOpen, setAddBudgetMenuOpen] = useState(false)
     const [totalAllocated, setTotalAllocated] = useState<number>(0)
+    const [editModeActive, setEditModeActive] = useState(null)
+    const [updatedAllocationAmount, setUpdatedAllocationAmount] = useState("")
     const [newAllocation, setNewAllocation] = useState({
         categoryId: "",
         amount: 0
@@ -83,8 +77,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
     const [showBudgetBreakdownDialog, setShowBudgetBreakdownDialog] = useState(false)
     const [showAddCategory, setShowAddCategory] = useState(false)
 
-    const totalBudget = budgetData.totalBudget
-    const dailyBudget = budgetSummary.remaining > 0 ? (budgetSummary.remaining / 20).toFixed(2) : "0.00"
+    const dailyBudget = budgetSummary.remaining > 0 ? (budgetSummary.remaining / daysLeft).toFixed(2) : "0.00"
 
     const handleAddNewBudget = async () => {
         try {
@@ -101,8 +94,9 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
             console.log(error)
         }
     }
-    const totalAllocatedAmount = () => {
+    const calculateTotalAllocatedAmount = () => {
         let amount = 0
+        console.log(budgetBreakdownData)
         if (budgetBreakdownData) {
             amount = budgetBreakdownData.categories.reduce((acc, item) => acc + item.allocatedAmount || 0, 0)
         }
@@ -115,11 +109,11 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                 categoryId: newAllocation.categoryId,
                 allocatedAmount: newAllocation.amount
             }
-            const res = await axiosInstance.post('/v1/expenses/budget-allocate', payload)
+            await axiosInstance.post('/v1/expenses/budget-allocate', payload)
             handleShowBudgetBreakdown()
-            console.log(res.data)
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            toast.error(error?.msg)
+            console.log("hgdsh: ", error?.msg)
         } finally {
             setNewAllocation((prev) => ({
                 ...prev,
@@ -146,7 +140,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                     month: res.data.month,
                     year: res.data.year,
                 }))
-                totalAllocatedAmount()
+                calculateTotalAllocatedAmount()
             }
         } catch (error) {
             console.log(error)
@@ -154,7 +148,32 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
             setShowBudgetBreakdownDialog(true)
         }
     }
+    const handleAllocationEditMode = (category: any) => {
+        setEditModeActive(category._id);
+        setUpdatedAllocationAmount(category.allocatedAmount)
+    }
+    const saveUpdatedAllocation = async (val: string) => {
+        try {
+            const category: any = budgetBreakdownData?.categories.find(c => c._id === val )
+            const payload = {
+                categoryId: category?.categoryId,
+                budgetId: category?.budgetId,
+                amount: updatedAllocationAmount
+            }
+            await axiosInstance.patch("/v1/expenses/budget-allocate", payload)
+            handleShowBudgetBreakdown()
+        } catch (error: any) {
+            toast(error?.msg)
+        } finally {
+            setEditModeActive(null)
+            setUpdatedAllocationAmount("")
+        }
+    }
+    useEffect(() => {
+        calculateTotalAllocatedAmount()
+    }, [budgetBreakdownData])
     const { monthName } = getDateInfo();
+    const totalBudgetAmount = budgetBreakdownData?.amount ?? 0;
     return (
         <>
             <Collapsible
@@ -198,7 +217,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                                         <div className="text-xs font-medium text-primary/70 mb-1 uppercase tracking-wide">Allocated to</div>
                                         <div className="text-sm text-primary">{budgetSummary.allocationCount} DIfferent Category</div>
                                     </div>
-                                    {budgetData.daysLeft > 0 && (
+                                    {1 > 0 && (
                                         <div className="rounded-lg border bg-muted/10 border-border/20 text-xs">
                                             <Button
                                                 variant="outline"
@@ -234,7 +253,8 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                                                 onChange={(e) =>
                                                     setNewBudgetAmount(e.target.value)
                                                 }
-                                                className="flex-1 placeholder:text-gray-400 text-sm" />
+                                                className="flex-1 placeholder:text-gray-400 text-sm" 
+                                            />
                                             <Button size="default" onClick={handleAddNewBudget}>Allocate</Button>
                                         </div>
                                 }
@@ -259,7 +279,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                             <div className="flex items-center justify-between mb-2">
                                 <div>
                                     <p className="text-xs font-medium text-primary/70 uppercase tracking-wide mb-1">Total Set Budget</p>
-                                    <p className="text-base font-bold text-primary">${budgetBreakdownData?.amount}</p>
+                                    <p className="text-base font-bold text-primary">${totalBudgetAmount}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Remaining</p>
@@ -269,7 +289,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                             <div className="relative h-2 bg-grey-x100 dark:bg-border/30 rounded-full overflow-hidden">
                                 <div
                                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-700"
-                                    style={{ width: `${(totalAllocated / totalBudget) * 100}%` }}
+                                    style={{ width: `${(totalAllocated / totalBudgetAmount) * 100}%` }}
                                 ></div>
                             </div>
                         </div>
@@ -283,8 +303,8 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                                     ? (category.spent / category.allocatedAmount) * 100
                                     : 0;
                                 const remainingPercentage = 100 - spentPercentage;
-                                const percentageOfTotal = budgetBreakdownData?.amount > 0
-                                    ? (category.allocatedAmount / budgetBreakdownData?.amount) * 100
+                                const percentageOfTotal = totalBudgetAmount > 0
+                                    ? (category.allocatedAmount / totalBudgetAmount) * 100
                                     : 0;
 
                                 return (
@@ -294,18 +314,52 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                                                 {category.categoryName}
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                <div className="text-right">
-                                                    <span className="text-xs text-muted-foreground">
-                                                        ${category.spent.toFixed(2)}
-                                                    </span>
-                                                    <span className="text-xs text-muted-foreground mx-1">/</span>
-                                                    <span className="text-sm font-semibold text-foreground">
-                                                        ${category.allocatedAmount.toFixed(2)}
-                                                    </span>
-                                                </div>
-                                                <button className="p-1 hover:bg-accent rounded transition-colors">
-                                                    <Pencil className="w-3 h-3 text-muted-foreground" />
-                                                </button>
+                                                {editModeActive === category._id ? (
+                                                    <div>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Enter amount"
+                                                            value={updatedAllocationAmount}
+                                                            onChange={(e) =>
+                                                                setUpdatedAllocationAmount(e.target.value)
+                                                            }
+                                                            className="px-2 w-[110px] rounded placeholder:text-gray-400 text-sm border border-primary"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-right">
+                                                        <span className="text-xs text-muted-foreground">
+                                                            ${category.spent.toFixed(2)}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground mx-1">/</span>
+                                                        <span className="text-sm font-semibold text-foreground">
+                                                            ${category.allocatedAmount.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {editModeActive === category._id ? (
+                                                    <div className="flex gap-1">
+                                                        <button
+                                                            className="hover:bg-accent rounded transition-colors"
+                                                            onClick={() => saveUpdatedAllocation(category._id)}
+                                                        >
+                                                            <TiTick className="w-5 h-5 text-success" />
+                                                        </button>
+                                                        <button
+                                                            className="hover:bg-accent rounded transition-colors"
+                                                            onClick={() => setEditModeActive(null)}
+                                                        >
+                                                            <IoClose className="w-5 h-5 text-error" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        className="p-1 hover:bg-accent rounded transition-colors"
+                                                        onClick={() => handleAllocationEditMode(category)}
+                                                    >
+                                                        <Pencil className="w-3 h-3 text-muted-foreground" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -387,7 +441,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                         <div className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-foreground mb-1">Unallocated Budget</p>
-                                <p className="text-xs text-muted-foreground">${budgetSummary.amount - totalAllocated} remaining as uncategorised</p>
+                                <p className="text-xs text-muted-foreground">${totalBudgetAmount - totalAllocated} remaining as uncategorised</p>
                             </div>
                             <Button variant="outline" size="sm" className="text-xs" onClick={() => setShowAddCategory(true)} disabled={showAddCategory}>
                                 Split More

@@ -243,19 +243,25 @@ const allocateBudgetByCategory = async (req, res) => {
         }
 
         const allocationData = {
+            userId: userId,
             budgetId: budgetId,
             categoryId: categoryId,
             allocatedAmount: allocatedAmount
         }
-
+        const existingAllocation = await BudgetAllocation.findOne({
+            userId,
+            budgetId,
+            categoryId
+        });
+        if (existingAllocation) {
+            return res.status(409).json({ msg: "A budget allocation for this category already exists. Please update the existing allocation or select a different category." })
+        }
         const newBudgetAllocation = new BudgetAllocation(allocationData);
         await newBudgetAllocation.save();
-
         const populatedAllocation = await BudgetAllocation.findById(newBudgetAllocation._id)
-            .populate('categoryId', 'name'); // only fetch name
+            .populate('categoryId', 'name');
 
         return res.status(201).json({ newAllocation: populatedAllocation });
-
     }
     catch (error) {
         return res.status(500).json({ msg: error.message });
@@ -269,7 +275,7 @@ const updateAllocatedCategory = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ msg: "User not found!" });
         }
-        const { budgetId, categoryId, amount, categoryName } = req.body
+        const { budgetId, categoryId, amount } = req.body
         if (!budgetId || !categoryId || !amount) {
             return res.status(400).json({ msg: "Missing required fields" });
         }
@@ -279,20 +285,25 @@ const updateAllocatedCategory = async (req, res) => {
         }
 
         const budget = await MonthlyBudget.findOne({ _id: budgetId, userId });
-        const allocation = await BudgetAllocation.findOne({ _id: categoryId, userId });
-
+        const allocation = await BudgetAllocation.findOne({ categoryId: categoryId, budgetId: budgetId, userId });
         if (!budget || !allocation) {
             return res.status(404).json({ msg: "No record found to update" });
         }
 
         const updateData = { allocatedAmount: amount };
-        if (categoryName) updateData.category = categoryName;
 
-        const updatedAllocation = await BudgetAllocation.findByIdAndUpdate(
-            categoryId,
+        const updatedAllocation = await BudgetAllocation.findOneAndUpdate(
+            {
+                userId,
+                budgetId,
+                categoryId
+            },
             updateData,
-            { new: true }
-        );
+            {
+                new: true,
+                runValidators: true
+            }
+        ).populate('categoryId', 'name');
 
         return res.status(200).json({
             updatedAllocation,
@@ -379,5 +390,5 @@ module.exports = {
     addExpense, addIncome, addMonthlyBudget,
     getMonthlySummary, deleteExpenseRecord, getExpenseDashboardSummary,
     getExpenseDetailsOfMonth, getMonthlyBudget, allocateBudgetByCategory,
-    getBudgetBreakdown, getCategoryList
+    getBudgetBreakdown, getCategoryList, updateAllocatedCategory
 };
