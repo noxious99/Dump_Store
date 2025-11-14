@@ -170,10 +170,11 @@ const getUserExpenseRecordsListOfMonth = async (userId, startOfMonth, endOfMonth
 }
 
 
-const getSpendOfCategorysOfMonth = async (categoryIds, startOfMonth, endOfMonth) => {
+const getSpendOfCategorysOfMonth = async (userId, categoryIds, startOfMonth, endOfMonth) => {
     const result = await Expense.aggregate([
         {
             $match: {
+                userId,
                 categoryId: { $in: categoryIds },
                 createdAt: {
                     $gte: startOfMonth,

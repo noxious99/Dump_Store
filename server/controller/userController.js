@@ -37,7 +37,7 @@ const userLogin = async (req, res) => {
                     avatar: user.avatar ?? "",
                 },
             };
-            res.json({
+            return res.status(200).json({
                 success: true,
                 token: jwt.sign(
                     payload,
@@ -47,7 +47,7 @@ const userLogin = async (req, res) => {
             });
         }
     } catch (error) {
-        res.status(400).json({ msg: error });
+        res.status(400).json({ msg: error.message });
     }
 }
 
@@ -89,12 +89,22 @@ const userRegistration = async (req, res) => {
         const payload = {
             user: {
                 id: user.id,
+                username: user.username ?? "",
+                email: user.email,
+                name: user.name ?? "",
+                avatar: user.avatar ?? "",
             },
         };
-        const token = jwt.sign(payload, jwtKey, { expiresIn: "10h" });
-        res.send(token);
+        return res.status(201).json({
+            success: true,
+            token: jwt.sign(
+                payload,
+                jwtKey,
+                { expiresIn: "24h" }
+            ),
+        });
     } catch (error) {
-        res.status(400).json({ msg: error });
+        res.status(400).json({ msg: error.message });
     }
 }
 

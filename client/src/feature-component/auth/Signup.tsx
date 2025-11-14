@@ -37,6 +37,7 @@ const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [registerFailedMessage, setRegisterFailedMessage] = useState("")
 
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
@@ -57,12 +58,11 @@ const Signup: React.FC = () => {
         .string()
         .min(8, { message: "Password must be at least 8 characters." })
         .max(32, { message: "Password must not exceed 32 characters." })
-        .regex(/[0-9]/, { message: "Password must contain at least one number." })
-        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-        .regex(/[@$!%*?&]/, { message: "Password must contain at least one special character." }),
+        .regex(/[0-9]/, { message: "Password must contain at least one number." }),
 
       confirm_password: z
         .string()
+        .max(32, { message: "Password must not exceed 32 characters." })
         .min(8, { message: "Confirm password must be at least 8 characters." }),
     })
     .refine((data) => data.password === data.confirm_password, {
@@ -88,7 +88,13 @@ const Signup: React.FC = () => {
       password: values.password
     }
     setIsLoading(true)
-    await dispatch(signupUser(payload))
+    const res: any = await dispatch(signupUser(payload))
+    if (res.error) {
+      let errorMsg = res.payload
+      setRegisterFailedMessage(errorMsg)
+    } else {
+      setRegisterFailedMessage("")
+    }
     setIsLoading(false)
   }
   const token = useSelector((state: RootState) => state.user.token)
@@ -246,6 +252,7 @@ const Signup: React.FC = () => {
             </CardContent>
 
             <CardFooter className="flex-col gap-2 sm:gap-3 p-4 sm:p-6">
+              {registerFailedMessage && <div className='text-sm text-error font-semibold pb-1'>{registerFailedMessage}</div>}
               <Button
                 type="submit"
                 className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"

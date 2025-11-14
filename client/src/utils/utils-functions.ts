@@ -14,6 +14,7 @@ interface MyJwtPayload {
     iat?: number;
 }
 
+
 export function getUserFromToken(token: string): MyJwtPayload | null {
     try {
         const decoded = jwtDecode<MyJwtPayload>(token);
@@ -30,6 +31,7 @@ export function getUserFromToken(token: string): MyJwtPayload | null {
     }
 }
 
+
 export const getDaysLeftOfCurrentMonth = () => {
     const now = new Date();
     const currentDay = now.getDate();
@@ -37,3 +39,20 @@ export const getDaysLeftOfCurrentMonth = () => {
     const daysLeft = lastDayOfMonth - currentDay;
     return daysLeft;
 }
+
+
+export const getDateInfo = (month = null, year = null) => {
+    const now = new Date();
+
+    const finalMonth = month ?? now.getMonth();
+    const finalYear  = year  ?? now.getFullYear();
+
+    const dateObj = new Date(finalYear, finalMonth);
+
+    return {
+        day: now.getDate(),
+        month: finalMonth,
+        monthName: dateObj.toLocaleString("default", { month: "long" }),
+        year: finalYear,
+    };
+};

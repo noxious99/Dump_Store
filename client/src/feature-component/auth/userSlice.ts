@@ -30,11 +30,11 @@ export const loginUser = createAsyncThunk("user/login", async (payload: LoginPay
   try {
     const res = await loginApi(payload)
     if (!res.success) {
-      return rejectWithValue(res.msg)
+      return rejectWithValue(res)
     }
     return res
   } catch (error: any) {
-    return rejectWithValue(error.message || "Login failed");
+    return rejectWithValue(error || "Login failed");
   }
 }
 )
@@ -44,11 +44,12 @@ export const signupUser = createAsyncThunk("user/register", async (payload: Sign
   try {
     const res = await signupApi(payload)
     if (!res.success) {
-      return rejectWithValue(res.msg)
+      return rejectWithValue(res)
     }
     return res
   } catch (error: any) {
-    return rejectWithValue(error.message || "User Creation failed");
+    console.log("111111")
+    return rejectWithValue(error || "User Creation failed");
   }
 }
 )

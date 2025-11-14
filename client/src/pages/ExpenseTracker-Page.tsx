@@ -125,7 +125,7 @@ const ExpenseTracker: React.FC = () => {
     }
 
     const handleBudgetUpdate = async () => {
-        console.log("update budget")
+       await fetchExpenseDetails()
     }
 
     useEffect(() => {
