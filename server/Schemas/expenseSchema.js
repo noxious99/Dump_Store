@@ -73,6 +73,11 @@ const monthlyBudgetSchema = new Schema({
 monthlyBudgetSchema.index({ userId: 1, month: 1, year: 1 }, { unique: true });
 
 const budgetAllocationSchema = new Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }, 
     budgetId: {
         type: Schema.Types.ObjectId,
         ref: 'MonthlyBudget',

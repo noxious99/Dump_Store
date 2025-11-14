@@ -13,6 +13,7 @@ const {
        allocateBudgetByCategory,
        getBudgetBreakdown,
        getCategoryList,
+       updateAllocatedCategory,
 } = require('../controller/expenseController');
 
 const auth = require('../middleware/auth');
@@ -27,6 +28,7 @@ router.post('/monthly-budget', auth, addMonthlyBudget)
 router.get('/monthly-budget', auth, getMonthlyBudget)
 router.post('/budget-allocate', auth, allocateBudgetByCategory)
 router.get('/budget-allocate', auth, getBudgetBreakdown)
+router.patch('/budget-allocate', auth, updateAllocatedCategory)
 
 // Summary Section
 router.get('/dashboard-summary', auth, getExpenseDashboardSummary)
