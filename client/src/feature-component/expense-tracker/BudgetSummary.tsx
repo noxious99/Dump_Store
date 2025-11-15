@@ -173,7 +173,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
         useEffect(() => {
             calculateTotalAllocatedAmount()
         }, [budgetBreakdownData])
-        const { monthName } = getDateInfo();
+
         const totalBudgetAmount = budgetBreakdownData?.amount ?? 0;
         return (
             <>
