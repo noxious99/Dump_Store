@@ -89,7 +89,7 @@ const getExpenseDashboardSummary = async (req, res) => {
         const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
         const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
         const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
-        const monthBudget = await getCurrentMonthBudget(userId)
+        const monthBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth)
         const data = {
             totalSpend: totalSpend,
             totalIncome: totalIncome,
@@ -332,7 +332,7 @@ const getExpenseDetailsOfMonth = async (req, res) => {
         const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
         const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
         const expenseRecords = await getUserExpenseRecordsListOfMonth(userId, startOfMonth, endOfMonth)
-        const monthlyBudget = await getCurrentMonthBudget(userId)
+        const monthlyBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth)
 
         const content = {
             totalSpend,

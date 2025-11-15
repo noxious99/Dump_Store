@@ -21,6 +21,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Loader2 } from 'lucide-react';
 
 const ExpenseSummaryCard: React.FC = () => {
     const [walletBalance, setWalletBalance] = useState(0)
@@ -35,8 +36,10 @@ const ExpenseSummaryCard: React.FC = () => {
     const [showAddBudgetDialog, setShowAddBudgetDialog] = useState(false)
     const [newBudgetAmount, setNewBudgetAmount] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [isSummaryLoading, setIsSummaryLoading] = useState(false)
 
     const fetchSummary = async () => {
+        setIsSummaryLoading(true)
         try {
             const res = await axiosInstance.get("/v1/expenses/dashboard-summary")
 
@@ -54,12 +57,14 @@ const ExpenseSummaryCard: React.FC = () => {
             setTotalSpend(totalSpendAmount)
             setBudget(budgetAmount)
             setTopSpendCategory({
-                name: topCategory.category || "None",
+                name: topCategory.name || "None",
                 amount: topCategory.amount || 0
             })
             setUsedPercent(calculatedUsedPercent)
         } catch (error) {
             console.error("Error fetching expense summary:", error)
+        } finally {
+            setIsSummaryLoading(false)
         }
     }
 
@@ -99,154 +104,165 @@ const ExpenseSummaryCard: React.FC = () => {
 
     return (
         <>
-            <Card className='w-full max-w-none border-border hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-grey-x100/20 h-full flex flex-col'>
-                <CardHeader className="pb-3 px-4 sm:px-6">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl flex-shrink-0">
-                            <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                        </div>
-                        <div className='min-w-0 flex-1'>
-                            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate leading-tight">
-                                Expense Tracker
-                            </CardTitle>
-                            <CardDescription className={`font-medium text-xs sm:text-sm md:text-base leading-tight ${usedPercent > 90 ? 'text-error' : usedPercent > 70 ? 'text-warning' : 'text-success'
-                                }`}>
-                                {usedPercent > 90 ? 'Budget Alert!' : usedPercent > 70 ? 'Watch Spending' : 'Everything in Budget!'}
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="space-y-2 sm:space-y-3 px-4 sm:px-6 py-1 sm:py-2 flex-1">
-                    {/* Wallet Balance */}
-                    <div className="py-2 sm:py-3">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                <span className="font-medium text-xs sm:text-sm">Wallet Balance</span>
-                            </div>
-                            <span className={`font-bold text-base sm:text-lg md:text-xl ${walletBalance < 0 ? 'text-error' : 'text-success'
-                                }`}>
-                                ${walletBalance.toFixed(0)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Monthly Budget Progress */}
-                    <div className="py-2 sm:py-3 border-b border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Target className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                <span className="font-medium text-xs sm:text-sm">Monthly Budget</span>
-                            </div>
-                            <div className="text-right">
-                                <span className="font-bold text-base sm:text-lg md:text-xl text-foreground flex items-end">
-                                    ${totalSpend.toFixed(0)}
-                                </span>
-                                <div className="text-xs text-muted-foreground">
-                                    of ${budget.toFixed(0)}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Progress Bar Container */}
-                        {budget > 0 ? (
-                            <div className="bg-muted/30 p-3 rounded-md">
-                                <div className="w-full bg-grey-x200 rounded-full h-2 mb-2">
-                                    <div
-                                        className={`h-2 rounded-full transition-all duration-300 ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'
-                                            }`}
-                                        style={{ width: `${Math.min(usedPercent, 100)}%` }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>{usedPercent}% used</span>
-                                    <span>${remainingBudget.toFixed(0)} left</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="bg-muted/30 p-2 rounded-md text-center text-xs text-muted-foreground flex flex-col gap-1 justify-center">
-                                No budget set
-                                <Button
-                                    variant="link"
-                                    className='text-primary underline underline-offset-2 h-auto p-0 text-xs inline'
-                                    onClick={() => setShowAddBudgetDialog(true)}
-                                >
-                                    Add This Month Budget
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Top Category */}
-                    {topSpendCategory.name && topSpendCategory.amount > 0 ? (
-                        <div className="py-2 sm:py-3">
-                            <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <UtensilsCrossed className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                    <span className="font-medium text-xs sm:text-sm">Top Category</span>
-                                </div>
-                                <span className="font-bold text-base sm:text-lg text-warning capitalize">
-                                    {topSpendCategory.name}
-                                </span>
-                            </div>
-                            <div className="flex justify-end">
-                                <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                                    ${topSpendCategory.amount.toFixed(0)} ({categoryPercent}%)
-                                </div>
-                            </div>
+            <Card className={`w-full max-w-none border-border hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-grey-x100/20 h-full 
+                flex flex-col ${isSummaryLoading ? "items-center justify-center" : ""}`}>
+                {isSummaryLoading ?
+                    (
+                        <div className='flex flex-col items-center justify-center gap-3'>
+                            <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                            <p className='text-sm text-muted-foreground'>Loading your records...</p>
                         </div>
                     ) : (
-                        <div className="py-2 sm:py-3 text-center text-xs text-muted-foreground">
-                            No spending data yet
-                        </div>
-                    )}
-
-                    {/* Smart Insights - Mobile Optimized */}
-                    {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
-                        <div className="pt-2 sm:pt-3">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs sm:text-sm font-medium text-muted-foreground">Budget Alert</span>
-                                <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-md ${usedPercent > 90
-                                    ? 'text-error bg-error/10'
-                                    : usedPercent > 70
-                                        ? 'text-warning bg-warning/10'
-                                        : 'text-success bg-success/10'
-                                    }`}>
-                                    {usedPercent > 90 ? 'Critical' : usedPercent > 70 ? 'Watch spending' : 'On track'}
-                                </span>
-                            </div>
-                            <div className={`p-3 rounded-md border ${usedPercent > 90
-                                ? 'bg-error/10 border-error/20'
-                                : 'bg-warning/10 border-warning/20'
-                                }`}>
-                                <div className="flex items-start gap-2">
-                                    <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${usedPercent > 90 ? 'text-error' : 'text-warning'
-                                        }`} />
-                                    <div className="min-w-0 flex-1">
-                                        <div className={`text-xs font-medium mb-1 ${usedPercent > 90 ? 'text-error' : 'text-warning'
+                        <>
+                            <CardHeader className="pb-3 px-4 sm:px-6">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl flex-shrink-0">
+                                        <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                                    </div>
+                                    <div className='min-w-0 flex-1'>
+                                        <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate leading-tight">
+                                            Expense Tracker
+                                        </CardTitle>
+                                        <CardDescription className={`font-medium text-xs sm:text-sm md:text-base leading-tight ${usedPercent > 90 ? 'text-error' : usedPercent > 70 ? 'text-warning' : 'text-success'
                                             }`}>
-                                            Daily Budget Alert
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            ${dailyBudget} per day for next {daysLeft} day{daysLeft !== 1 ? 's' : ''}
-                                        </div>
+                                            {usedPercent > 90 ? 'Budget Alert!' : usedPercent > 70 ? 'Watch Spending' : 'Everything in Budget!'}
+                                        </CardDescription>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
+                            </CardHeader>
 
-                <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">
-                    <button
-                        onClick={() => window.location.href = '/expense-tracker'}
-                        className="w-full group flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground px-4 py-3 sm:py-3.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
-                    >
-                        <span>Manage Expenses</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200 flex-shrink-0" />
-                    </button>
-                </CardFooter>
+                            <CardContent className="space-y-2 sm:space-y-3 px-4 sm:px-6 py-1 sm:py-2 flex-1">
+                                {/* Wallet Balance */}
+                                <div className="py-2 sm:py-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                            <span className="font-medium text-xs sm:text-sm">Wallet Balance</span>
+                                        </div>
+                                        <span className={`font-bold text-base sm:text-lg md:text-xl ${walletBalance < 0 ? 'text-error' : 'text-success'
+                                            }`}>
+                                            ${walletBalance.toFixed(0)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Monthly Budget Progress */}
+                                <div className="py-2 sm:py-3 border-b border-border/50">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Target className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                            <span className="font-medium text-xs sm:text-sm">Monthly Budget</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="font-bold text-base sm:text-lg md:text-xl text-foreground flex items-end">
+                                                ${totalSpend.toFixed(0)}
+                                            </span>
+                                            <div className="text-xs text-muted-foreground">
+                                                of ${budget.toFixed(0)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Progress Bar Container */}
+                                    {budget > 0 ? (
+                                        <div className="bg-muted/30 p-3 rounded-md">
+                                            <div className="w-full bg-grey-x200 rounded-full h-2 mb-2">
+                                                <div
+                                                    className={`h-2 rounded-full transition-all duration-300 ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'
+                                                        }`}
+                                                    style={{ width: `${Math.min(usedPercent, 100)}%` }}
+                                                ></div>
+                                            </div>
+                                            <div className="flex justify-between text-xs text-muted-foreground">
+                                                <span>{usedPercent}% used</span>
+                                                <span>${remainingBudget.toFixed(0)} left</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-muted/30 p-2 rounded-md text-center text-xs text-muted-foreground flex flex-col gap-1 justify-center">
+                                            No budget set
+                                            <Button
+                                                variant="link"
+                                                className='text-primary underline underline-offset-2 h-auto p-0 text-xs inline'
+                                                onClick={() => setShowAddBudgetDialog(true)}
+                                            >
+                                                Add This Month Budget
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Top Category */}
+                                {topSpendCategory.name && topSpendCategory.amount > 0 ? (
+                                    <div className="py-2 sm:py-3">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <UtensilsCrossed className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                                <span className="font-medium text-xs sm:text-sm">Top Category</span>
+                                            </div>
+                                            <span className="font-bold text-base sm:text-lg text-warning capitalize">
+                                                {topSpendCategory.name}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
+                                                ${topSpendCategory.amount.toFixed(0)} ({categoryPercent}%)
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-2 sm:py-3 text-center text-xs text-muted-foreground">
+                                        No spending data yet
+                                    </div>
+                                )}
+
+                                {/* Smart Insights - Mobile Optimized */}
+                                {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
+                                    <div className="pt-2 sm:pt-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Budget Alert</span>
+                                            <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-md ${usedPercent > 90
+                                                ? 'text-error bg-error/10'
+                                                : usedPercent > 70
+                                                    ? 'text-warning bg-warning/10'
+                                                    : 'text-success bg-success/10'
+                                                }`}>
+                                                {usedPercent > 90 ? 'Critical' : usedPercent > 70 ? 'Watch spending' : 'On track'}
+                                            </span>
+                                        </div>
+                                        <div className={`p-3 rounded-md border ${usedPercent > 90
+                                            ? 'bg-error/10 border-error/20'
+                                            : 'bg-warning/10 border-warning/20'
+                                            }`}>
+                                            <div className="flex items-start gap-2">
+                                                <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${usedPercent > 90 ? 'text-error' : 'text-warning'
+                                                    }`} />
+                                                <div className="min-w-0 flex-1">
+                                                    <div className={`text-xs font-medium mb-1 ${usedPercent > 90 ? 'text-error' : 'text-warning'
+                                                        }`}>
+                                                        Daily Budget Alert
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        ${dailyBudget} per day for next {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+
+                            <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">
+                                <button
+                                    onClick={() => window.location.href = '/expense-tracker'}
+                                    className="w-full group flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground px-4 py-3 sm:py-3.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
+                                >
+                                    <span>Manage Expenses</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200 flex-shrink-0" />
+                                </button>
+                            </CardFooter>
+                        </>
+                    )}
             </Card>
 
 

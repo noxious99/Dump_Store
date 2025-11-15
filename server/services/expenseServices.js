@@ -88,9 +88,7 @@ const getMostSpendCategoryOfMonth = async (userId, startOfMonth, endOfMonth) => 
 }
 
 
-const getCurrentMonthBudget = async (userId) => {
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+const getCurrentMonthBudget = async (userId, startOfMonth, endOfMonth) => {
     const monthName = startOfMonth.toLocaleDateString('en-US', { month: 'long' });
     const year = startOfMonth.getFullYear().toString();
 

@@ -36,6 +36,7 @@ const ExpenseTracker: React.FC = () => {
     const [isAddIncomeDialogOpen, setIsAddIncomeDialogOpen] = useState(false);
     const [isExpenseAddingLoading, setIsExpenseAddingLoading] = useState(false)
     const [isIncomeAddingLoading, setIsIncomeAddingLoading] = useState(false)
+    const [isHistoryMode, setIsHistoryMode] = useState(false)
     const balanceOverviewData = {
         totalIncome: expenseDetails.totalIncome?.amount || 0,
         totalExpense: expenseDetails.totalSpend?.amount || 0,
@@ -89,6 +90,7 @@ const ExpenseTracker: React.FC = () => {
                 }
             }));
             setIsAddDialogOpen(false);
+            await fetchExpenseDetails()
         } catch (error) {
             console.error("Error adding expense:", error);
             fetchExpenseDetails();
@@ -125,7 +127,7 @@ const ExpenseTracker: React.FC = () => {
     }
 
     const handleBudgetUpdate = async () => {
-       await fetchExpenseDetails()
+        await fetchExpenseDetails()
     }
 
     useEffect(() => {
@@ -133,6 +135,17 @@ const ExpenseTracker: React.FC = () => {
     }, [])
 
     useEffect(() => {
+        const now = new Date()
+        console.log("now: ", now)
+        const runningDate = `${now.getFullYear()}-${now.getMonth() + 1}`;
+        console.log("rm: ", runningDate)
+        const selectedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
+        console.log("sm: ", selectedDate)
+        if (runningDate != selectedDate) {
+            setIsHistoryMode(true)
+        } else {
+            setIsHistoryMode(false)
+        }
         fetchExpenseDetails();
     }, [currentDate]);
 
@@ -165,14 +178,14 @@ const ExpenseTracker: React.FC = () => {
                         <Button
                             className='bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm'
                             onClick={() => setIsAddDialogOpen(true)}
-                            disabled={isLoadingFetch}
+                            disabled={isLoadingFetch || isHistoryMode}
                         >
                             Add Expense
                         </Button>
                         <Button
                             className='bg-success hover:bg-success/90 text-white font-medium shadow-sm'
                             onClick={() => setIsAddIncomeDialogOpen(true)}
-                            disabled={isLoadingFetch}
+                            disabled={isLoadingFetch || isHistoryMode}
                         >
                             Add to Wallet
                         </Button>
@@ -192,6 +205,7 @@ const ExpenseTracker: React.FC = () => {
                                 budgetSummary={budgetSummary}
                                 onBudgetUpdate={handleBudgetUpdate}
                                 categories={expenseCategoryList}
+                                historyMode={isHistoryMode}
                             />
                             <ExpenseSummary
                                 topCategory={topCategory}
