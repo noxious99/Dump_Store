@@ -27,7 +27,7 @@ import {
 import { toast } from "sonner"
 
 import { categoryEmojiMap } from '@/utils/constant'
-import { getDateInfo, getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
+import { getDaysLeftOfCurrentMonth } from '@/utils/utils-functions'
 import axiosInstance from '@/utils/axiosInstance'
 
 interface Allocation {
