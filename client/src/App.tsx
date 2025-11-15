@@ -7,6 +7,7 @@ import Auth from './pages/Auth-Page';
 import Dashboard from './pages/Dashboard-Page';
 import ExpenseTracker from './pages/ExpenseTracker-Page';
 import ResetPassword from './pages/ResetPassword-Page';
+import Profile from './pages/Profile-Page';
 import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
 
 import { useDispatch } from 'react-redux';
@@ -43,6 +44,7 @@ const AppContent: React.FC = () => {
           <Route element={<ProtectedRoutes/>}>
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/expense-tracker' element={<ExpenseTracker />} />
+            <Route path='/profile' element={<Profile />} />
           </Route>
         </Routes>
       </main>

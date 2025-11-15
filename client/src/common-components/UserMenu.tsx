@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux'
 import { selectUser } from '@/feature-component/auth/userSlice'
 import { FiLogOut } from "react-icons/fi"
 import { FaRegUserCircle } from "react-icons/fa"
-import { MdOutlineSettings } from "react-icons/md"
+// import { MdOutlineSettings } from "react-icons/md"
 import { RiDashboardFill } from 'react-icons/ri'
 import { Link } from 'react-router-dom'
 
@@ -74,15 +74,15 @@ const UserMenu: React.FC<UserMenuProps> = ({
                     className="cursor-pointer focus:bg-secondary"
                 >
                     <FaRegUserCircle className="mr-3 h-4 w-4" />
-                    <span>Profile</span>
+                    <Link to='/profile'>Profile</Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                     className="cursor-pointer focus:bg-secondary"
                 >
                     <MdOutlineSettings className="mr-3 h-4 w-4" />
                     <span>Settings</span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
                 <DropdownMenuSeparator />
 

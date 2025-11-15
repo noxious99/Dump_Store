@@ -109,4 +109,16 @@ const userRegistration = async (req, res) => {
 }
 
 
-module.exports = { userLogin, userRegistration }
+const getProfileInfo = async (req, res) => {
+    try {
+        const userInfo = await User.findOne({ _id: req.user.id });
+        if (!userInfo) {
+            return res.status(404).json({ msg: "Profile not found" });
+        }
+        res.json(userInfo);
+    } catch (err) {
+        res.status(500).json({ msg: error.message });
+    }
+}
+
+module.exports = { userLogin, userRegistration, getProfileInfo }

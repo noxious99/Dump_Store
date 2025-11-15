@@ -65,7 +65,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
         const [updatedAllocationAmount, setUpdatedAllocationAmount] = useState("")
         const [newAllocation, setNewAllocation] = useState({
             categoryId: "",
-            amount: 0
+            amount: ""
         })
         const [newBudgetAmount, setNewBudgetAmount] = useState<string>("")
         const [budgetBreakdownData, setBudgetBreakdownData] = useState<BudgetBreakdownData | null>({
@@ -119,7 +119,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                 setNewAllocation((prev) => ({
                     ...prev,
                     category: "",
-                    amount: 0,
+                    amount: "",
                 }))
                 setShowAddCategory(false)
             }
@@ -435,7 +435,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                                             placeholder="Enter amount"
                                             value={newAllocation.amount}
                                             onChange={(e) =>
-                                                setNewAllocation({ ...newAllocation, amount: Number(e.target.value) })
+                                                setNewAllocation({ ...newAllocation, amount: e.target.value })
                                             }
                                             className="flex-1 placeholder:text-gray-400 text-sm"
                                         />

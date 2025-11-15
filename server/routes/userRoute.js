@@ -7,7 +7,7 @@ const cloudinary = require("../utils/cloudinary.js");
 const { upload } = require("../middleware/multerMiddleware.js");
 const { forgotPassword, resetPassword } = require("../controller/authController.js");
 
-const {userLogin, userRegistration} = require("../controller/userController.js")
+const {userLogin, userRegistration, getProfileInfo} = require("../controller/userController.js")
 
 // User Login
 userRoute.post("/login", userLogin)
@@ -15,6 +15,10 @@ userRoute.post("/login", userLogin)
 
 // User Registration
 userRoute.post("/register", userRegistration);
+
+
+//profile info fetch
+userRoute.get("/profile", auth, getProfileInfo);
 
 
 // auth middleware
@@ -27,18 +31,6 @@ userRoute.get("/auth", auth, async (req, res) => {
   }
 });
 
-//profile info fetch
-userRoute.get("/profileinfo", auth, async (req, res) => {
-  try {
-    const userInfo = await User.findOne({_id: req.user.id}).select("username email avatar date _id");
-    if (!userInfo) {
-      return res.status(404).json({ error: "Profile not found" });
-    }
-    res.json(userInfo);
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
 
 userRoute.get("/search", async (req, res) => {
@@ -124,6 +116,11 @@ userRoute.delete("/", (req, res) => {
   res.send("user delete route");
 });
 
+
+// forgot password
 userRoute.post("/password/forgot", forgotPassword)
+
+
+// reset password
 userRoute.post("/password/reset", resetPassword)
 module.exports = userRoute;
