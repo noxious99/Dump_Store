@@ -108,7 +108,14 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             return;
         }
         const expenseData = { ...addExpenseData, amount: result };
-        addExpense(expenseData);
+        await addExpense(expenseData);
+
+        setAddExpenseData({
+            amount: 0,
+            categoryId: "",
+            note: "",
+        });
+        setCalcValue("");
         setError("");
     };
 

@@ -205,8 +205,8 @@ const ExpenseSummaryCard: React.FC = () => {
                                             </span>
                                         </div>
                                         <div className="flex justify-end">
-                                            <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                                                ${topSpendCategory.amount.toFixed(0)} ({categoryPercent}%)
+                                            <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 py-1 rounded-md">
+                                                ${topSpendCategory.amount.toFixed(0)} ({categoryPercent}%) of total spend
                                             </div>
                                         </div>
                                     </div>

@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
 const userSchema = new schema({
-  username: String,
+  username: {
+    type: String,
+    required: true
+  },
   email: {
     type: String,
     required: true
@@ -17,13 +20,8 @@ const userSchema = new schema({
     required: false,
     default: ""
   },
-  created_at: {
-    type: Date,
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now
-  }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model("User", userSchema);

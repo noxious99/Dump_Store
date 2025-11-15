@@ -16,7 +16,7 @@ import UserMenu from "./UserMenu";
 import { IoMdMenu } from "react-icons/io";
 import { FiLogOut } from "react-icons/fi";
 import { FaRegUserCircle } from "react-icons/fa";
-import { MdOutlineSettings } from "react-icons/md";
+// import { MdOutlineSettings } from "react-icons/md";
 import { RiDashboardFill } from "react-icons/ri";
 
 const Navbar: React.FC = () => {
@@ -105,9 +105,9 @@ const Navbar: React.FC = () => {
                                         <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <FaRegUserCircle /> <Link to="/profile">Profile</Link>
                                         </Button>
-                                        <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
+                                        {/* <Button variant="secondary" className="w-full" onClick={() => setIsOpen(false)}>
                                             <MdOutlineSettings /> <Link to="/settings">Settings</Link>
-                                        </Button>
+                                        </Button> */}
                                         <Button variant="secondary" className="w-full" onClick={handleLogout}>
                                             <FiLogOut /> Sign Out
                                         </Button>
