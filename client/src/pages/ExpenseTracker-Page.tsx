@@ -7,9 +7,10 @@ import axiosInstance from '@/utils/axiosInstance';
 import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder';
 import type { ExpenseDetails, ExpensePayload, IncomePayload } from '@/types/expenseTracker';
 import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder';
-import { categoryEmojiMap } from '@/utils/constant';
 import { Loader2 } from 'lucide-react';
 import BudgetSummary from '@/feature-component/expense-tracker/BudgetSummary';
+import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList';
+import { toast } from 'sonner';
 
 const ExpenseTracker: React.FC = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -117,6 +118,25 @@ const ExpenseTracker: React.FC = () => {
             setIsIncomeAddingLoading(false)
         }
     };
+
+    const handleExpenseRecordDelete = async (expenseId: string) => {
+        try {
+            await axiosInstance.delete(`/v1/expenses/${expenseId}`);
+
+            setExpenseDetails((prev) => ({
+                ...prev,
+                expenseRecords: prev.expenseRecords?.filter(
+                    (expense) => expense._id !== expenseId
+                ) || []
+            }));
+
+            toast.success("Record deleted");
+        } catch (error) {
+            console.error("Error deleting expense:", error);
+            toast.error("Failed to delete record");
+        }
+    };
+
     const fetchCategoryList = async () => {
         try {
             const res = await axiosInstance.get("/v1/expenses/category")
@@ -136,11 +156,8 @@ const ExpenseTracker: React.FC = () => {
 
     useEffect(() => {
         const now = new Date()
-        console.log("now: ", now)
         const runningDate = `${now.getFullYear()}-${now.getMonth() + 1}`;
-        console.log("rm: ", runningDate)
         const selectedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
-        console.log("sm: ", selectedDate)
         if (runningDate != selectedDate) {
             setIsHistoryMode(true)
         } else {
@@ -221,34 +238,10 @@ const ExpenseTracker: React.FC = () => {
                                 </span>
                             </div>
 
-                            {expenseDetails?.expenseRecords?.length ? (
-                                <div className='space-y-2'>
-                                    {expenseDetails.expenseRecords.map((expense) => (
-                                        <div className='rounded-lg border border-border bg-card p-4 hover:shadow-md transition-shadow' key={expense._id}>
-                                            <div className='flex items-center justify-between'>
-                                                <div className='flex items-center gap-3'>
-                                                    <div className='w-10 h-10 rounded-full bg-chart-1/10 flex items-center justify-center'>
-                                                        <span className='text-xl'>
-                                                            {categoryEmojiMap[expense.category.name] || "🔀"}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <div className='font-semibold text-foreground capitalize'>{expense.category.name}</div>
-                                                        <div className='text-xs text-muted-foreground font-medium'>{expense.note || 'No note'} • {new Date(expense.createdAt).toLocaleDateString()}</div>
-                                                    </div>
-                                                </div>
-                                                <div className='text-right'>
-                                                    <div className='font-bold text-error'>-${expense.amount}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className='py-8 text-center text-sm font-medium text-muted-foreground'>
-                                    No expenses recorded this month
-                                </div>
-                            )}
+                            <ExpenseRecordsList
+                                expenseRecords={expenseDetails?.expenseRecords}
+                                onRecordDeleted={handleExpenseRecordDelete}
+                            />
                         </div>
                     </>
                 )}
