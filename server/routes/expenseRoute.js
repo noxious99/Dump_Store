@@ -19,7 +19,7 @@ const {
 const auth = require('../middleware/auth');
 
 router.post('/', auth, addExpense);
-router.delete('/', auth, deleteExpenseRecord);
+router.delete('/:id', auth, deleteExpenseRecord);
 router.get("/details", auth, getExpenseDetailsOfMonth)
 router.post('/add-income', auth, addIncome);
 

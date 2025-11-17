@@ -48,10 +48,11 @@ const deleteExpenseRecord = async (req, res) => {
     const userId = req.user.id;
     const expenseId = req.params.id;
     try {
-        const expense = await Expense.findOne({ userId, _id: expenseId });
+        const expense = await Expense.findOneAndDelete({ userId, _id: expenseId });
         if (!expense) {
             return res.status(404).json({ msg: 'Expense not found' });
         }
+        return res.status(200).json({msg: "Deleted successfully"})
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
