@@ -1,6 +1,7 @@
 const Goal = require("../Schemas/goal/goalSchema");
 
-const PostGoal = async (req, res) => {
+
+const createNewGoal = async (req, res) => {
   try {
     const { title, category, targetDate } = req.body;
 
@@ -18,8 +19,9 @@ const PostGoal = async (req, res) => {
   }
 };
 
+
 // get all goals of a user
-const GetGoalsOfUser = async (req, res) => {
+const getGoalsOfUser = async (req, res) => {
   try {
     const id = req.user.id;
     const goals = await Goal.find({ author: id }).sort({ createdAt: -1 });
@@ -29,8 +31,9 @@ const GetGoalsOfUser = async (req, res) => {
   }
 };
 
+
 // get single goal
-const GetGoal = async (req, res) => {
+const getGoal = async (req, res) => {
   try {
     const goalId = req.params.id;
     const goal = await Goal.find({ _id: goalId });
@@ -39,6 +42,22 @@ const GetGoal = async (req, res) => {
     return res.status(400).json(error);
   }
 };
+
+
+// delete goal
+const deleteGoal = async (req, res) => {
+  try {
+    const goalId = req.params.id;
+    const goal = await Goal.findByIdAndDelete(goalId);
+    if (!goal) {
+      return res.status(404).json({ msg: "Goal not found" });
+    }
+    return res.status(200).json({ msg: "Goal deleted successfully" });
+  } catch (error) {
+    return res.status(400).json({ msg: error.message });
+  }
+};
+
 
 const PostObjective = async (req, res) => {
   try {
@@ -57,4 +76,4 @@ const PostObjective = async (req, res) => {
   }
 };
 
-module.exports = { PostGoal, PostObjective, GetGoalsOfUser, GetGoal };
+module.exports = { createNewGoal, getGoalsOfUser, getGoal, deleteGoal };

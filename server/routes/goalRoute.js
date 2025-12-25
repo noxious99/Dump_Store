@@ -2,15 +2,19 @@ const express = require("express");
 const goalRoute = express.Router();
 const Auth = require("../middleware/auth");
 const {
-  PostGoal,
-  PostObjective,
-  GetGoalsOfUser,
-  GetGoal,
+  createNewGoal,
+  getGoalsOfUser,
+  getGoal,
+  deleteGoal,
 } = require("../controller/goalController");
 
-goalRoute.post("/create", Auth, PostGoal);
-goalRoute.get("/goals", Auth, GetGoalsOfUser);
-goalRoute.get("/goal/:id", GetGoal);
-goalRoute.post("/:id", PostObjective);
+goalRoute.post("/", Auth, createNewGoal);
+goalRoute.get("/", Auth, getGoalsOfUser);
+goalRoute.get("/:id", getGoal);
+goalRoute.delete('/:id', Auth, deleteGoal)
+goalRoute.post("/task", Auth);
+goalRoute.get("/tasks/:id", Auth);
+goalRoute.put("/tasks/:id", Auth);
+goalRoute.delete("/tasks/:id", Auth);
 
 module.exports = goalRoute;
