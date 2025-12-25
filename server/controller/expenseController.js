@@ -81,7 +81,6 @@ const addIncome = async (req, res) => {
 const getExpenseDashboardSummary = async (req, res) => {
     try {
         const userId = req.user.id
-        console.log(userId)
         if (!userId) {
             return res.status(400).json({ msg: "User not found!" })
         }
