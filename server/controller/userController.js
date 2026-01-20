@@ -1,124 +1,51 @@
-const express = require("express");
 require('dotenv').config();
-const User = require("../Schemas/userSchema");
-const gravatar = require("gravatar");
-const emailValidator = require("email-validator")
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const auth = require("../middleware/auth");
-const cloudinary = require("../utils/cloudinary.js");
-const { upload } = require("../middleware/multerMiddleware.js");
-const forgotPassword = require("../controller/authController.js");
+const userService = require("../services/userService.js");
 
-const jwtKey = process.env.JWT_SECRET
 
-const userLogin = async (req, res) => {
-    const { identifier, password } = req.body;
+// @desc    User login
+// @route   POST /api/users/login
+// @access  Public
+const loginHandler = async (req, res) => {
     try {
-        let user;
-        if (!identifier.includes('@')) {
-            user = await User.findOne({ username: identifier });
-        } else {
-            user = await User.findOne({ email: identifier });
-        }
-        if (!user) {
-            return res.status(400).json({ msg: "Invalid Credentials" });
-        } else {
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(400).json({ msg: "Invalid Credentials" });
-            }
-            const payload = {
-                user: {
-                    id: user.id,
-                    username: user.username ?? "",
-                    email: user.email,
-                    name: user.name ?? "",
-                    avatar: user.avatar ?? "",
-                },
-            };
-            return res.status(200).json({
-                success: true,
-                token: jwt.sign(
-                    payload,
-                    jwtKey,
-                    { expiresIn: "24h" }
-                ),
-            });
-        }
+        const { identifier, password } = req.body;
+        const result = await userService.loginUser(identifier, password);
+        return res.status(200).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const userRegistration = async (req, res) => {
-    const { username, email, password } = req.body;
+// @desc    User registration
+// @route   POST /api/users/register
+// @access  Public
+const registerHandler = async (req, res) => {
     try {
-        let userNameExist = await User.findOne({ username })
-        if (userNameExist) {
-            return res.status(400).json({ msg: "username already exist, try a different one" });
-        }
-        let validate = emailValidator.validate(email)
-        if (!validate) {
-            return res.status(400).json({ msg: "Invalid email address. Please provide a valid email." });
-        }
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ msg: "A user with this email address already exists. Please use a different email." });
-        } else {
-            const avatar = gravatar.url(
-                email,
-                {
-                    s: "200",
-                    r: "pg",
-                    d: "retro",
-                },
-                true
-            );
-            user = new User({
-                username,
-                email,
-                avatar,
-                password,
-            });
-        }
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
-        await user.save();
-        const payload = {
-            user: {
-                id: user.id,
-                username: user.username ?? "",
-                email: user.email,
-                name: user.name ?? "",
-                avatar: user.avatar ?? "",
-            },
-        };
-        return res.status(201).json({
-            success: true,
-            token: jwt.sign(
-                payload,
-                jwtKey,
-                { expiresIn: "24h" }
-            ),
-        });
+        const { username, email, password } = req.body;
+        const result = await userService.registerUser(username, email, password);
+        return res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const getProfileInfo = async (req, res) => {
+// @desc    Get user profile information
+// @route   GET /api/users/profile
+// @access  Private
+const getProfileHandler = async (req, res) => {
     try {
-        const userInfo = await User.findOne({ _id: req.user.id });
-        if (!userInfo) {
-            return res.status(404).json({ msg: "Profile not found" });
-        }
-        res.json(userInfo);
-    } catch (err) {
+        const userId = req.user.id;
+        const result = await userService.getUserInfo(userId);
+        return res.status(200).json(result);
+    } catch (error) {
         res.status(500).json({ msg: error.message });
     }
-}
+};
 
-module.exports = { userLogin, userRegistration, getProfileInfo }
+
+module.exports = {
+    loginHandler,
+    registerHandler,
+    getProfileHandler
+};

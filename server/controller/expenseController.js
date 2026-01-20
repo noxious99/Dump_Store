@@ -1,148 +1,94 @@
-const { Expense, Income, MonthlyBudget, BudgetAllocation, Category } = require('../Schemas/expenseSchema');
-const {
-    getMonthlyTotalExpense,
-    getMonthlyTotalIncome,
-    getMostSpendCategoryOfMonth,
-    getCurrentMonthBudget,
-    getUserExpenseRecordsListOfMonth,
-    getSpendOfCategorysOfMonth,
-} = require('../services/expenseServices');
+const expenseService = require('../services/expenseServices');
 const { getMonthBoundaries } = require('../utils/utils-function');
 
 
-const addExpense = async (req, res) => {
-    const userId = req.user.id;
-    const { amount, categoryId, note } = req.body;
+// @desc    Add a new expense record
+// @route   POST /api/expenses
+// @access  Private
+const addExpenseHandler = async (req, res) => {
     try {
-        if (userId === null) {
-            return res.status(400).json({ msg: 'User not found' });
-        }
+        const userId = req.user.id;
+        const { amount, categoryId, note } = req.body;
+
         if (!amount || !categoryId) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
 
-        const category = await Category.findById(categoryId).select('name');
-        if (!category) {
-            return res.status(404).json({ msg: 'Category not found' });
-        }
-
-        const newExpense = await Expense.create({ userId, amount, categoryId, note });
-
-        res.status(201).json({
-            _id: newExpense._id,
-            amount: newExpense.amount,
-            note: newExpense.note,
-            category: {
-                _id: category._id,
-                name: category.name
-            },
-            createdAt: newExpense.createdAt
-        });
+        const result = await expenseService.addExpense(userId, amount, categoryId, note);
+        return res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const deleteExpenseRecord = async (req, res) => {
-    const userId = req.user.id;
-    const expenseId = req.params.id;
+// @desc    Delete an expense record
+// @route   DELETE /api/expenses/:id
+// @access  Private
+const deleteExpenseHandler = async (req, res) => {
     try {
-        const expense = await Expense.findOneAndDelete({ userId, _id: expenseId });
-        if (!expense) {
-            return res.status(404).json({ msg: 'Expense not found' });
-        }
-        return res.status(200).json({msg: "Deleted successfully"})
+        const userId = req.user.id;
+        const expenseId = req.params.id;
+
+        const result = await expenseService.deleteExpense(userId, expenseId);
+        return res.status(200).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const addIncome = async (req, res) => {
-    const userId = req.user.id;
-    const { amount, source, note } = req.body;
+// @desc    Add a new income record
+// @route   POST /api/expenses/add-income
+// @access  Private
+const addIncomeHandler = async (req, res) => {
     try {
+        const userId = req.user.id;
+        const { amount, source, note } = req.body;
+
         if (!amount || !source) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
-        if (userId === null) {
-            return res.status(400).json({ msg: 'User not found' });
-        }
-        const newIncome = new Income({ userId, amount, source, note });
-        await newIncome.save();
-        res.status(201).json(newIncome);
+
+        const newIncome = await expenseService.addIncome(userId, amount, source, note);
+        return res.status(201).json(newIncome);
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
-}
+};
 
 
-const getExpenseDashboardSummary = async (req, res) => {
-    try {
-        const userId = req.user.id
-        console.log(userId)
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" })
-        }
-        const now = new Date();
-        const { startOfMonth, endOfMonth } = getMonthBoundaries(now)
-        const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
-        const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
-        const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
-        const monthBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth)
-        const data = {
-            totalSpend: totalSpend,
-            totalIncome: totalIncome,
-            topCategory: topCategory,
-            budget: monthBudget
-        }
-        return res.send(data)
-    } catch (error) {
-        return res.status(400).json({ msg: error.message })
-    }
-}
-
-
-const addMonthlyBudget = async (req, res) => {
-    let { amount, alertThreshold } = req.body;
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const monthName = startOfMonth.toLocaleDateString('en-US', { month: 'long' });
-    const year = startOfMonth.getFullYear().toString();
-
+// @desc    Get expense dashboard summary for current month
+// @route   GET /api/expenses/dashboard-summary
+// @access  Private
+const getDashboardSummaryHandler = async (req, res) => {
     try {
         const userId = req.user.id;
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" });
-        }
+        const now = new Date();
+        const { startOfMonth, endOfMonth } = getMonthBoundaries(now);
+
+        const data = await expenseService.getDashboardSummary(userId, startOfMonth, endOfMonth);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(400).json({ msg: error.message });
+    }
+};
+
+
+// @desc    Add monthly budget
+// @route   POST /api/expenses/monthly-budget
+// @access  Private
+const addMonthlyBudgetHandler = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        let { amount, alertThreshold } = req.body;
+
         if (!amount || amount <= 0) {
             return res.status(400).json({ msg: "Amount must be greater than 0" });
         }
 
-        const existingBudget = await MonthlyBudget.findOne({
-            userId,
-            month: monthName,
-            year: year
-        });
-        if (existingBudget) {
-            return res.status(400).json({
-                msg: "Budget already exists for this month. Please update instead."
-            });
-        }
-        const budgetData = {
-            userId,
-            amount,
-            month: monthName,
-            year: year
-        };
-        if (alertThreshold !== undefined) {
-            budgetData.alertThreshold = alertThreshold;
-        }
-        const newBudget = new MonthlyBudget(budgetData);
-        await newBudget.save();
-
-        return res.status(201).json({ newBudget });
+        const result = await expenseService.addMonthlyBudget(userId, amount, alertThreshold);
+        return res.status(201).json(result);
     } catch (error) {
         if (error.code === 11000) {
             return res.status(400).json({
@@ -154,20 +100,15 @@ const addMonthlyBudget = async (req, res) => {
 };
 
 
-const getMonthlyBudget = async (req, res) => {
+// @desc    Get monthly budget
+// @route   GET /api/expenses/monthly-budget
+// @access  Private
+const getMonthlyBudgetHandler = async (req, res) => {
     try {
         const userId = req.user?.id;
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" });
-        }
         let { month, year } = req.query;
-        if (!month || !year) {
-            const now = new Date();
-            month = now.toLocaleDateString('en-US', { month: 'long' });
-            year = now.getFullYear().toString();
-        }
 
-        const budget = await MonthlyBudget.findOne({ userId, month, year });
+        const budget = await expenseService.getMonthlyBudget(userId, month, year);
         if (!budget) {
             return res.status(404).json({});
         }
@@ -179,104 +120,57 @@ const getMonthlyBudget = async (req, res) => {
 };
 
 
-const getBudgetBreakdown = async (req, res) => {
+// @desc    Get budget breakdown with allocations
+// @route   GET /api/expenses/budget-allocate
+// @access  Private
+const getBudgetBreakdownHandler = async (req, res) => {
     try {
-        const { budgetId } = req.query
+        const { budgetId } = req.query;
         const userId = req.user?.id;
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" });
-        }
-        const budget = await MonthlyBudget.findById(budgetId)
 
-        const allocatedCategory = await BudgetAllocation.find({ budgetId }).populate('categoryId', 'name');
-        const allocatedCategoryIds = []
-        const formattedAllocatedCategory = allocatedCategory.map((category) => {
-            const { _id, budgetId, categoryId, allocatedAmount, createdAt } = category;
-            allocatedCategoryIds.push(categoryId._id)
-            return {
-                _id,
-                budgetId,
-                categoryId: categoryId._id,
-                categoryName: categoryId.name,
-                allocatedAmount,
-                createdAt
-            }
-        });
-        const date = new Date(`${budget.month} 28, ${budget.year}`)
-        const { startOfMonth, endOfMonth } = getMonthBoundaries(date)
-        const spendOfCategory = await getSpendOfCategorysOfMonth(userId, allocatedCategoryIds, startOfMonth, endOfMonth)
-        const categoriesWithSpend = formattedAllocatedCategory.map(category => ({
-            ...category,
-            spent: spendOfCategory[category.categoryId.toString()] || 0,
-            remaining: category.allocatedAmount - (spendOfCategory[category.categoryId.toString()] || 0)
-        }));
+        const budget = await expenseService.getMonthlyBudget(userId, null, null);
+        const date = new Date();
+        const { startOfMonth, endOfMonth } = getMonthBoundaries(date);
 
-        const content = {
-            budgetId: budget._id,
-            amount: budget.amount,
-            month: budget.month,
-            year: budget.year,
-            categories: categoriesWithSpend
-        };
-
+        const content = await expenseService.getBudgetBreakdown(userId, budgetId, startOfMonth, endOfMonth);
         return res.status(200).json(content);
-
     } catch (error) {
-        return res.status(500).json({ msg: error.message })
+        return res.status(500).json({ msg: error.message });
     }
-}
+};
 
 
-const allocateBudgetByCategory = async (req, res) => {
+// @desc    Allocate budget by category
+// @route   POST /api/expenses/budget-allocate
+// @access  Private
+const allocateBudgetHandler = async (req, res) => {
     try {
         const userId = req.user?.id;
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" });
-        }
+        const { budgetId, categoryId, allocatedAmount } = req.body;
 
-        const { budgetId, categoryId, allocatedAmount } = req.body
         if (allocatedAmount <= 0) {
             return res.status(400).json({ msg: "Amount must be greater than 0" });
         }
-        const budget = await MonthlyBudget.findOne({ _id: budgetId, userId });
-        if (!budget) {
-            return res.status(400).json({ msg: "No record found to attach" });
-        }
 
-        const allocationData = {
-            userId: userId,
-            budgetId: budgetId,
-            categoryId: categoryId,
-            allocatedAmount: allocatedAmount
+        const result = await expenseService.allocateBudget(userId, budgetId, categoryId, allocatedAmount);
+        return res.status(201).json(result);
+    } catch (error) {
+        if (error.message.includes("already exists")) {
+            return res.status(409).json({ msg: error.message });
         }
-        const existingAllocation = await BudgetAllocation.findOne({
-            userId,
-            budgetId,
-            categoryId
-        });
-        if (existingAllocation) {
-            return res.status(409).json({ msg: "A budget allocation for this category already exists. Please update the existing allocation or select a different category." })
-        }
-        const newBudgetAllocation = new BudgetAllocation(allocationData);
-        await newBudgetAllocation.save();
-        const populatedAllocation = await BudgetAllocation.findById(newBudgetAllocation._id)
-            .populate('categoryId', 'name');
-
-        return res.status(201).json({ newAllocation: populatedAllocation });
-    }
-    catch (error) {
         return res.status(500).json({ msg: error.message });
     }
-}
+};
 
 
-const updateAllocatedCategory = async (req, res) => {
+// @desc    Update allocated category amount
+// @route   PATCH /api/expenses/budget-allocate
+// @access  Private
+const updateAllocatedCategoryHandler = async (req, res) => {
     try {
         const userId = req.user?.id;
-        if (!userId) {
-            return res.status(400).json({ msg: "User not found!" });
-        }
-        const { budgetId, categoryId, amount } = req.body
+        const { budgetId, categoryId, amount } = req.body;
+
         if (!budgetId || !categoryId || !amount) {
             return res.status(400).json({ msg: "Missing required fields" });
         }
@@ -285,111 +179,81 @@ const updateAllocatedCategory = async (req, res) => {
             return res.status(400).json({ msg: "Amount must be greater than 0" });
         }
 
-        const budget = await MonthlyBudget.findOne({ _id: budgetId, userId });
-        const allocation = await BudgetAllocation.findOne({ categoryId: categoryId, budgetId: budgetId, userId });
-        if (!budget || !allocation) {
-            return res.status(404).json({ msg: "No record found to update" });
+        const result = await expenseService.updateAllocatedCategory(userId, budgetId, categoryId, amount);
+        return res.status(200).json(result);
+    } catch (error) {
+        if (error.message.includes("not found")) {
+            return res.status(404).json({ msg: error.message });
         }
-
-        const updateData = { allocatedAmount: amount };
-
-        const updatedAllocation = await BudgetAllocation.findOneAndUpdate(
-            {
-                userId,
-                budgetId,
-                categoryId
-            },
-            updateData,
-            {
-                new: true,
-                runValidators: true
-            }
-        ).populate('categoryId', 'name');
-
-        return res.status(200).json({
-            updatedAllocation,
-        });
-    }
-    catch (error) {
         return res.status(500).json({ msg: error.message });
     }
-}
+};
 
-const getExpenseDetailsOfMonth = async (req, res) => {
-    let { date } = req.query
+
+// @desc    Get expense details for a specific month
+// @route   GET /api/expenses/details
+// @access  Private
+const getExpenseDetailsHandler = async (req, res) => {
     try {
-        const userId = req.user.id
-        if (!userId) {
-            return res.status(400).json({ msg: "User Not Found" })
-        }
+        const userId = req.user.id;
+        let { date } = req.query;
+
         const selectedDate = new Date(date);
         if (isNaN(selectedDate)) {
             return res.status(400).json({ msg: "Invalid date format" });
         }
 
-        const { startOfMonth, endOfMonth } = getMonthBoundaries(selectedDate)
+        const { startOfMonth, endOfMonth } = getMonthBoundaries(selectedDate);
+        const content = await expenseService.getExpenseDetailsOfMonth(userId, startOfMonth, endOfMonth);
 
-        const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth)
-        const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth)
-        const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth)
-        const expenseRecords = await getUserExpenseRecordsListOfMonth(userId, startOfMonth, endOfMonth)
-        const monthlyBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth)
-
-        const content = {
-            totalSpend,
-            totalIncome,
-            topCategory,
-            expenseRecords,
-            monthlyBudget
-        }
-        return res.status(200).json(content)
+        return res.status(200).json(content);
     } catch (error) {
-        return res.status(400).json({ msg: error.message })
+        return res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const getMonthlySummary = async (req, res) => {
-    const userId = req.user.id;
-    const month = parseInt(req.params.month);
-    const year = parseInt(req.params.year);
+// @desc    Get monthly summary (legacy endpoint)
+// @route   GET /api/expenses/getsummary/monthly/:month/:year
+// @access  Private
+const getMonthlySummaryHandler = async (req, res) => {
     try {
-        const balance = 0
-        const expenses = await Expense.find({ userId, month: month, year: year });
-        const incomes = await Income.find({ userId, month: month, year: year });
-        if (expenses.length === 0 && incomes.length === 0) {
-            return res.status(200).json({ balance });
-        } else {
-            let totalExpense = 0;
-            let totalIncome = 0;
-            expenses.forEach(expense => {
-                totalExpense += expense.amount;
-            });
-            incomes.forEach(income => {
-                totalIncome += income.amount;
-            });
-            const balance = totalIncome - totalExpense;
-            res.json({ totalExpense, totalIncome, balance });
-        }
-    } catch (err) {
-        res.status(500).json({ err: err });
-    }
-}
+        const userId = req.user.id;
+        const month = parseInt(req.params.month);
+        const year = parseInt(req.params.year);
 
-
-const getCategoryList = async (req, res) => {
-    try {
-        const categoryList = await Category.find({ isDefault: true }).select("_id, name")
-        return res.status(200).json(categoryList)
+        const result = await expenseService.getMonthlySummary(userId, month, year);
+        return res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
-}
+};
+
+
+// @desc    Get category list
+// @route   GET /api/expenses/category
+// @access  Private
+const getCategoryListHandler = async (req, res) => {
+    try {
+        const categoryList = await expenseService.getCategoryList();
+        return res.status(200).json(categoryList);
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};
 
 
 module.exports = {
-    addExpense, addIncome, addMonthlyBudget,
-    getMonthlySummary, deleteExpenseRecord, getExpenseDashboardSummary,
-    getExpenseDetailsOfMonth, getMonthlyBudget, allocateBudgetByCategory,
-    getBudgetBreakdown, getCategoryList, updateAllocatedCategory
+    addExpenseHandler,
+    deleteExpenseHandler,
+    addIncomeHandler,
+    getDashboardSummaryHandler,
+    addMonthlyBudgetHandler,
+    getMonthlyBudgetHandler,
+    getBudgetBreakdownHandler,
+    allocateBudgetHandler,
+    updateAllocatedCategoryHandler,
+    getExpenseDetailsHandler,
+    getMonthlySummaryHandler,
+    getCategoryListHandler
 };

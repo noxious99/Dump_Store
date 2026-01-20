@@ -65,3 +65,5 @@ const goalSchema = new Schema({
 
 const Goal = mongoose.model("Goal", goalSchema);
 const MileStone = mongoose.model("MileStone", mileStoneSchema);
+
+module.exports = { Goal, MileStone };

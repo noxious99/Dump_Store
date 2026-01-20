@@ -1,39 +1,30 @@
 const express = require('express');
 const router = express.Router();
-
-const {
-       addExpense,
-       deleteExpenseRecord,
-       addMonthlyBudget,
-       addIncome,
-       getMonthlySummary,
-       getExpenseDashboardSummary,
-       getExpenseDetailsOfMonth,
-       getMonthlyBudget,
-       allocateBudgetByCategory,
-       getBudgetBreakdown,
-       getCategoryList,
-       updateAllocatedCategory,
-} = require('../controller/expenseController');
-
 const auth = require('../middleware/auth');
+const expenseController = require('../controller/expenseController');
 
-router.post('/', auth, addExpense);
-router.delete('/:id', auth, deleteExpenseRecord);
-router.get("/details", auth, getExpenseDetailsOfMonth)
-router.post('/add-income', auth, addIncome);
+// Expense routes
+router.post('/', auth, expenseController.addExpenseHandler);
+router.delete('/:id', auth, expenseController.deleteExpenseHandler);
+router.get("/details", auth, expenseController.getExpenseDetailsHandler);
 
-// Budget Section
-router.post('/monthly-budget', auth, addMonthlyBudget)
-router.get('/monthly-budget', auth, getMonthlyBudget)
-router.post('/budget-allocate', auth, allocateBudgetByCategory)
-router.get('/budget-allocate', auth, getBudgetBreakdown)
-router.patch('/budget-allocate', auth, updateAllocatedCategory)
+// Income routes
+router.post('/add-income', auth, expenseController.addIncomeHandler);
 
-// Summary Section
-router.get('/dashboard-summary', auth, getExpenseDashboardSummary)
-router.get('/getsummary/monthly/:month/:year', auth, getMonthlySummary);
+// Budget routes
+router.post('/monthly-budget', auth, expenseController.addMonthlyBudgetHandler);
+router.get('/monthly-budget', auth, expenseController.getMonthlyBudgetHandler);
 
-router.get('/category', auth, getCategoryList)
+// Budget allocation routes
+router.post('/budget-allocate', auth, expenseController.allocateBudgetHandler);
+router.get('/budget-allocate', auth, expenseController.getBudgetBreakdownHandler);
+router.patch('/budget-allocate', auth, expenseController.updateAllocatedCategoryHandler);
+
+// Summary routes
+router.get('/dashboard-summary', auth, expenseController.getDashboardSummaryHandler);
+router.get('/getsummary/monthly/:month/:year', auth, expenseController.getMonthlySummaryHandler);
+
+// Category routes
+router.get('/category', auth, expenseController.getCategoryListHandler);
 
 module.exports = router;
