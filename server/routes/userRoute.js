@@ -1,28 +1,27 @@
 const express = require("express");
 require('dotenv').config();
-const userRoute = express.Router();
+const router = express.Router();
 const User = require("../Schemas/userSchema");
 const auth = require("../middleware/auth");
 const cloudinary = require("../utils/cloudinary.js");
 const { upload } = require("../middleware/multerMiddleware.js");
-const { forgotPassword, resetPassword } = require("../controller/authController.js");
+const authController = require("../controller/authController.js");
+const userController = require("../controller/userController.js");
 
-const {userLogin, userRegistration, getProfileInfo} = require("../controller/userController.js")
+// Authentication routes
+router.post("/login", userController.loginHandler);
+router.post("/register", userController.registerHandler);
 
-// User Login
-userRoute.post("/login", userLogin)
-  
-
-// User Registration
-userRoute.post("/register", userRegistration);
-
-
-//profile info fetch
-userRoute.get("/profile", auth, getProfileInfo);
+// Profile routes
+router.get("/profile", auth, userController.getProfileHandler);
 
 
-// auth middleware
-userRoute.get("/auth", auth, async (req, res) => {
+// Password routes
+router.post("/password/forgot", authController.forgotPassword);
+router.post("/password/reset", authController.resetPassword);
+
+// Auth verification
+router.get("/auth", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     res.json(user);
@@ -31,21 +30,8 @@ userRoute.get("/auth", auth, async (req, res) => {
   }
 });
 
-
-
-userRoute.get("/search", async (req, res) => {
-  try {
-    const buddyName = req.query.buddy;
-    const buddies = await User.find({
-      username: { $regex: `^${buddyName}`, $options: "i" },
-    });
-    res.status(200).json(buddies);
-  } catch (error) {
-    res.status(400).json({ err: error });
-  }
-});
-
-userRoute.put("/update/:id", upload.single("avatar"), async (req, res) => {
+// Update user with avatar upload
+router.put("/update/:id", upload.single("avatar"), async (req, res) => {
   try {
     const { id } = req.params;
     const { username, email } = req.body;
@@ -86,24 +72,23 @@ userRoute.put("/update/:id", upload.single("avatar"), async (req, res) => {
   }
 });
 
-// update user patch
-
-userRoute.patch("/update", auth, async (req, res) => {
+// Update user (patch)
+router.patch("/update", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-    if(!user) {
-      return res.status(400).json({err: "user not found"})
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(400).json({ err: "user not found" });
     }
-    const {email, username} = req.body
-    const updateUser = await User.findByIdAndUpdate(req.user.id, {email, username}, {new: true})
+    const { email, username } = req.body;
+    const updateUser = await User.findByIdAndUpdate(req.user.id, { email, username }, { new: true });
     res.json(updateUser);
-  }
-  catch (err) {
+  } catch (err) {
     res.status(400).json({ err: err });
   }
-} )
+});
 
-userRoute.get("/allUsers", async (req, res) => {
+// Get all users
+router.get("/allUsers", async (req, res) => {
   try {
     const users = await User.find();
     res.status(200).json(users);
@@ -112,15 +97,9 @@ userRoute.get("/allUsers", async (req, res) => {
   }
 });
 
-userRoute.delete("/", (req, res) => {
+// Delete user (placeholder)
+router.delete("/", (req, res) => {
   res.send("user delete route");
 });
 
-
-// forgot password
-userRoute.post("/password/forgot", forgotPassword)
-
-
-// reset password
-userRoute.post("/password/reset", resetPassword)
-module.exports = userRoute;
+module.exports = router;

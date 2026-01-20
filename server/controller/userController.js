@@ -1,39 +1,51 @@
 require('dotenv').config();
-const { loginUser, registerUser, getUserInfo } = require("../services/userService.js");
+const userService = require("../services/userService.js");
 
 
-const userLogin = async (req, res) => {
-    const { identifier, password } = req.body;
+// @desc    User login
+// @route   POST /api/users/login
+// @access  Public
+const loginHandler = async (req, res) => {
     try {
-        const result = await loginUser(identifier, password)
+        const { identifier, password } = req.body;
+        const result = await userService.loginUser(identifier, password);
         return res.status(200).json(result);
-    }
-    catch (error) {
+    } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const userRegistration = async (req, res) => {
-    const { username, email, password } = req.body;
+// @desc    User registration
+// @route   POST /api/users/register
+// @access  Public
+const registerHandler = async (req, res) => {
     try {
-        const result = await registerUser(username, email, password)
+        const { username, email, password } = req.body;
+        const result = await userService.registerUser(username, email, password);
         return res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
-}
+};
 
 
-const getProfileInfo = async (req, res) => {
-    const userId = req.user.id
+// @desc    Get user profile information
+// @route   GET /api/users/profile
+// @access  Private
+const getProfileHandler = async (req, res) => {
     try {
-        const result = await getUserInfo(userId)
-        res.json(result);
-    } catch (err) {
+        const userId = req.user.id;
+        const result = await userService.getUserInfo(userId);
+        return res.status(200).json(result);
+    } catch (error) {
         res.status(500).json({ msg: error.message });
     }
-}
+};
 
 
-module.exports = { userLogin, userRegistration, getProfileInfo }
+module.exports = {
+    loginHandler,
+    registerHandler,
+    getProfileHandler
+};

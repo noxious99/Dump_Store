@@ -1,20 +1,21 @@
 const express = require("express");
-const goalRoute = express.Router();
+const router = express.Router();
 const Auth = require("../middleware/auth");
-const {
-  createNewGoal,
-  getGoalsOfUser,
-  getGoal,
-  deleteGoal,
-} = require("../controller/goalController");
+const goalController = require("../controller/goalController");
 
-goalRoute.post("/", Auth, createNewGoal);
-goalRoute.get("/", Auth, getGoalsOfUser);
-goalRoute.get("/:id", getGoal);
-goalRoute.delete('/:id', Auth, deleteGoal)
-goalRoute.post("/task", Auth);
-goalRoute.get("/tasks/:id", Auth);
-goalRoute.put("/tasks/:id", Auth);
-goalRoute.delete("/tasks/:id", Auth);
+// Goal routes
+router.post("/", Auth, goalController.createGoalHandler);
+router.get("/", Auth, goalController.getAllGoalsHandler);
+router.get("/:id", Auth, goalController.getGoalByIdHandler);
+router.delete("/:id", Auth, goalController.deleteGoalHandler);
 
-module.exports = goalRoute;
+// Milestone routes
+router.post("/:id/milestones", Auth, goalController.addMilestoneHandler);
+
+// Task routes (to be implemented)
+router.post("/:id/tasks", Auth);
+router.get("/:id/tasks", Auth);
+router.put("/:id/tasks/:taskId", Auth);
+router.delete("/:id/tasks/:taskId", Auth);
+
+module.exports = router;
