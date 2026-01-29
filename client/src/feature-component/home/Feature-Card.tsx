@@ -1,4 +1,3 @@
-
 import React from 'react';
 import feature_img_spend from '../../assets/feature_img_expense.png';
 import feature_img_loan from '../../assets/feature_img_loan.png';
@@ -36,16 +35,22 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ iconColor, iconBg, heading, t
         goal: feature_img_goal,
     };
 
-    const featureTextBody = {
-        spend: "Effortlessly categorize your expenses, visualize spending patterns, and stay within budget with intuitive charts and reports.",
-        loan: "Easily record, track, and manage money lent or borrowed — keep every IOU organized and settle balances with confidence.",
-        goal: "Set clear goals, track your progress, and stay motivated with visual milestones that turn ambitions into achievements.",
+    const featureTextBody: Record<FeatureType, string> = {
+        spend: "Track your income and expenses, categorize transactions, and get clear insights into where your money goes with intuitive charts.",
+        loan: "Keep track of money you've lent or borrowed. Never forget an IOU — stay organized and settle balances with confidence.",
+        goal: "Set any goal — learning, fitness, career. Break it into daily and weekly tasks, build streaks, and hit milestones to stay motivated.",
     };
 
     const colorAccent: Record<FeatureType, string> = {
-        spend: "from-indigo-50 to-white hover:from-indigo-100",
-        loan: "from-red-50 to-white hover:from-red-100",
-        goal: "from-green-50 to-white hover:from-green-100",
+        spend: "from-primary/5 to-card hover:from-primary/10",
+        loan: "from-error/5 to-card hover:from-error/10",
+        goal: "from-success/5 to-card hover:from-success/10",
+    };
+
+    const borderAccent: Record<FeatureType, string> = {
+        spend: "hover:border-primary/30",
+        loan: "hover:border-error/30",
+        goal: "hover:border-success/30",
     };
 
     const IconComponent = icons[title];
@@ -53,30 +58,37 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ iconColor, iconBg, heading, t
 
     return (
         <Card
-            className={`relative w-[320px] lg:w-[340px] overflow-hidden border border-gray-100 shadow-sm bg-gradient-to-br ${colorAccent[title]} hover:shadow-xl hover:-translate-y-1 transition-all duration-400 ease-out rounded-2xl`}
+            className={`relative w-full max-w-[340px] overflow-hidden border border-border/50 shadow-sm bg-gradient-to-br ${colorAccent[title]} ${borderAccent[title]} hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-2xl`}
+            role="article"
+            aria-labelledby={`feature-${title}-heading`}
         >
             <CardHeader className="flex flex-col items-start space-y-3 pb-0">
                 <div
-                    className={`${iconBg} w-[50px] h-[50px] flex justify-center items-center rounded-xl shadow-md hover:shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-110`}
+                    className={`${iconBg} w-12 h-12 flex justify-center items-center rounded-xl shadow-sm transition-transform duration-300 hover:scale-110`}
+                    aria-hidden="true"
                 >
                     <IconComponent className={`text-2xl ${iconColor}`} />
                 </div>
-                <CardDescription className="text-lg font-semibold text-gray-800 tracking-wide">
+                <CardDescription
+                    id={`feature-${title}-heading`}
+                    className="text-lg font-semibold text-foreground tracking-wide"
+                >
                     {heading}
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="pt-3 h-[96px]">
-                <p className="text-sm text-gray-600 leading-relaxed">
+            <CardContent className="pt-3 min-h-[96px]">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                     {featureTextBody[title]}
                 </p>
             </CardContent>
 
-            <CardFooter className="pt-5">
+            <CardFooter className="pt-4">
                 <img
                     src={ImageComponent}
-                    alt="Feature"
-                    className="w-full h-auto rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-transform duration-400"
+                    alt={`${heading} preview`}
+                    className="w-full h-auto rounded-xl shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300"
+                    loading="lazy"
                 />
             </CardFooter>
         </Card>
@@ -84,4 +96,3 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ iconColor, iconBg, heading, t
 };
 
 export default FeatureCard;
-
