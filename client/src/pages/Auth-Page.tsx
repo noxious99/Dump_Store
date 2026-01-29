@@ -14,13 +14,7 @@ const Auth:React.FC = () => {
 
     },[mode, navigate])
 
-  return (
-    <>
-        <div>
-            {mode === "signin" ? <Signin/> : <Signup/>}
-        </div>
-    </>
-  )
+  return mode === "signin" ? <Signin /> : <Signup />
 }
 
 export default Auth

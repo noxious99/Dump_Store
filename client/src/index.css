@@ -1,64 +1,87 @@
-@import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* ============================================
+   TRACERO DESIGN SYSTEM
+   ============================================ */
 
+/* --------------------------------------------
+   1. FONT IMPORTS
+   -------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap');
 
-
+/* --------------------------------------------
+   2. TAILWIND & PLUGINS
+   -------------------------------------------- */
 @import "tailwindcss";
-/* @import "tw-animate-css"; */
 
-.App {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  max-width: 100vw;
-}
-main {
-  flex: 1;
-}
-
+/* --------------------------------------------
+   3. CUSTOM VARIANTS
+   -------------------------------------------- */
 @custom-variant dark (&:is(.dark *));
-.App {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-main {
-    flex: 1;
-}
 
+/* --------------------------------------------
+   4. THEME TOKENS (Tailwind v4)
+   Maps CSS variables to Tailwind utilities
+   -------------------------------------------- */
 @theme inline {
+    /* Border Radius Scale */
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 16px);
+
+    /* Core Colors */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
+
+    /* Brand Colors */
     --color-primary: var(--primary);
     --color-primary-lite: var(--primary-lite);
     --color-primary-foreground: var(--primary-foreground);
     --color-secondary: var(--secondary);
     --color-secondary-lite: var(--secondary-lite);
     --color-secondary-foreground: var(--secondary-foreground);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
+
+    /* Neutral Colors */
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-grey: var(--grey);
+    --color-grey-x100: var(--grey-x100);
+    --color-grey-x200: var(--grey-x200);
+    --color-grey-x300: var(--grey-x300);
+
+    /* Semantic Colors */
+    --color-success: var(--success);
+    --color-success-x100: var(--success-x100);
+    --color-error: var(--error);
+    --color-error-x100: var(--error-x100);
+    --color-warning: var(--warning);
+    --color-warning-x100: var(--warning-x100);
+    --color-info: var(--info);
+    --color-info-x100: var(--info-x100);
     --color-destructive: var(--destructive);
+
+    /* Form Colors */
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+
+    /* Chart Colors */
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
+
+    /* Sidebar Colors */
     --color-sidebar: var(--sidebar);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -67,123 +90,427 @@ main {
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
-    --color-success: var(--success);        /* Lime Green */
-    --color-success-x100: var(--success-x100);        /* Lime Green */
-    --color-error: var(--error);         /* Coral Red */
-    --color-error-x100: var(--error-x100);         /* Coral Red */
-    --color-warning: var(--warning);
-    --color-grey-x100: var(--grey-x100);
-    --color-grey-x200: var(--grey-x200);
 }
 
+/* --------------------------------------------
+   5. CSS CUSTOM PROPERTIES - LIGHT MODE
+   -------------------------------------------- */
 :root {
+    /* ========== SPACING & SIZING ========== */
     --radius: 0.625rem;
 
-    /* Base */
-    --background: #F9FAFB;      /* softer neutral */
-    --foreground: #111827;      /* dark gray, better contrast */
+    /* ========== TYPOGRAPHY ========== */
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+    --font-heading: "Manrope", "Inter", sans-serif;
+    --font-handwriting: "Kalam", cursive;
 
-    /* Surfaces */
-    --card: var(--background);
+    /* ========== CORE COLORS ========== */
+    /* Background & Foreground */
+    --background: #FFFFFF;
+    --foreground: #0F172A;          /* slate-900 */
+
+    /* Cards & Surfaces */
+    --card: #FFFFFF;
     --card-foreground: var(--foreground);
-    --popover: #1E293B;         /* slate-800 */
-    --popover-foreground: #F9FAFB;  /* softer white */
+    --popover: #1E293B;             /* slate-800 */
+    --popover-foreground: #F8FAFC;  /* slate-50 */
 
-    /* Brand */
-    --primary: #6366F1;         /* indigo-500 */
-    --primary-lite: #E0E7FF;    /* indigo-100 */
+    /* ========== BRAND COLORS ========== */
+    /* Primary - Indigo (Main brand color) */
+    --primary: #6366F1;             /* indigo-500 */
+    --primary-lite: #EEF2FF;        /* indigo-50 */
     --primary-foreground: #FFFFFF;
 
-    --secondary: #0EA5E9;       /* sky-500 */
-    --secondary-lite: #E0F2FE;  /* sky-100 */
+    /* Secondary - Teal (Supporting brand color) */
+    --secondary: #14B8A6;           /* teal-500 */
+    --secondary-lite: #CCFBF1;      /* teal-100 */
     --secondary-foreground: #FFFFFF;
 
-    --accent: #4F46E5;          /* indigo-600 */
+    /* Accent - Violet (Highlights & CTAs) */
+    --accent: #7C3AED;              /* violet-600 */
     --accent-foreground: #FFFFFF;
 
-    /* custom colors */
-    --grey: #1F2937;            /* gray-800 */
-    --grey-x100: #F3F4F6;       /* gray-100 */
-    --grey-x200: #E5E7EB;       /* gray-200 */
+    /* ========== NEUTRAL COLORS ========== */
+    /* Muted - For subtle backgrounds & text */
+    --muted: #F8FAFC;               /* slate-50 */
+    --muted-foreground: #64748B;    /* slate-500 */
 
-    /* Status */
-    --success: #22C55E;         /* green-500 */
-    --success-x100: #DCFCE7;    /* green-100 */
-    --error: #EF4444;           /* red-500 */
-    --error-x100: #FEE2E2;      /* red-100 */
-    --warning: #F59E0B;         /* amber-500 */
+    /* Grey Scale - For sections & borders */
+    --grey: #1E293B;                /* slate-800 */
+    --grey-x100: #F1F5F9;           /* slate-100 */
+    --grey-x200: #E2E8F0;           /* slate-200 */
+    --grey-x300: #CBD5E1;           /* slate-300 */
 
-    /* Borders / Inputs */
-    --border: #E5E7EB;          /* gray-200 */
-    --input: #94A3B8;           /* slate-400 */
-    --ring: #6366F1;            /* indigo-500 */
+    /* ========== SEMANTIC COLORS ========== */
+    /* Success - Emerald */
+    --success: #10B981;             /* emerald-500 */
+    --success-x100: #D1FAE5;        /* emerald-100 */
 
-    /* Charts */
-    --chart-1: #F97316;         /* orange-500 */
-    --chart-2: #06B6D4;         /* cyan-500 */
-    --chart-3: #A855F7;         /* purple-500 */
-    --chart-4: #22C55E;         /* green-500 */
-    --chart-5: #EC4899;         /* pink-500 */
+    /* Error - Red */
+    --error: #EF4444;               /* red-500 */
+    --error-x100: #FEE2E2;          /* red-100 */
+    --destructive: var(--error);
+
+    /* Warning - Amber */
+    --warning: #F59E0B;             /* amber-500 */
+    --warning-x100: #FEF3C7;        /* amber-100 */
+
+    /* Info - Sky */
+    --info: #0EA5E9;                /* sky-500 */
+    --info-x100: #E0F2FE;           /* sky-100 */
+
+    /* ========== FORM COLORS ========== */
+    --border: #E2E8F0;              /* slate-200 */
+    --input: #F1F5F9;               /* slate-100 */
+    --ring: #6366F1;                /* indigo-500 */
+
+    /* ========== DATA VISUALIZATION ========== */
+    --chart-1: #F97316;             /* orange-500 */
+    --chart-2: #06B6D4;             /* cyan-500 */
+    --chart-3: #8B5CF6;             /* violet-500 */
+    --chart-4: #10B981;             /* emerald-500 */
+    --chart-5: #EC4899;             /* pink-500 */
+
+    /* ========== SIDEBAR (Dashboard) ========== */
+    --sidebar: #0F172A;             /* slate-900 */
+    --sidebar-foreground: #F8FAFC;  /* slate-50 */
+    --sidebar-primary: #A855F7;     /* purple-500 */
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #6366F1;      /* indigo-500 */
+    --sidebar-accent-foreground: #FFFFFF;
+    --sidebar-border: #1E293B;      /* slate-800 */
+    --sidebar-ring: #6366F1;        /* indigo-500 */
+
+    /* ========== SHADOWS ========== */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    /* ========== TRANSITIONS ========== */
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 300ms ease;
+}
+
+/* --------------------------------------------
+   6. CSS CUSTOM PROPERTIES - DARK MODE
+   -------------------------------------------- */
+.dark {
+    /* Core */
+    --background: #0F172A;          /* slate-900 */
+    --foreground: #F8FAFC;          /* slate-50 */
+
+    /* Cards & Surfaces */
+    --card: #1E293B;                /* slate-800 */
+    --card-foreground: #F8FAFC;
+    --popover: #1E293B;
+    --popover-foreground: #F8FAFC;
+
+    /* Brand - slightly adjusted for dark */
+    --primary: #818CF8;             /* indigo-400 */
+    --primary-lite: #312E81;        /* indigo-900 */
+    --primary-foreground: #0F172A;
+
+    --secondary: #2DD4BF;           /* teal-400 */
+    --secondary-lite: #134E4A;      /* teal-900 */
+    --secondary-foreground: #0F172A;
+
+    --accent: #A78BFA;              /* violet-400 */
+    --accent-foreground: #0F172A;
+
+    /* Neutral */
+    --muted: #1E293B;               /* slate-800 */
+    --muted-foreground: #94A3B8;    /* slate-400 */
+
+    --grey: #F8FAFC;                /* slate-50 */
+    --grey-x100: #1E293B;           /* slate-800 */
+    --grey-x200: #334155;           /* slate-700 */
+    --grey-x300: #475569;           /* slate-600 */
+
+    /* Semantic - brighter for dark mode */
+    --success: #34D399;             /* emerald-400 */
+    --success-x100: #064E3B;        /* emerald-900 */
+
+    --error: #F87171;               /* red-400 */
+    --error-x100: #7F1D1D;          /* red-900 */
+    --destructive: var(--error);
+
+    --warning: #FBBF24;             /* amber-400 */
+    --warning-x100: #78350F;        /* amber-900 */
+
+    --info: #38BDF8;                /* sky-400 */
+    --info-x100: #0C4A6E;           /* sky-900 */
+
+    /* Forms */
+    --border: #334155;              /* slate-700 */
+    --input: #1E293B;               /* slate-800 */
+    --ring: #818CF8;                /* indigo-400 */
+
+    /* Charts - brighter for dark */
+    --chart-1: #FB923C;             /* orange-400 */
+    --chart-2: #22D3EE;             /* cyan-400 */
+    --chart-3: #A78BFA;             /* violet-400 */
+    --chart-4: #34D399;             /* emerald-400 */
+    --chart-5: #F472B6;             /* pink-400 */
 
     /* Sidebar */
-    --sidebar: #111827;         /* gray-900 */
-    --sidebar-foreground: #F9FAFB;
-    --sidebar-primary: #DB2777; /* pink-600 */
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #4F46E5;  /* indigo-600 */
-    --sidebar-accent-foreground: #FFFFFF;
-    --sidebar-border: #1F2937;  /* gray-800 */
-    --sidebar-ring: #6366F1;    /* indigo-500 */
+    --sidebar: #020617;             /* slate-950 */
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #C084FC;     /* purple-400 */
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #818CF8;      /* indigo-400 */
+    --sidebar-accent-foreground: #0F172A;
+    --sidebar-border: #1E293B;
+    --sidebar-ring: #818CF8;
+
+    /* Shadows - more subtle in dark mode */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
 }
 
-.dark {
-    --background: oklch(12% 0.02 280);
-    --foreground: oklch(98% 0.01 270);
-
-    --card: oklch(16% 0.03 280);
-    --card-foreground: oklch(98% 0.01 270);
-    --popover: oklch(16% 0.03 280);
-    --popover-foreground: oklch(98% 0.01 270);
-
-    --primary: oklch(60% 0.25 340);
-    --primary-foreground: oklch(98% 0.01 270);
-
-    --secondary: oklch(50% 0.25 300);
-    --secondary-foreground: oklch(98% 0.01 270);
-
-    --accent: oklch(45% 0.20 280);
-    --accent-foreground: oklch(98% 0.01 270);
-
-    --success: oklch(70% 0.20 140);
-    --error: oklch(65% 0.20 30);
-    --warning: oklch(85% 0.18 95);
-
-    --border: oklch(40% 0.20 280);
-    --input: oklch(40% 0.20 280);
-    --ring: oklch(55% 0.22 300);
-
-    --chart-1: oklch(65% 0.22 40);
-    --chart-2: oklch(60% 0.20 200);
-    --chart-3: oklch(55% 0.25 300);
-    --chart-4: oklch(75% 0.25 120);
-    --chart-5: oklch(70% 0.22 340);
-
-    --sidebar: oklch(14% 0.02 280);
-    --sidebar-foreground: oklch(98% 0.01 270);
-    --sidebar-primary: oklch(60% 0.25 340);
-    --sidebar-primary-foreground: oklch(98% 0.01 270);
-    --sidebar-accent: oklch(45% 0.20 280);
-    --sidebar-accent-foreground: oklch(98% 0.01 270);
-    --sidebar-border: oklch(40% 0.20 280);
-    --sidebar-ring: oklch(55% 0.22 300);
-}
-
+/* --------------------------------------------
+   7. BASE STYLES
+   -------------------------------------------- */
 @layer base {
+    /* Border & Outline defaults */
     * {
         @apply border-border outline-ring/50;
     }
+
+    /* HTML & Body */
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
         @apply bg-background text-foreground;
-        font-family: "Inter", "Rubik", sans-serif;
+        font-family: var(--font-sans);
+        line-height: 1.6;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    /* Focus visible styles */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-ring;
+    }
+
+    /* Selection */
+    ::selection {
+        @apply bg-primary/20 text-foreground;
+    }
+}
+
+/* --------------------------------------------
+   8. LAYOUT COMPONENTS
+   -------------------------------------------- */
+.App {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+main {
+    flex: 1;
+}
+
+/* Container utilities */
+.container-sm { max-width: 640px; }
+.container-md { max-width: 768px; }
+.container-lg { max-width: 1024px; }
+.container-xl { max-width: 1280px; }
+
+/* --------------------------------------------
+   9. UTILITY CLASSES
+   -------------------------------------------- */
+/* Text utilities */
+.text-balance {
+    text-wrap: balance;
+}
+
+.text-gradient {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+}
+
+/* Glass morphism */
+.glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+}
+
+.glass-dark {
+    @apply bg-grey/80 backdrop-blur-md border border-border/30;
+}
+
+/* Card variants */
+.card-elevated {
+    @apply bg-card rounded-xl shadow-lg border border-border/50;
+}
+
+.card-outlined {
+    @apply bg-card rounded-xl border-2 border-border;
+}
+
+.card-filled {
+    @apply bg-muted rounded-xl;
+}
+
+/* Button base (for custom buttons) */
+.btn-base {
+    @apply inline-flex items-center justify-center rounded-lg font-medium;
+    @apply transition-all duration-200;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+}
+
+/* Section backgrounds */
+.section-primary {
+    @apply bg-gradient-to-br from-primary/5 via-background to-secondary/5;
+}
+
+.section-muted {
+    @apply bg-grey-x100;
+}
+
+.section-gradient {
+    @apply bg-gradient-to-r from-primary to-accent;
+}
+
+/* Decorative blobs */
+.blob {
+    @apply absolute rounded-full blur-3xl pointer-events-none;
+}
+
+.blob-primary {
+    @apply bg-primary/10;
+}
+
+.blob-secondary {
+    @apply bg-secondary/10;
+}
+
+.blob-success {
+    @apply bg-success/10;
+}
+
+/* --------------------------------------------
+   10. ANIMATIONS
+   -------------------------------------------- */
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Animation utilities */
+.animate-fade-in {
+    animation: fade-in var(--transition-base) ease-out;
+}
+
+.animate-fade-up {
+    animation: fade-up var(--transition-slow) ease-out;
+}
+
+.animate-scale-in {
+    animation: scale-in var(--transition-base) ease-out;
+}
+
+.animate-slide-in-right {
+    animation: slide-in-right var(--transition-slow) ease-out;
+}
+
+.animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* --------------------------------------------
+   11. SCROLLBAR STYLING
+   -------------------------------------------- */
+/* Webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-grey-x300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--grey-x300) var(--muted);
+}
+
+/* --------------------------------------------
+   12. PRINT STYLES
+   -------------------------------------------- */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        @apply bg-white text-black;
+    }
+
+    a {
+        text-decoration: underline;
     }
 }

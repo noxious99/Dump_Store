@@ -104,189 +104,207 @@ const Signup: React.FC = () => {
     }
   }, [token, navigate])
   return (
-    <>
-      <div className='h-screen flex'>
-        {/* Left Section */}
-        <div className='hidden xl:flex h-full justify-center items-center bg-grey-x100 lg:px-32 w-full'>
-          <div className='flex flex-col justify-center items-center gap-8'>
-            <div className='flex flex-col items-center gap-2'>
-              <div className='md:text-2xl lg:text-4xl font-semibold text-center text-grey'>
-                Start your journey with Tracero
-              </div>
-              <div className='text-base text-gray-600'>
-                Signup to create an account
-              </div>
-            </div>
-            <div>
-              <img src={signin_img} alt="signin" className='w-[600px] h-auto' />
-            </div>
-          </div>
+    <div className='min-h-screen flex'>
+      {/* Left Section - Decorative */}
+      <div className='hidden xl:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-secondary via-primary to-accent'>
+        {/* Decorative blobs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
         </div>
 
-        {/* Right Section */}
-        <div className='min-h-screen flex items-center justify-center bg-secondary-lite px-4 py-20 lg:px-32 w-full'>
-          <Card className="w-full max-w-[460px] py-4 px-4 sm:py-6 sm:px-8 lg:py-6 lg:px-6 shadow-lg border border-border rounded-xl">
-            <CardHeader className="text-center xl:text-left p-4 sm:p-6">
-              <CardTitle className="text-xl sm:text-2xl xl:text-3xl text-grey">
-                Create your account
-              </CardTitle>
-              <CardDescription className='text-sm sm:text-sm text-gray-600'>
-                Fill in your details to create a new account
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="p-4 sm:p-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
-                  {/* Email */}
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
-                          <MdOutlineEmail /> Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            className='bg-white border border-gray-300 focus:border-primary 
-                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 text-sm sm:text-base'
-                            type="email"
-                            placeholder="your@email.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className='text-error text-xs sm:text-sm' />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* username */}
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
-                          <FaRegUserCircle /> Username
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            className='bg-white border border-gray-300 focus:border-primary 
-                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 text-sm sm:text-base'
-                            type="text"
-                            placeholder="Pick a unique username"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className='text-error text-xs sm:text-sm' />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Password */}
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
-                          <MdOutlinePassword /> Password
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? "text" : "password"}
-                              placeholder="Create a strong password"
-                              {...field}
-                              className="bg-white border border-gray-300 focus:border-primary 
-                      focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 pr-10 text-sm sm:text-base"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage className='text-error text-xs sm:text-sm' />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Confirm Password */}
-                  <FormField
-                    control={form.control}
-                    name="confirm_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 text-sm flex items-center gap-1">
-                          <RiLockPasswordLine /> Confirm Password
-                        </FormLabel>
-                        <FormControl>
-                          <div className='relative'>
-                            <Input
-                              className='bg-white border border-gray-300 focus:border-primary 
-                    focus:ring-2 focus:ring-primary/30 font-medium text-gray-800 h-10 sm:h-12 rounded-lg placeholder:text-gray-400 pr-10 text-sm sm:text-base'
-                              type={showConfirmPassword ? "text" : "password"}
-                              placeholder="Re-enter your password"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage className='text-error text-xs sm:text-sm' />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-            </CardContent>
-
-            <CardFooter className="flex-col gap-2 sm:gap-3 p-4 sm:p-6">
-              {registerFailedMessage && <div className='text-sm text-error font-semibold pb-1'>{registerFailedMessage}</div>}
-              <Button
-                type="submit"
-                className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold bg-primary text-white hover:bg-indigo-600 rounded-lg shadow-md"
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2Icon className="animate-spin mr-2" size={18} />
-                    Sign Up
-                  </>
-                ) : (
-                  <p>Sign Up</p>
-                )}
-              </Button>
-              <span className="text-xs sm:text-sm text-gray-500 font-medium">or</span>
-              <Button
-                variant="outline"
-                className="w-full h-10 sm:h-12 text-sm sm:text-base border border-gray-300 hover:bg-gray-50 rounded-lg"
-                disabled
-              >
-                Sign up with Google
-              </Button>
-              <span className='mt-2 sm:mt-4 flex gap-2 text-xs sm:text-sm text-gray-600'>
-                <p>Already have an account?</p>
-                <Link to="/auth?mode=signin">
-                  <p className='text-primary font-semibold hover:underline'>Sign In</p>
-                </Link>
-              </span>
-            </CardFooter>
-          </Card>
+        <div className='relative z-10 flex flex-col justify-center items-center w-full px-16'>
+          <div className='flex flex-col items-center gap-6 text-center'>
+            <h2 className='text-4xl xl:text-5xl font-bold text-white leading-tight'>
+              Start your journey<br />with Tracero
+            </h2>
+            <p className='text-lg text-white/80 max-w-md'>
+              Track your goals, manage expenses, and stay on top of IOUs — all in one place.
+            </p>
+          </div>
+          <img
+            src={signin_img}
+            alt="Welcome illustration"
+            className='w-full max-w-[500px] h-auto mt-8 drop-shadow-2xl'
+          />
         </div>
       </div>
-    </>
+
+      {/* Right Section - Form */}
+      <div className='w-full xl:w-1/2 min-h-screen flex items-center justify-center bg-background px-4 sm:px-8 lg:px-16 py-12'>
+        <Card className="w-full max-w-[440px] border-0 shadow-none xl:shadow-xl xl:border xl:border-border">
+          <CardHeader className="text-center xl:text-left space-y-2 pb-6">
+            <CardTitle className="text-2xl xl:text-3xl font-bold text-foreground">
+              Create your account
+            </CardTitle>
+            <CardDescription className='text-muted-foreground'>
+              Fill in your details to get started
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Email */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-medium flex items-center gap-2">
+                        <MdOutlineEmail className="text-muted-foreground" />
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="your@email.com"
+                          className='h-12 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className='text-error text-sm' />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Username */}
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-medium flex items-center gap-2">
+                        <FaRegUserCircle className="text-muted-foreground" />
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Pick a unique username"
+                          className='h-12 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className='text-error text-sm' />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Password */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-medium flex items-center gap-2">
+                        <MdOutlinePassword className="text-muted-foreground" />
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Create a strong password"
+                            className='h-12 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg pr-12'
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage className='text-error text-sm' />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Confirm Password */}
+                <FormField
+                  control={form.control}
+                  name="confirm_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-medium flex items-center gap-2">
+                        <RiLockPasswordLine className="text-muted-foreground" />
+                        Confirm Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className='relative'>
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Re-enter your password"
+                            className='h-12 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg pr-12'
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage className='text-error text-sm' />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </CardContent>
+
+          <CardFooter className="flex-col gap-4 pt-2">
+            {registerFailedMessage && (
+              <div className='w-full p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm font-medium text-center'>
+                {registerFailedMessage}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-semibold bg-primary hover:bg-accent rounded-lg shadow-md transition-all duration-200"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2Icon className="animate-spin mr-2" size={18} />
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
+            </Button>
+
+            <div className="flex items-center gap-4 w-full">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-sm text-muted-foreground">or</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full h-12 text-base font-medium border-2 border-border hover:bg-muted rounded-lg"
+              disabled
+            >
+              Sign up with Google
+            </Button>
+
+            <p className='mt-4 text-sm text-muted-foreground'>
+              Already have an account?{' '}
+              <Link to="/auth?mode=signin" className='text-primary hover:text-accent font-semibold transition-colors'>
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   )
 }
 
