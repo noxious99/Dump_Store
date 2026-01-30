@@ -14,7 +14,9 @@ const Footer: React.FC = () => {
                 <div className='flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8 mb-8'>
                     {/* Brand */}
                     <div className='flex flex-col gap-3'>
-                        <h3 className='text-xl font-bold text-white'>Tracero</h3>
+                        <Link to="/home" className='text-xl font-bold text-white hover:text-primary transition-colors'>
+                            Tracero
+                        </Link>
                         <p className='text-grey-x200 text-sm max-w-xs'>
                             Your all-in-one companion for tracking expenses, achieving goals, and managing IOUs.
                         </p>

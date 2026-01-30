@@ -9,6 +9,7 @@ import ExpenseTracker from './pages/ExpenseTracker-Page';
 import ResetPassword from './pages/ResetPassword-Page';
 import Profile from './pages/Profile-Page';
 import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
+import HomeRedirect from './feature-component/auth/HomeRedirect';
 
 import { useDispatch } from 'react-redux';
 import { rehydrateUser } from './feature-component/auth/userSlice';
@@ -38,7 +39,8 @@ const AppContent: React.FC = () => {
       <Navbar />
       <main>
         <Routes>
-          <Route path='/' element={<Home />} />
+          <Route path='/' element={<HomeRedirect />} />
+          <Route path='/home' element={<Home />} />
           <Route path='/auth' element={<Auth />} />
           <Route path='/reset-password' element={<ResetPassword />} />
           <Route element={<ProtectedRoutes/>}>

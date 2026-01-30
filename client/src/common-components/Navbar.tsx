@@ -40,8 +40,8 @@ const Navbar: React.FC = () => {
 
     return (
         <nav className="bg-gradient-to-r from-primary to-accent h-[68px] flex justify-between items-center px-4 lg:px-8 shadow-md">
-            {/* Logo */}
-            <Link to="/" className="flex items-center group">
+            {/* Logo - Always links to home page */}
+            <Link to="/home" className="flex items-center group">
                 <img
                     src={logo}
                     className="h-[34px] sm:h-[38px] lg:h-[42px] w-auto transition-transform duration-200 group-hover:scale-105"

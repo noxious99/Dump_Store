@@ -2,109 +2,132 @@ import React from 'react'
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { TrendingDown, ArrowRight, } from 'lucide-react'
-import { HandCoins, TrendingUp, Users, } from 'lucide-react'
+import { TrendingDown, ArrowRight, TrendingUp, Users, HandCoins, AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
+
 const IouSummaryCard: React.FC = () => {
+    // Placeholder data - replace with actual data fetching
+    const netStatus = 1240
+    const othersOweMe = 2350
+    const iOweOthers = 1110
+    const peopleOwingMe = 4
+    const peopleIOwe = 2
+    const overdueCount = 1
+    const nextDue = {
+        name: "Sarah",
+        amount: 450,
+        date: "Dec 30"
+    }
+
+    const isPositive = netStatus >= 0
+
     return (
-        <>
-            <Card className='w-full max-w-none border-border hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-grey-x100/20 h-full flex flex-col'>
-                <CardHeader className="pb-3 px-4 sm:px-6">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="p-2 sm:p-2.5 bg-accent/10 rounded-xl flex-shrink-0">
-                            <HandCoins className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+        <Card className='bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 h-full flex flex-col'>
+            {/* Header */}
+            <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-accent/10 rounded-lg">
+                            <HandCoins className="w-5 h-5 text-accent" />
                         </div>
-                        <div className='min-w-0 flex-1'>
-                            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate leading-tight">
-                                IOU Tracker
-                            </CardTitle>
-                            <CardDescription className="text-success font-medium text-xs sm:text-sm md:text-base leading-tight">
-                                Keep Track of Debts!
-                            </CardDescription>
-                        </div>
+                        <CardTitle className="text-lg font-semibold text-foreground">
+                            IOU Tracker
+                        </CardTitle>
                     </div>
-                </CardHeader>
+                    {overdueCount > 0 ? (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-error/10 text-error">
+                            {overdueCount} Overdue
+                        </span>
+                    ) : (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success">
+                            All Clear
+                        </span>
+                    )}
+                </div>
+            </CardHeader>
 
-                <CardContent className="space-y-2 sm:space-y-3 px-4 sm:px-6 py-1 sm:py-2 flex-1">
-                    {/* Net Status */}
-                    <div className="py-3 px-3 sm:px-4 bg-success-x100/50 rounded-lg border border-success/20">
-                        <div className="flex items-center justify-between mb-1 sm:mb-0">
-                            <div className="flex items-center gap-2 text-success">
-                                <HandCoins className="w-4 h-4 flex-shrink-0" />
-                                <span className="font-semibold text-xs sm:text-sm">Net Status</span>
-                            </div>
-                            <span className="font-bold text-base sm:text-lg md:text-xl text-success">+$1,240</span>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-xs text-success/70">You're owed more</div>
-                        </div>
+            {/* Content */}
+            <CardContent className="flex-1 space-y-4">
+                {/* Net Status */}
+                <div className={`flex items-center justify-between py-3 px-4 rounded-lg ${isPositive ? 'bg-success/5 border border-success/20' : 'bg-error/5 border border-error/20'}`}>
+                    <div className={`flex items-center gap-2 ${isPositive ? 'text-success' : 'text-error'}`}>
+                        <HandCoins className="w-4 h-4" />
+                        <span className="text-sm font-medium">Net Status</span>
                     </div>
-
-                    {/* Others owe me */}
-                    <div className="py-2 sm:py-3">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                <span className="font-medium text-xs sm:text-sm">Others Owe Me</span>
-                            </div>
-                            <span className="font-bold text-base sm:text-lg md:text-xl text-success">$2,350</span>
-                        </div>
-                        <div className="flex justify-end">
-                            <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                4 people
-                            </div>
-                        </div>
+                    <div className="text-right">
+                        <span className={`text-xl font-bold ${isPositive ? 'text-success' : 'text-error'}`}>
+                            {isPositive ? '+' : '-'}${Math.abs(netStatus).toLocaleString()}
+                        </span>
+                        <p className={`text-xs ${isPositive ? 'text-success/70' : 'text-error/70'}`}>
+                            {isPositive ? "You're owed more" : "You owe more"}
+                        </p>
                     </div>
+                </div>
 
-                    {/* I owe others */}
-                    <div className="py-2 sm:py-3 border-b border-border/50">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                <span className="font-medium text-xs sm:text-sm">I Owe Others</span>
-                            </div>
-                            <span className="font-bold text-base sm:text-lg md:text-xl text-error">$1,110</span>
-                        </div>
-                        <div className="flex justify-end">
-                            <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                2 people
-                            </div>
-                        </div>
+                {/* Others Owe Me */}
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <TrendingUp className="w-4 h-4" />
+                        <span className="text-sm font-medium">Others Owe Me</span>
                     </div>
-
-                    {/* Status Alerts - Mobile Optimized */}
-                    <div className="pt-2 sm:pt-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Status Alerts</span>
-                            <span className="text-xs sm:text-sm text-error font-medium bg-error/10 px-2 py-1 rounded-md">
-                                1 overdue
-                            </span>
-                        </div>
-                        <div className="bg-muted/30 px-3 py-2 rounded-md">
-                            <div className="text-xs text-muted-foreground">
-                                <span className="font-medium">Next due:</span> Sarah - $450 (Dec 30)
-                            </div>
-                        </div>
+                    <div className="text-right">
+                        <span className="text-lg font-bold text-success">
+                            ${othersOweMe.toLocaleString()}
+                        </span>
+                        <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                            <Users className="w-3 h-3" />
+                            {peopleOwingMe} people
+                        </p>
                     </div>
-                </CardContent>
+                </div>
 
-                <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">
-                    <button
-                        onClick={() => window.location.href = '/iou-tracker'}
-                        className="w-full group flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 active:bg-accent/80 text-accent-foreground px-4 py-3 sm:py-3.5 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
-                    >
+                {/* I Owe Others */}
+                <div className="flex items-center justify-between py-3 border-b border-border">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <TrendingDown className="w-4 h-4" />
+                        <span className="text-sm font-medium">I Owe Others</span>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-lg font-bold text-error">
+                            ${iOweOthers.toLocaleString()}
+                        </span>
+                        <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                            <Users className="w-3 h-3" />
+                            {peopleIOwe} people
+                        </p>
+                    </div>
+                </div>
+
+                {/* Next Due Alert */}
+                {nextDue && (
+                    <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
+                        <div className="flex items-center gap-2 mb-1">
+                            <AlertCircle className="w-4 h-4 text-warning" />
+                            <span className="text-xs font-medium text-warning">Next Due</span>
+                        </div>
+                        <p className="text-sm text-foreground">
+                            {nextDue.name} - <span className="font-semibold">${nextDue.amount}</span>
+                            <span className="text-muted-foreground ml-1">({nextDue.date})</span>
+                        </p>
+                    </div>
+                )}
+            </CardContent>
+
+            {/* Footer */}
+            <CardFooter className="pt-4 mt-auto">
+                <Button asChild className="w-full bg-accent hover:bg-accent/90 text-white">
+                    <Link to="/iou-tracker" className="flex items-center justify-center gap-2">
                         <span>Manage IOUs</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200 flex-shrink-0" />
-                    </button>
-                </CardFooter>
-            </Card>
-        </>
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </Button>
+            </CardFooter>
+        </Card>
     )
 }
 

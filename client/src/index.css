@@ -133,7 +133,7 @@
     /* ========== NEUTRAL COLORS ========== */
     /* Muted - For subtle backgrounds & text */
     --muted: #F8FAFC;               /* slate-50 */
-    --muted-foreground: #64748B;    /* slate-500 */
+    --muted-foreground: #5b6b83;    /* slate-500 */
 
     /* Grey Scale - For sections & borders */
     --grey: #1E293B;                /* slate-800 */
