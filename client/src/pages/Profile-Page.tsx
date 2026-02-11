@@ -25,7 +25,6 @@ const Profile: React.FC = () => {
         setIsLoading(true)
         try {
             const res = await axiosInstance.get('/v1/user/profile')
-            console.log("res ", res)
             setUserData({
                 username: res.data.userInfo.username || '',
                 name: res.data.userInfo.name || '',

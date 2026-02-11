@@ -13,7 +13,6 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData, onAvatarChange }) => {
-    console.log(userData)
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A'
         return new Date(dateString).toLocaleDateString('en-US', {
