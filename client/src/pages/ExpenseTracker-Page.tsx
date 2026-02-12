@@ -168,83 +168,99 @@ const ExpenseTracker: React.FC = () => {
 
     return (
         <>
-            <div className='p-4 md:p-6 flex flex-col items-center max-w-7xl mx-auto'>
-                <div className='text-2xl font-semibold mb-6 text-foreground'>Expense Tracker</div>
+            <div className='min-h-screen bg-grey-x100 relative'>
+                <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
+                    {/* Header */}
+                    <header className='mb-6 sm:mb-8 animate-fade-up'>
+                        <h1 className='text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-1'>
+                            <span className='text-gradient'>Expense Tracker</span>
+                        </h1>
+                        <p className='text-sm sm:text-base text-muted-foreground'>
+                            Manage your income and expenses
+                        </p>
+                    </header>
 
-                <div className='flex justify-between items-center w-full mb-4 md:mb-6'>
-                    <div className='flex items-center gap-3'>
-                        <button
-                            onClick={() => handleMonthChange("left")}
-                            className='p-2 hover:bg-primary-lite dark:hover:bg-primary/20 rounded-lg transition-colors'
-                            disabled={isLoadingFetch}
-                        >
-                            <FaCaretLeft className='text-primary text-xl' />
-                        </button>
-                        <div className='px-4 py-2 bg-card border border-border rounded-lg font-medium text-foreground min-w-[120px] text-center'>
-                            {formattedMonth}
-                        </div>
-                        <button
-                            onClick={() => handleMonthChange("right")}
-                            className='p-2 hover:bg-primary-lite dark:hover:bg-primary/20 rounded-lg transition-colors'
-                            disabled={isLoadingFetch}
-                        >
-                            <FaCaretRight className='text-primary text-xl' />
-                        </button>
-                    </div>
-                    <div className='flex flex-col md:flex-row items-center gap-3'>
-                        <Button
-                            className='bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm'
-                            onClick={() => setIsAddDialogOpen(true)}
-                            disabled={isLoadingFetch || isHistoryMode}
-                        >
-                            Add Expense
-                        </Button>
-                        <Button
-                            className='bg-success hover:bg-success/90 text-white font-medium shadow-sm'
-                            onClick={() => setIsAddIncomeDialogOpen(true)}
-                            disabled={isLoadingFetch || isHistoryMode}
-                        >
-                            Add to Wallet
-                        </Button>
-                    </div>
-                </div>
-
-                {isLoadingFetch ? (
-                    <div className='flex flex-col items-center justify-center py-12 gap-3'>
-                        <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                        <p className='text-sm text-muted-foreground'>Loading your records...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className='flex flex-col md:flex-row gap-4 w-full mb-6'>
-                            <BalanceOverview balanceData={balanceOverviewData} />
-                            <BudgetSummary
-                                budgetSummary={budgetSummary}
-                                onBudgetUpdate={handleBudgetUpdate}
-                                categories={expenseCategoryList}
-                                historyMode={isHistoryMode}
-                            />
-                            <ExpenseSummary
-                                topCategory={topCategory}
-                                totalSpend={totalSpend}
-                            />
-                        </div>
-
-                        <div className='w-full'>
-                            <div className='flex items-center justify-between mb-4 mt-2'>
-                                <h3 className='text-lg font-semibold text-foreground'>Recent Expenses</h3>
-                                <span className='text-sm font-semibold text-muted-foreground flex items-center gap-1'>
-                                    {expenseDetails?.expenseRecords?.length || 0} <p>records</p>
-                                </span>
+                    {/* Month Navigation + Actions */}
+                    <section className='mb-5 sm:mb-8 animate-fade-up'>
+                        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4'>
+                            <div className='flex items-center gap-2 sm:gap-3'>
+                                <button
+                                    onClick={() => handleMonthChange("left")}
+                                    className='p-2 sm:p-2.5 hover:bg-grey-x200 rounded-lg transition-colors active:scale-[0.98]'
+                                    disabled={isLoadingFetch}
+                                >
+                                    <FaCaretLeft className='text-primary text-lg sm:text-xl' />
+                                </button>
+                                <div className='px-3 sm:px-4 py-2 bg-card border border-border rounded-lg font-medium text-foreground min-w-[130px] text-center shadow-sm'>
+                                    {formattedMonth}
+                                </div>
+                                <button
+                                    onClick={() => handleMonthChange("right")}
+                                    className='p-2 sm:p-2.5 hover:bg-grey-x200 rounded-lg transition-colors active:scale-[0.98]'
+                                    disabled={isLoadingFetch}
+                                >
+                                    <FaCaretRight className='text-primary text-lg sm:text-xl' />
+                                </button>
                             </div>
-
-                            <ExpenseRecordsList
-                                expenseRecords={expenseDetails?.expenseRecords}
-                                onRecordDeleted={handleExpenseRecordDelete}
-                            />
+                            <div className='flex items-center gap-2 sm:gap-3'>
+                                <Button
+                                    className='flex-1 sm:flex-none bg-error hover:bg-error/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
+                                    onClick={() => setIsAddDialogOpen(true)}
+                                    disabled={isLoadingFetch || isHistoryMode}
+                                >
+                                    Add Expense
+                                </Button>
+                                <Button
+                                    className='flex-1 sm:flex-none bg-success hover:bg-success/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
+                                    onClick={() => setIsAddIncomeDialogOpen(true)}
+                                    disabled={isLoadingFetch || isHistoryMode}
+                                >
+                                    Add Income
+                                </Button>
+                            </div>
                         </div>
-                    </>
-                )}
+                    </section>
+
+                    {isLoadingFetch ? (
+                        <div className='flex flex-col items-center justify-center py-12 gap-3'>
+                            <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                            <p className='text-sm text-muted-foreground'>Loading your records...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Summary Cards */}
+                            <section className='mb-5 sm:mb-8'>
+                                <div className='grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6'>
+                                    <div className="animate-stagger-in">
+                                        <BalanceOverview balanceData={balanceOverviewData} />
+                                    </div>
+                                    <div className="animate-stagger-in">
+                                        <BudgetSummary
+                                            budgetSummary={budgetSummary}
+                                            onBudgetUpdate={handleBudgetUpdate}
+                                            categories={expenseCategoryList}
+                                            historyMode={isHistoryMode}
+                                        />
+                                    </div>
+                                    <div className="animate-stagger-in">
+                                        <ExpenseSummary
+                                            topCategory={topCategory}
+                                            totalSpend={totalSpend}
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Records */}
+                            <section className='pb-6 sm:pb-0'>
+                                <ExpenseRecordsList
+                                    expenseRecords={expenseDetails?.expenseRecords}
+                                    onRecordDeleted={handleExpenseRecordDelete}
+                                />
+                            </section>
+                        </>
+                    )}
+                </div>
             </div>
 
             <ExpenseAdder

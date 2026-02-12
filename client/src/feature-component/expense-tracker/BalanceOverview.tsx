@@ -20,9 +20,9 @@ const BalanceOverview: React.FC<{ balanceData: BalanceData }> = ({ balanceData }
             <Collapsible
                 open={isBalanceOpen}
                 onOpenChange={setIsBalanceOpen}
-                className="w-full max-w-[400px] max-h-[380px]"
+                className="w-full h-full"
             >
-                <div className="rounded-lg border border-border bg-card shadow-xs overflow-hidden flex flex-col">
+                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
                     <CollapsibleTrigger asChild>
                         <button className="w-full flex items-center justify-between px-5 py-4 bg-grey-x100 dark:bg-card hover:bg-grey-x200 dark:hover:bg-accent/10 transition-colors">
                             <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
