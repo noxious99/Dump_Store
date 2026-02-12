@@ -6,7 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Wallet, ArrowRight, Target, Loader2, TrendingUp } from 'lucide-react'
+import { Wallet, ArrowRight, Target, TrendingUp } from 'lucide-react'
 import axiosInstance from '@/utils/axiosInstance';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +21,31 @@ import {
 import { Input } from "@/components/ui/input"
 import { Link } from 'react-router-dom';
 
+const SkeletonCard = () => (
+    <Card className='bg-card border border-border rounded-xl h-full flex flex-col'>
+        <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="skeleton w-9 h-9 sm:w-10 sm:h-10 rounded-lg" />
+                <div className="skeleton h-5 w-32" />
+            </div>
+        </CardHeader>
+        <CardContent className="flex-1 space-y-4 px-4 sm:px-6">
+            <div className="skeleton h-14 w-full rounded-lg" />
+            <div className="space-y-2">
+                <div className="flex justify-between">
+                    <div className="skeleton h-4 w-20" />
+                    <div className="skeleton h-4 w-28" />
+                </div>
+                <div className="skeleton h-2 w-full rounded-full" />
+            </div>
+            <div className="skeleton h-10 w-full rounded-lg" />
+        </CardContent>
+        <CardFooter className="pt-3 px-4 sm:px-6">
+            <div className="skeleton h-10 w-full rounded-lg" />
+        </CardFooter>
+    </Card>
+)
+
 const ExpenseSummaryCard: React.FC = () => {
     const [walletBalance, setWalletBalance] = useState(0)
     const [totalSpend, setTotalSpend] = useState(0)
@@ -34,7 +59,7 @@ const ExpenseSummaryCard: React.FC = () => {
     const [showAddBudgetDialog, setShowAddBudgetDialog] = useState(false)
     const [newBudgetAmount, setNewBudgetAmount] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [isSummaryLoading, setIsSummaryLoading] = useState(false)
+    const [isSummaryLoading, setIsSummaryLoading] = useState(true)
 
     const fetchSummary = async () => {
         setIsSummaryLoading(true)
@@ -108,132 +133,125 @@ const ExpenseSummaryCard: React.FC = () => {
 
     const statusColor = getStatusColor()
 
+    if (isSummaryLoading) return <SkeletonCard />
+
     return (
         <>
-            <Card className='bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 h-full flex flex-col'>
-                {isSummaryLoading ? (
-                    <div className='flex-1 flex flex-col items-center justify-center py-12'>
-                        <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                        <p className='text-sm text-muted-foreground mt-3'>Loading...</p>
+            <Card className='bg-card border border-border rounded-xl shadow-sm transition-colors duration-200 h-full flex flex-col'>
+                {/* Header */}
+                <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5 sm:gap-3">
+                            <div className="p-2 sm:p-2.5 bg-primary/10 rounded-lg">
+                                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
+                                Expense Tracker
+                            </CardTitle>
+                        </div>
+                        <span className={`text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full bg-${statusColor}/10 text-${statusColor}`}>
+                            {usedPercent > 90 ? 'Alert' : usedPercent > 70 ? 'Watch' : 'On Track'}
+                        </span>
                     </div>
-                ) : (
-                    <>
-                        {/* Header */}
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-primary/10 rounded-lg">
-                                        <Wallet className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <CardTitle className="text-lg font-semibold text-foreground">
-                                        Expense Tracker
-                                    </CardTitle>
-                                </div>
-                                <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${statusColor}/10 text-${statusColor}`}>
-                                    {usedPercent > 90 ? 'Alert' : usedPercent > 70 ? 'Watch' : 'On Track'}
+                </CardHeader>
+
+                {/* Content */}
+                <CardContent className="flex-1 space-y-3 sm:space-y-4 px-4 sm:px-6">
+                    {/* Wallet Balance */}
+                    <div className="flex items-center justify-between py-3 px-3 sm:px-4 bg-grey-x100 rounded-lg">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Wallet className="w-4 h-4" />
+                            <span className="text-xs sm:text-sm font-medium">Balance</span>
+                        </div>
+                        <span className={`text-lg sm:text-xl font-bold tracking-tight ${walletBalance < 0 ? 'text-error' : 'text-foreground'}`}>
+                            ${walletBalance.toLocaleString()}
+                        </span>
+                    </div>
+
+                    {/* Monthly Budget Progress */}
+                    <div className="space-y-2.5 sm:space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-muted-foreground shrink-0">
+                                <Target className="w-4 h-4" />
+                                <span className="text-xs sm:text-sm font-medium">Budget</span>
+                            </div>
+                            <div className="text-right min-w-0">
+                                <span className="text-base sm:text-lg font-bold text-foreground tracking-tight">
+                                    ${totalSpend.toLocaleString()}
                                 </span>
+                                <span className="text-xs sm:text-sm text-muted-foreground"> / ${budget.toLocaleString()}</span>
                             </div>
-                        </CardHeader>
+                        </div>
 
-                        {/* Content */}
-                        <CardContent className="flex-1 space-y-4">
-                            {/* Wallet Balance */}
-                            <div className="flex items-center justify-between py-3 px-4 bg-muted rounded-lg">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Wallet className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Balance</span>
+                        {budget > 0 ? (
+                            <div className="space-y-2">
+                                <div className="w-full bg-grey-x100 rounded-full h-2 overflow-hidden">
+                                    <div
+                                        className={`h-2 rounded-full transition-all duration-700 ease-out ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'}`}
+                                        style={{ width: `${Math.min(usedPercent, 100)}%` }}
+                                    />
                                 </div>
-                                <span className={`text-xl font-bold ${walletBalance < 0 ? 'text-error' : 'text-foreground'}`}>
-                                    ${walletBalance.toLocaleString()}
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>{usedPercent}% used</span>
+                                    <span>${remainingBudget.toLocaleString()} left</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-3 bg-grey-x100 rounded-lg">
+                                <p className="text-sm text-muted-foreground mb-2">No budget set</p>
+                                <Button
+                                    variant="link"
+                                    className='text-primary h-auto p-0 text-sm font-medium'
+                                    onClick={() => setShowAddBudgetDialog(true)}
+                                >
+                                    Set Monthly Budget
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Top Category */}
+                    {topSpendCategory.name && topSpendCategory.amount > 0 && (
+                        <div className="flex items-center justify-between py-2.5 sm:py-3 border-t border-border">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <TrendingUp className="w-4 h-4" />
+                                <span className="text-xs sm:text-sm font-medium">Top Category</span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-xs sm:text-sm font-semibold text-foreground capitalize">
+                                    {topSpendCategory.name}
                                 </span>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                    ${topSpendCategory.amount.toLocaleString()} ({categoryPercent}%)
+                                </p>
                             </div>
+                        </div>
+                    )}
 
-                            {/* Monthly Budget Progress */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <Target className="w-4 h-4" />
-                                        <span className="text-sm font-medium">Monthly Budget</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-lg font-bold text-foreground">
-                                            ${totalSpend.toLocaleString()}
-                                        </span>
-                                        <span className="text-sm text-muted-foreground"> / ${budget.toLocaleString()}</span>
-                                    </div>
-                                </div>
+                    {/* Daily Budget Alert */}
+                    {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
+                        <div className={`p-2.5 sm:p-3 rounded-lg border ${usedPercent > 90 ? 'bg-error/5 border-error/20' : 'bg-warning/5 border-warning/20'}`}>
+                            <p className={`text-[11px] sm:text-xs font-medium ${usedPercent > 90 ? 'text-error' : 'text-warning'}`}>
+                                Daily Budget: ${dailyBudget}/day for {daysLeft} days
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
 
-                                {budget > 0 ? (
-                                    <div className="space-y-2">
-                                        <div className="w-full bg-grey-x200 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full transition-all duration-300 ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'}`}
-                                                style={{ width: `${Math.min(usedPercent, 100)}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-xs text-muted-foreground">
-                                            <span>{usedPercent}% used</span>
-                                            <span>${remainingBudget.toLocaleString()} left</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-3 bg-muted rounded-lg">
-                                        <p className="text-sm text-muted-foreground mb-2">No budget set</p>
-                                        <Button
-                                            variant="link"
-                                            className='text-primary h-auto p-0 text-sm font-medium'
-                                            onClick={() => setShowAddBudgetDialog(true)}
-                                        >
-                                            Set Monthly Budget
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Top Category */}
-                            {topSpendCategory.name && topSpendCategory.amount > 0 && (
-                                <div className="flex items-center justify-between py-3 border-t border-border">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <TrendingUp className="w-4 h-4" />
-                                        <span className="text-sm font-medium">Top Category</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-sm font-semibold text-foreground capitalize">
-                                            {topSpendCategory.name}
-                                        </span>
-                                        <p className="text-xs text-muted-foreground">
-                                            ${topSpendCategory.amount.toLocaleString()} ({categoryPercent}%)
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Daily Budget Alert */}
-                            {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
-                                <div className={`p-3 rounded-lg border ${usedPercent > 90 ? 'bg-error/5 border-error/20' : 'bg-warning/5 border-warning/20'}`}>
-                                    <p className={`text-xs font-medium ${usedPercent > 90 ? 'text-error' : 'text-warning'}`}>
-                                        Daily Budget: ${dailyBudget}/day for {daysLeft} days
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-
-                        {/* Footer */}
-                        <CardFooter className="pt-4 mt-auto">
-                            <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                                <Link to="/expense-tracker" className="flex items-center justify-center gap-2">
-                                    <span>Manage Expenses</span>
-                                    <ArrowRight className="w-4 h-4" />
-                                </Link>
-                            </Button>
-                        </CardFooter>
-                    </>
-                )}
+                {/* Footer */}
+                <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6">
+                    <Button asChild className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground h-10 sm:h-11 active:scale-[0.98] transition-all duration-200">
+                        <Link to="/expense-tracker" className="flex items-center justify-center gap-2">
+                            <span className="text-sm">Manage Expenses</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </Button>
+                </CardFooter>
             </Card>
 
             {/* Budget Dialog */}
             <Dialog open={showAddBudgetDialog} onOpenChange={setShowAddBudgetDialog}>
-                <DialogContent className="sm:max-w-[400px]">
+                <DialogContent className="sm:max-w-[400px] rounded-xl">
                     <form onSubmit={handleNewBudgetSubmit}>
                         <DialogHeader>
                             <DialogTitle>Set Monthly Budget</DialogTitle>
@@ -248,23 +266,16 @@ const ExpenseSummaryCard: React.FC = () => {
                                 placeholder="Enter amount"
                                 value={newBudgetAmount}
                                 onChange={(e) => setNewBudgetAmount(e.target.value)}
-                                className="h-12 bg-muted border-border focus:border-primary"
+                                className="h-12 bg-input border-border focus:border-primary rounded-lg"
                             />
                         </div>
 
                         <DialogFooter className="gap-2">
                             <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
+                                <Button variant="outline" className="rounded-lg">Cancel</Button>
                             </DialogClose>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    'Save Budget'
-                                )}
+                            <Button type="submit" disabled={isLoading} className="rounded-lg bg-primary hover:bg-primary/90">
+                                {isLoading ? 'Saving...' : 'Save Budget'}
                             </Button>
                         </DialogFooter>
                     </form>

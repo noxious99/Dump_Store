@@ -17,6 +17,8 @@ import { IoMdMenu } from "react-icons/io";
 import { FiLogOut } from "react-icons/fi";
 import { FaRegUserCircle } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 const Navbar: React.FC = () => {
     const [loggedinState, setLoggedinState] = useState(false)
@@ -24,6 +26,7 @@ const Navbar: React.FC = () => {
     const user = useSelector(selectUser)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const { resolvedTheme, toggleTheme } = useTheme()
 
     useEffect(() => {
         if (user.token) {
@@ -50,7 +53,18 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* Desktop Links */}
-            <div className="hidden md:flex gap-3">
+            <div className="hidden md:flex items-center gap-3">
+                <button
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                    className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                    {resolvedTheme === 'dark' ? (
+                        <Sun className="w-5 h-5 text-primary-foreground" />
+                    ) : (
+                        <Moon className="w-5 h-5 text-primary-foreground" />
+                    )}
+                </button>
                 {!loggedinState ? (
                     <>
                         <Button
@@ -144,6 +158,18 @@ const Navbar: React.FC = () => {
                                             <FaRegUserCircle className="text-lg" />
                                             Profile
                                         </Link>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full h-12 justify-start gap-3 text-foreground hover:bg-primary/5 hover:text-primary"
+                                        onClick={toggleTheme}
+                                    >
+                                        {resolvedTheme === 'dark' ? (
+                                            <Sun className="w-[18px] h-[18px]" />
+                                        ) : (
+                                            <Moon className="w-[18px] h-[18px]" />
+                                        )}
+                                        {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                                     </Button>
                                     <div className="border-t border-border my-2" />
                                     <Button

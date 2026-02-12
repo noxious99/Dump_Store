@@ -17,7 +17,7 @@
 /* --------------------------------------------
    3. CUSTOM VARIANTS
    -------------------------------------------- */
-@custom-variant dark (&:is(.dark *));
+ @custom-variant dark (&:is(.dark *));
 
 /* --------------------------------------------
    4. THEME TOKENS (Tailwind v4)
@@ -197,36 +197,38 @@
    6. CSS CUSTOM PROPERTIES - DARK MODE
    -------------------------------------------- */
 .dark {
-    /* Core */
-    --background: #0F172A;          /* slate-900 */
-    --foreground: #F8FAFC;          /* slate-50 */
+    /* Core — lifted from near-black for eye comfort
+       Keeps blue-slate tint but softened. ~11:1 text contrast (comfortable range).
+       Layering: page → card → inner → border, each step visible */
+    --background: #0C1222;          /* lifted navy — no longer near-black */
+    --foreground: #CDD5DF;          /* soft grey — ~11:1 contrast, reduces halation */
 
     /* Cards & Surfaces */
-    --card: #1E293B;                /* slate-800 */
-    --card-foreground: #F8FAFC;
-    --popover: #1E293B;
-    --popover-foreground: #F8FAFC;
+    --card: #141C2C;                /* one step above page */
+    --card-foreground: #CDD5DF;
+    --popover: #1D2536;             /* floating elements above cards */
+    --popover-foreground: #E2E8F0;
 
     /* Brand - slightly adjusted for dark */
     --primary: #818CF8;             /* indigo-400 */
-    --primary-lite: #312E81;        /* indigo-900 */
+    --primary-lite: #1E1B4B;        /* indigo-950 */
     --primary-foreground: #0F172A;
 
     --secondary: #2DD4BF;           /* teal-400 */
-    --secondary-lite: #134E4A;      /* teal-900 */
+    --secondary-lite: #042F2E;      /* teal-950 */
     --secondary-foreground: #0F172A;
 
     --accent: #A78BFA;              /* violet-400 */
     --accent-foreground: #0F172A;
 
     /* Neutral */
-    --muted: #1E293B;               /* slate-800 */
-    --muted-foreground: #94A3B8;    /* slate-400 */
+    --muted: #141C2C;               /* same as card */
+    --muted-foreground: #8896A8;    /* softened from #94A3B8 — less blue glare */
 
     --grey: #F8FAFC;                /* slate-50 */
-    --grey-x100: #1E293B;           /* slate-800 */
-    --grey-x200: #334155;           /* slate-700 */
-    --grey-x300: #475569;           /* slate-600 */
+    --grey-x100: #1D2536;           /* one step above card — visible inner sections */
+    --grey-x200: #2A3447;           /* softer than #334155 */
+    --grey-x300: #3D4A5C;           /* softer than #475569 */
 
     /* Semantic - brighter for dark mode */
     --success: #34D399;             /* emerald-400 */
@@ -243,8 +245,8 @@
     --info-x100: #0C4A6E;           /* sky-900 */
 
     /* Forms */
-    --border: #334155;              /* slate-700 */
-    --input: #1E293B;               /* slate-800 */
+    --border: #253040;              /* softer than #334155 — gentle card edges */
+    --input: #1D2536;               /* same as grey-x100 */
     --ring: #818CF8;                /* indigo-400 */
 
     /* Charts - brighter for dark */
@@ -255,20 +257,20 @@
     --chart-5: #F472B6;             /* pink-400 */
 
     /* Sidebar */
-    --sidebar: #020617;             /* slate-950 */
-    --sidebar-foreground: #F8FAFC;
+    --sidebar: #080E1A;             /* deeper than page for sidebar contrast */
+    --sidebar-foreground: #CDD5DF;
     --sidebar-primary: #C084FC;     /* purple-400 */
     --sidebar-primary-foreground: #0F172A;
     --sidebar-accent: #818CF8;      /* indigo-400 */
     --sidebar-accent-foreground: #0F172A;
-    --sidebar-border: #1E293B;
+    --sidebar-border: #1D2536;
     --sidebar-ring: #818CF8;
 
-    /* Shadows - more subtle in dark mode */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    /* Shadows - subtle, uses slight white mix for depth */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.35), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
 }
 
 /* --------------------------------------------
@@ -469,6 +471,45 @@ main {
 
 .animate-pulse-soft {
     animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Staggered fade-up for dashboard cards */
+@keyframes stagger-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-stagger-in {
+    animation: stagger-fade-up 0.5s ease-out both;
+}
+
+.animate-stagger-in:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger-in:nth-child(2) { animation-delay: 80ms; }
+.animate-stagger-in:nth-child(3) { animation-delay: 160ms; }
+.animate-stagger-in:nth-child(4) { animation-delay: 240ms; }
+
+/* Skeleton shimmer for loading states */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-grey-x100) 0%,
+        var(--color-grey-x200) 50%,
+        var(--color-grey-x100) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius-md);
 }
 
 /* --------------------------------------------

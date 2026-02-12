@@ -23,10 +23,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import axiosInstance from '@/utils/axiosInstance'
 import { toast } from 'sonner'
+import { useTheme } from '@/hooks/useTheme'
 
 const PreferencesTab: React.FC = () => {
+    const { theme, setTheme } = useTheme()
     const [preferences, setPreferences] = useState({
-        theme: 'system',
         currency: 'USD',
         notifications: true
     })
@@ -42,7 +43,7 @@ const PreferencesTab: React.FC = () => {
     }
 
     const getThemeIcon = () => {
-        switch (preferences.theme) {
+        switch (theme) {
             case 'dark': return <Moon className="w-5 h-5 text-primary" />
             case 'light': return <Sun className="w-5 h-5 text-primary" />
             default: return <Monitor className="w-5 h-5 text-primary" />
@@ -72,8 +73,8 @@ const PreferencesTab: React.FC = () => {
                                 </div>
                             </div>
                             <Select
-                                value={preferences.theme}
-                                onValueChange={(value) => setPreferences(p => ({ ...p, theme: value }))}
+                                value={theme}
+                                onValueChange={(value: 'light' | 'dark' | 'system') => setTheme(value)}
                             >
                                 <SelectTrigger className="w-32 bg-muted border-border">
                                     <SelectValue />
