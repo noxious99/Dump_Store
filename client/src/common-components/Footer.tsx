@@ -8,16 +8,16 @@ const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className='bg-grey text-grey-x100'>
+        <footer className='bg-grey dark:bg-sidebar'>
             <div className='max-w-7xl mx-auto px-6 lg:px-8 py-12'>
                 {/* Top Section */}
                 <div className='flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8 mb-8'>
                     {/* Brand */}
                     <div className='flex flex-col gap-3'>
-                        <Link to="/home" className='text-xl font-bold text-white hover:text-primary transition-colors'>
+                        <Link to="/home" className='text-xl font-bold text-white dark:text-foreground hover:text-primary transition-colors'>
                             Tracero
                         </Link>
-                        <p className='text-grey-x200 text-sm max-w-xs'>
+                        <p className='text-grey-x200 dark:text-muted-foreground text-sm max-w-xs'>
                             Your all-in-one companion for tracking expenses, achieving goals, and managing IOUs.
                         </p>
                     </div>
@@ -26,15 +26,15 @@ const Footer: React.FC = () => {
                     <div className='flex flex-wrap gap-8 lg:gap-16'>
                         {/* Product */}
                         <div className='flex flex-col gap-3'>
-                            <h4 className='text-sm font-semibold text-white uppercase tracking-wider'>Product</h4>
+                            <h4 className='text-sm font-semibold text-white dark:text-foreground uppercase tracking-wider'>Product</h4>
                             <div className='flex flex-col gap-2'>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Features
                                 </Link>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Pricing
                                 </Link>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     FAQ
                                 </Link>
                             </div>
@@ -42,15 +42,15 @@ const Footer: React.FC = () => {
 
                         {/* Support */}
                         <div className='flex flex-col gap-3'>
-                            <h4 className='text-sm font-semibold text-white uppercase tracking-wider'>Support</h4>
+                            <h4 className='text-sm font-semibold text-white dark:text-foreground uppercase tracking-wider'>Support</h4>
                             <div className='flex flex-col gap-2'>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Report a Bug
                                 </Link>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Contact Us
                                 </Link>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Help Center
                                 </Link>
                             </div>
@@ -58,12 +58,12 @@ const Footer: React.FC = () => {
 
                         {/* Legal */}
                         <div className='flex flex-col gap-3'>
-                            <h4 className='text-sm font-semibold text-white uppercase tracking-wider'>Legal</h4>
+                            <h4 className='text-sm font-semibold text-white dark:text-foreground uppercase tracking-wider'>Legal</h4>
                             <div className='flex flex-col gap-2'>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Privacy Policy
                                 </Link>
-                                <Link to="#" className='text-grey-x200 hover:text-white text-sm transition-colors'>
+                                <Link to="#" className='text-grey-x200 dark:text-muted-foreground hover:text-white dark:hover:text-foreground text-sm transition-colors'>
                                     Terms of Service
                                 </Link>
                             </div>
@@ -72,11 +72,11 @@ const Footer: React.FC = () => {
                 </div>
 
                 {/* Divider */}
-                <div className='h-px bg-grey-x300/20 mb-8' />
+                <div className='h-px bg-grey-x300/20 dark:bg-border mb-8' />
 
                 {/* Bottom Section */}
                 <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
-                    <p className='text-grey-x200 text-sm'>
+                    <p className='text-grey-x200 dark:text-muted-foreground text-sm'>
                         © {currentYear} Tracero. All rights reserved.
                     </p>
 
@@ -84,28 +84,28 @@ const Footer: React.FC = () => {
                     <div className='flex gap-4'>
                         <a
                             href="#"
-                            className='w-9 h-9 rounded-full bg-grey-x300/10 flex items-center justify-center text-grey-x200 hover:bg-primary hover:text-white transition-all duration-200'
+                            className='w-9 h-9 rounded-full bg-grey-x300/10 dark:bg-border/20 flex items-center justify-center text-grey-x200 dark:text-muted-foreground hover:bg-primary hover:text-white transition-all duration-200'
                             aria-label="Facebook"
                         >
                             <TbBrandFacebook className='text-lg' />
                         </a>
                         <a
                             href="#"
-                            className='w-9 h-9 rounded-full bg-grey-x300/10 flex items-center justify-center text-grey-x200 hover:bg-primary hover:text-white transition-all duration-200'
+                            className='w-9 h-9 rounded-full bg-grey-x300/10 dark:bg-border/20 flex items-center justify-center text-grey-x200 dark:text-muted-foreground hover:bg-primary hover:text-white transition-all duration-200'
                             aria-label="Twitter"
                         >
                             <FaXTwitter className='text-lg' />
                         </a>
                         <a
                             href="#"
-                            className='w-9 h-9 rounded-full bg-grey-x300/10 flex items-center justify-center text-grey-x200 hover:bg-primary hover:text-white transition-all duration-200'
+                            className='w-9 h-9 rounded-full bg-grey-x300/10 dark:bg-border/20 flex items-center justify-center text-grey-x200 dark:text-muted-foreground hover:bg-primary hover:text-white transition-all duration-200'
                             aria-label="LinkedIn"
                         >
                             <FiLinkedin className='text-lg' />
                         </a>
                         <a
                             href="#"
-                            className='w-9 h-9 rounded-full bg-grey-x300/10 flex items-center justify-center text-grey-x200 hover:bg-primary hover:text-white transition-all duration-200'
+                            className='w-9 h-9 rounded-full bg-grey-x300/10 dark:bg-border/20 flex items-center justify-center text-grey-x200 dark:text-muted-foreground hover:bg-primary hover:text-white transition-all duration-200'
                             aria-label="GitHub"
                         >
                             <FiGithub className='text-lg' />
