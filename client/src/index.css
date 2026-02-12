@@ -539,6 +539,14 @@ main {
     scrollbar-color: var(--grey-x300) var(--muted);
 }
 
+/* Hide scrollbar for carousel containers */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    scrollbar-width: none;
+}
+
 /* --------------------------------------------
    12. PRINT STYLES
    -------------------------------------------- */

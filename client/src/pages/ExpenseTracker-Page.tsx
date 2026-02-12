@@ -10,6 +10,7 @@ import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder';
 import { Loader2 } from 'lucide-react';
 import BudgetSummary from '@/feature-component/expense-tracker/BudgetSummary';
 import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList';
+import SummaryCarousel from '@/feature-component/expense-tracker/SummaryCarousel';
 import { toast } from 'sonner';
 
 const ExpenseTracker: React.FC = () => {
@@ -230,25 +231,19 @@ const ExpenseTracker: React.FC = () => {
                         <>
                             {/* Summary Cards */}
                             <section className='mb-5 sm:mb-8'>
-                                <div className='grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6'>
-                                    <div className="animate-stagger-in">
-                                        <BalanceOverview balanceData={balanceOverviewData} />
-                                    </div>
-                                    <div className="animate-stagger-in">
-                                        <BudgetSummary
-                                            budgetSummary={budgetSummary}
-                                            onBudgetUpdate={handleBudgetUpdate}
-                                            categories={expenseCategoryList}
-                                            historyMode={isHistoryMode}
-                                        />
-                                    </div>
-                                    <div className="animate-stagger-in">
-                                        <ExpenseSummary
-                                            topCategory={topCategory}
-                                            totalSpend={totalSpend}
-                                        />
-                                    </div>
-                                </div>
+                                <SummaryCarousel>
+                                    <BalanceOverview balanceData={balanceOverviewData} />
+                                    <BudgetSummary
+                                        budgetSummary={budgetSummary}
+                                        onBudgetUpdate={handleBudgetUpdate}
+                                        categories={expenseCategoryList}
+                                        historyMode={isHistoryMode}
+                                    />
+                                    <ExpenseSummary
+                                        topCategory={topCategory}
+                                        totalSpend={totalSpend}
+                                    />
+                                </SummaryCarousel>
                             </section>
 
                             {/* Records */}

@@ -75,7 +75,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
 
     return (
         <Card className="bg-card border border-border rounded-xl shadow-none animate-fade-up">
-            <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
+            <CardHeader className="pb-5 sm:pb-6 px-4 sm:px-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5 sm:gap-3">
                         <div className="p-2 bg-error/10 rounded-lg">
@@ -100,7 +100,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                         <p className="text-sm text-muted-foreground">No expenses this month</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {groupedRecords.map(({ label, records }) => (
                             <div key={label}>
                                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 px-2 sm:px-3">
