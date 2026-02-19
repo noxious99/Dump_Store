@@ -1,494 +1,239 @@
 const { Expense, Income, MonthlyBudget } = require('../Schemas/expenseSchema');
 const expenseRepository = require('../db/expense');
+const { getMonthName, getYear } = require('../utils/utils-function');
 
 
-/**
- * Generic helper to calculate monthly totals for a model
- * @private
- */
-const calculateMonthlyTotal = async (Model, userId, startOfMonth, endOfMonth) => {
-    const result = await Model.aggregate([
-        {
-            $match: {
-                userId,
-                createdAt: {
-                    $gte: startOfMonth,
-                    $lte: endOfMonth,
-                }
-            }
-        },
-        {
-            $group: {
-                _id: null,
-                amount: { $sum: "$amount" },
-                count: { $sum: 1 }
-            }
-        }
+// ── Internal Helpers (not exported) ──────────────────────
+
+const calculateMonthlyTotal = async (Model, userId, startOfMonth, endOfMonth, dateField = 'date') => {
+    const [result] = await Model.aggregate([
+        { $match: { userId, [dateField]: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: null, amount: { $sum: "$amount" }, count: { $sum: 1 } } }
     ]);
-
-    return result.length > 0
-        ? { amount: result[0].amount, count: result[0].count }
-        : { amount: 0, count: 0 };
+    return result ? { amount: result.amount, count: result.count } : { amount: 0, count: 0 };
 };
 
+const getMonthlyTotalExpense = (userId, start, end) => calculateMonthlyTotal(Expense, userId, start, end, 'date');
+const getMonthlyTotalIncome = (userId, start, end) => calculateMonthlyTotal(Income, userId, start, end, 'createdAt');
 
-/**
- * Get monthly total expense for a user
- */
-const getMonthlyTotalExpense = async (userId, startOfMonth, endOfMonth) => {
-    return calculateMonthlyTotal(Expense, userId, startOfMonth, endOfMonth);
+const getTopCategories = async (userId, startOfMonth, endOfMonth) => {
+    return Expense.aggregate([
+        { $match: { userId, date: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category" } },
+        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+        { $group: { _id: "$category._id", categoryName: { $first: "$category.name" }, totalAmount: { $sum: "$amount" } } },
+        { $sort: { totalAmount: -1 } },
+        { $limit: 3 },
+        { $project: { _id: 0, categoryId: "$_id", name: "$categoryName", amount: "$totalAmount" } }
+    ]);
 };
 
+const getCurrentMonthBudget = async (userId, startOfMonth) => {
+    const month = getMonthName(startOfMonth);
+    const year = getYear(startOfMonth);
 
-/**
- * Get monthly total income for a user
- */
-const getMonthlyTotalIncome = async (userId, startOfMonth, endOfMonth) => {
-    return calculateMonthlyTotal(Income, userId, startOfMonth, endOfMonth);
+    const [result] = await MonthlyBudget.aggregate([
+        { $match: { userId, month, year } },
+        { $lookup: { from: 'budgetallocations', localField: '_id', foreignField: 'budgetId', as: 'allocations' } },
+        { $project: { _id: 1, amount: 1, alertThreshold: 1, allocationCount: { $size: '$allocations' } } }
+    ]);
+    return result || {};
 };
 
-
-/**
- * Get top spending categories for the month
- */
-const getMostSpendCategoryOfMonth = async (userId, startOfMonth, endOfMonth) => {
-    const result = await Expense.aggregate([
-        {
-            $match: {
-                userId,
-                createdAt: {
-                    $gte: startOfMonth,
-                    $lte: endOfMonth
-                }
-            }
-        },
-        {
-            $lookup: {
-                from: "categories",
-                localField: "categoryId",
-                foreignField: "_id",
-                as: "category"
-            }
-        },
-        {
-            $unwind: {
-                path: "$category",
-                preserveNullAndEmptyArrays: true
-            }
-        },
-        {
-            $group: {
-                _id: "$category._id",
-                categoryName: { $first: "$category.name" },
-                totalAmount: { $sum: "$amount" }
-            }
-        },
-        {
-            $sort: { totalAmount: -1 }
-        },
-        {
-            $limit: 3
-        },
-        {
-            $project: {
-                _id: 0,
-                categoryId: "$_id",
-                name: "$categoryName",
-                amount: "$totalAmount"
-            }
-        }
+const getExpenseRecords = async (userId, startOfMonth, endOfMonth) => {
+    return Expense.aggregate([
+        { $match: { userId, date: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $lookup: { from: 'categories', localField: 'categoryId', foreignField: '_id', as: 'category' } },
+        { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 1, userId: 1, amount: 1, note: 1, date: 1, createdAt: 1, 'category._id': 1, 'category.name': 1 } },
+        { $sort: { date: -1 } }
     ]);
-    
-    return result;
-}
-
-
-/**
- * Get current month's budget with allocation count
- */
-const getCurrentMonthBudget = async (userId, startOfMonth, endOfMonth) => {
-    const monthName = startOfMonth.toLocaleDateString('en-US', { month: 'long' });
-    const year = startOfMonth.getFullYear().toString();
-
-    const result = await MonthlyBudget.aggregate([
-        {
-            $match: {
-                userId,
-                month: monthName,
-                year: year
-            }
-        },
-        {
-            $lookup: {
-                from: 'budgetallocations',
-                localField: '_id',
-                foreignField: 'budgetId',
-                as: 'allocations'
-            }
-        },
-        {
-            $project: {
-                _id: 1,
-                amount: 1,
-                alertThreshold: 1,
-                allocationCount: { $size: '$allocations' }
-            }
-        }
-    ]);
-
-    return result.length > 0 ? result[0] : {};
 };
 
-
-/**
- * Get user's expense records for a specific month with populated category
- */
-const getUserExpenseRecordsListOfMonth = async (userId, startOfMonth, endOfMonth) => {
-    const recordList = await Expense.aggregate([
-        {
-            $match: {
-                userId,
-                createdAt: {
-                    $gte: startOfMonth,
-                    $lte: endOfMonth
-                }
-            }
-        },
-        {
-            $lookup: {
-                from: 'categories',
-                localField: 'categoryId',
-                foreignField: '_id',
-                as: 'category'
-            }
-        },
-        {
-            $unwind: {
-                path: '$category',
-                preserveNullAndEmptyArrays: true
-            }
-        },
-        {
-            $project: {
-                _id: 1,
-                userId: 1,
-                amount: 1,
-                note: 1,
-                createdAt: 1,
-                'category._id': 1,
-                'category.name': 1
-            }
-        },
-        {
-            $sort: {
-                createdAt: -1
-            }
-        }
+const getCategorySpending = async (userId, categoryIds, startOfMonth, endOfMonth) => {
+    const results = await Expense.aggregate([
+        { $match: { userId, categoryId: { $in: categoryIds }, date: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: "$categoryId", totalSpent: { $sum: "$amount" } } }
     ]);
-    return recordList;
-}
-
-
-/**
- * Get spending breakdown by categories for a specific month
- */
-const getSpendOfCategorysOfMonth = async (userId, categoryIds, startOfMonth, endOfMonth) => {
-    const result = await Expense.aggregate([
-        {
-            $match: {
-                userId,
-                categoryId: { $in: categoryIds },
-                createdAt: {
-                    $gte: startOfMonth,
-                    $lte: endOfMonth
-                }
-            }
-        },
-        {
-            $group: {
-                _id: "$categoryId",
-                totalSpent: { $sum: "$amount" }
-            }
-        }
-    ]);
-
-    const spendMap = result.reduce((acc, item) => {
-        acc[item._id.toString()] = item.totalSpent;
-        return acc;
+    return results.reduce((map, item) => {
+        map[item._id.toString()] = item.totalSpent;
+        return map;
     }, {});
-    return spendMap;
 };
 
 
-/**
- * Add a new expense record
- */
-const addExpense = async (userId, amount, categoryId, note) => {
-    const category = await expenseRepository.findCategoryById(categoryId);
-    if (!category) {
-        throw new Error('Category not found');
-    }
+// ── Expense CRUD ─────────────────────────────────────────
 
-    const newExpense = await expenseRepository.insertExpense(userId, amount, categoryId, note);
+const addExpense = async (userId, amount, categoryId, note, date) => {
+    const category = await expenseRepository.findCategoryById(categoryId);
+    if (!category) throw new Error('Category not found');
+
+    const expense = await expenseRepository.insertExpense(userId, amount, categoryId, note, date);
 
     return {
-        _id: newExpense._id,
-        amount: newExpense.amount,
-        note: newExpense.note,
-        category: {
-            _id: category._id,
-            name: category.name
-        },
-        createdAt: newExpense.createdAt
+        _id: expense._id,
+        amount: expense.amount,
+        note: expense.note,
+        date: expense.date,
+        category: { _id: category._id, name: category.name },
+        createdAt: expense.createdAt
     };
 };
 
-
-/**
- * Delete an expense record
- */
 const deleteExpense = async (userId, expenseId) => {
     const expense = await expenseRepository.deleteExpenseById(userId, expenseId);
-    if (!expense) {
-        throw new Error('Expense not found');
-    }
+    if (!expense) throw new Error('Expense not found');
     return { message: "Deleted successfully" };
 };
 
 
-/**
- * Add a new income record
- */
+// ── Income CRUD ──────────────────────────────────────────
+
 const addIncome = async (userId, amount, source, note) => {
-    const newIncome = await expenseRepository.insertIncome(userId, amount, source, note);
-    return newIncome;
+    return expenseRepository.insertIncome(userId, amount, source, note);
 };
 
 
-/**
- * Add monthly budget for the current month
- */
+// ── Budget ───────────────────────────────────────────────
+
 const addMonthlyBudget = async (userId, amount, alertThreshold) => {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const monthName = startOfMonth.toLocaleDateString('en-US', { month: 'long' });
-    const year = startOfMonth.getFullYear().toString();
+    const month = getMonthName(now);
+    const year = getYear(now);
 
-    const existingBudget = await expenseRepository.findMonthlyBudget(userId, monthName, year);
-    if (existingBudget) {
-        throw new Error("Budget already exists for this month. Please update instead.");
-    }
+    const existing = await expenseRepository.findMonthlyBudget(userId, month, year);
+    if (existing) throw new Error("Budget already exists for this month. Please update instead.");
 
-    const budgetData = {
-        userId,
-        amount,
-        month: monthName,
-        year: year
-    };
-
-    if (alertThreshold !== undefined) {
-        budgetData.alertThreshold = alertThreshold;
-    }
+    const budgetData = { userId, amount, month, year };
+    if (alertThreshold !== undefined) budgetData.alertThreshold = alertThreshold;
 
     const newBudget = await expenseRepository.insertMonthlyBudget(budgetData);
     return { newBudget };
 };
 
-
-/**
- * Get monthly budget by month and year
- */
 const getMonthlyBudget = async (userId, month, year) => {
-    let queryMonth = month;
-    let queryYear = year;
+    const queryMonth = month || getMonthName(new Date());
+    const queryYear = year || getYear(new Date());
+    return expenseRepository.findMonthlyBudget(userId, queryMonth, queryYear);
+};
 
-    if (!queryMonth || !queryYear) {
-        const now = new Date();
-        queryMonth = now.toLocaleDateString('en-US', { month: 'long' });
-        queryYear = now.getFullYear().toString();
-    }
+const updateMonthlyBudget = async (userId, budgetId, amount, alertThreshold) => {
+    const updateData = {};
+    if (amount !== undefined) updateData.amount = amount;
+    if (alertThreshold !== undefined) updateData.alertThreshold = alertThreshold;
 
-    const budget = await expenseRepository.findMonthlyBudget(userId, queryMonth, queryYear);
-    return budget;
+    const updated = await expenseRepository.updateMonthlyBudget(userId, budgetId, updateData);
+    if (!updated) throw new Error("Budget not found");
+    return { budget: updated };
 };
 
 
-/**
- * Get budget breakdown with allocations and spending
- */
+// ── Budget Allocation ────────────────────────────────────
+
 const getBudgetBreakdown = async (userId, budgetId, startOfMonth, endOfMonth) => {
     const budget = await expenseRepository.findBudgetById(budgetId);
-    if (!budget) {
-        throw new Error("Budget not found");
-    }
+    if (!budget) throw new Error("Budget not found");
 
-    const allocatedCategory = await expenseRepository.findBudgetAllocationsByBudgetId(budgetId);
-    const allocatedCategoryIds = [];
+    const allocations = await expenseRepository.findBudgetAllocationsByBudgetId(budgetId);
 
-    const formattedAllocatedCategory = allocatedCategory.map((category) => {
-        const { _id, budgetId, categoryId, allocatedAmount, createdAt } = category;
-        allocatedCategoryIds.push(categoryId._id);
+    const categoryIds = allocations.map(a => a.categoryId._id);
+    const spending = categoryIds.length > 0
+        ? await getCategorySpending(userId, categoryIds, startOfMonth, endOfMonth)
+        : {};
+
+    const categories = allocations.map(a => {
+        const spent = spending[a.categoryId._id.toString()] || 0;
         return {
-            _id,
-            budgetId,
-            categoryId: categoryId._id,
-            categoryName: categoryId.name,
-            allocatedAmount,
-            createdAt
+            _id: a._id,
+            budgetId: a.budgetId,
+            categoryId: a.categoryId._id,
+            categoryName: a.categoryId.name,
+            allocatedAmount: a.allocatedAmount,
+            spent,
+            remaining: a.allocatedAmount - spent,
+            createdAt: a.createdAt
         };
     });
-
-    const spendOfCategory = await getSpendOfCategorysOfMonth(userId, allocatedCategoryIds, startOfMonth, endOfMonth);
-
-    const categoriesWithSpend = formattedAllocatedCategory.map(category => ({
-        ...category,
-        spent: spendOfCategory[category.categoryId.toString()] || 0,
-        remaining: category.allocatedAmount - (spendOfCategory[category.categoryId.toString()] || 0)
-    }));
 
     return {
         budgetId: budget._id,
         amount: budget.amount,
         month: budget.month,
         year: budget.year,
-        categories: categoriesWithSpend
+        categories
     };
 };
 
-
-/**
- * Allocate budget to a category
- */
 const allocateBudget = async (userId, budgetId, categoryId, allocatedAmount) => {
-    const budgetExists = await expenseRepository.findBudgetById(budgetId);
-    if (!budgetExists) {
-        throw new Error("No record found to attach");
-    }
+    const budget = await expenseRepository.findBudgetById(budgetId);
+    if (!budget) throw new Error("No record found to attach");
 
-    const existingAllocation = await expenseRepository.findBudgetAllocation(userId, budgetId, categoryId);
-    if (existingAllocation) {
-        throw new Error("A budget allocation for this category already exists. Please update the existing allocation or select a different category.");
-    }
+    const existing = await expenseRepository.findBudgetAllocation(userId, budgetId, categoryId);
+    if (existing) throw new Error("A budget allocation for this category already exists. Please update the existing allocation or select a different category.");
 
-    const allocationData = {
-        userId,
-        budgetId,
-        categoryId,
-        allocatedAmount
-    };
-
-    const newAllocation = await expenseRepository.insertBudgetAllocation(allocationData);
+    const newAllocation = await expenseRepository.insertBudgetAllocation({
+        userId, budgetId, categoryId, allocatedAmount
+    });
     return { newAllocation };
 };
 
-
-/**
- * Update allocated category amount
- */
 const updateAllocatedCategory = async (userId, budgetId, categoryId, amount) => {
-    const budget = await expenseRepository.findBudgetById(budgetId);
-    const allocation = await expenseRepository.findBudgetAllocation(userId, budgetId, categoryId);
+    const [budget, allocation] = await Promise.all([
+        expenseRepository.findBudgetById(budgetId),
+        expenseRepository.findBudgetAllocation(userId, budgetId, categoryId)
+    ]);
 
-    if (!budget || !allocation) {
-        throw new Error("No record found to update");
-    }
+    if (!budget || !allocation) throw new Error("No record found to update");
 
     const updatedAllocation = await expenseRepository.updateBudgetAllocation(userId, budgetId, categoryId, amount);
     return { updatedAllocation };
 };
 
 
-/**
- * Get expense details for a specific month
- */
+// ── Aggregated Views ─────────────────────────────────────
+
 const getExpenseDetailsOfMonth = async (userId, startOfMonth, endOfMonth) => {
-    const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth);
-    const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth);
-    const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth);
-    const expenseRecords = await getUserExpenseRecordsListOfMonth(userId, startOfMonth, endOfMonth);
-    const monthlyBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth);
+    const [totalSpend, totalIncome, topCategory, expenseRecords, monthlyBudget] = await Promise.all([
+        getMonthlyTotalExpense(userId, startOfMonth, endOfMonth),
+        getMonthlyTotalIncome(userId, startOfMonth, endOfMonth),
+        getTopCategories(userId, startOfMonth, endOfMonth),
+        getExpenseRecords(userId, startOfMonth, endOfMonth),
+        getCurrentMonthBudget(userId, startOfMonth)
+    ]);
 
-    return {
-        totalSpend,
-        totalIncome,
-        topCategory,
-        expenseRecords,
-        monthlyBudget
-    };
+    return { totalSpend, totalIncome, topCategory, expenseRecords, monthlyBudget };
 };
 
-
-/**
- * Get monthly summary (legacy)
- */
-const getMonthlySummary = async (userId, month, year) => {
-    const expenses = await expenseRepository.findExpensesByMonth(userId, month, year);
-    const incomes = await expenseRepository.findIncomesByMonth(userId, month, year);
-
-    if (expenses.length === 0 && incomes.length === 0) {
-        return { balance: 0 };
-    }
-
-    let totalExpense = 0;
-    let totalIncome = 0;
-
-    expenses.forEach(expense => {
-        totalExpense += expense.amount;
-    });
-
-    incomes.forEach(income => {
-        totalIncome += income.amount;
-    });
-
-    const balance = totalIncome - totalExpense;
-    return { totalExpense, totalIncome, balance };
-};
-
-
-/**
- * Get dashboard summary for current month
- */
 const getDashboardSummary = async (userId, startOfMonth, endOfMonth) => {
-    const totalSpend = await getMonthlyTotalExpense(userId, startOfMonth, endOfMonth);
-    const totalIncome = await getMonthlyTotalIncome(userId, startOfMonth, endOfMonth);
-    const topCategory = await getMostSpendCategoryOfMonth(userId, startOfMonth, endOfMonth);
-    const monthBudget = await getCurrentMonthBudget(userId, startOfMonth, endOfMonth);
+    const [totalSpend, totalIncome, topCategory, budget] = await Promise.all([
+        getMonthlyTotalExpense(userId, startOfMonth, endOfMonth),
+        getMonthlyTotalIncome(userId, startOfMonth, endOfMonth),
+        getTopCategories(userId, startOfMonth, endOfMonth),
+        getCurrentMonthBudget(userId, startOfMonth)
+    ]);
 
-    return {
-        totalSpend,
-        totalIncome,
-        topCategory,
-        budget: monthBudget
-    };
+    return { totalSpend, totalIncome, topCategory, budget };
 };
 
 
-/**
- * Get category list
- */
+// ── Category ─────────────────────────────────────────────
+
 const getCategoryList = async () => {
-    const categories = await expenseRepository.findDefaultCategories();
-    return categories;
+    return expenseRepository.findDefaultCategories();
 };
 
 
 module.exports = {
-    getMonthlyTotalExpense,
-    getMonthlyTotalIncome,
-    getMostSpendCategoryOfMonth,
-    getCurrentMonthBudget,
-    getUserExpenseRecordsListOfMonth,
-    getSpendOfCategorysOfMonth,
     addExpense,
     deleteExpense,
     addIncome,
     addMonthlyBudget,
     getMonthlyBudget,
+    updateMonthlyBudget,
     getBudgetBreakdown,
     allocateBudget,
     updateAllocatedCategory,
     getExpenseDetailsOfMonth,
-    getMonthlySummary,
     getDashboardSummary,
-    getCategoryList
+    getCategoryList,
 };

@@ -1,185 +1,81 @@
 const { Expense, Income, MonthlyBudget, BudgetAllocation, Category } = require('../Schemas/expenseSchema');
 
 
-/**
- * Insert a new expense record
- * @param {String} userId - User ID
- * @param {Number} amount - Expense amount
- * @param {String} categoryId - Category ID
- * @param {String} note - Optional note
- * @returns {Promise<Object>} Created expense document
- */
-const insertExpense = async (userId, amount, categoryId, note) => {
-    const newExpense = await Expense.create({ userId, amount, categoryId, note });
-    return newExpense;
+// ── Expense ──────────────────────────────────────────────
+
+const insertExpense = async (userId, amount, categoryId, note, date) => {
+    const data = { userId, amount, categoryId, note };
+    if (date) data.date = date;
+    return Expense.create(data);
 };
 
-
-/**
- * Delete an expense record by ID and user ID
- * @param {String} userId - User ID
- * @param {String} expenseId - Expense ID
- * @returns {Promise<Object|null>} Deleted expense document or null
- */
 const deleteExpenseById = async (userId, expenseId) => {
-    const expense = await Expense.findOneAndDelete({ userId, _id: expenseId });
-    return expense;
+    return Expense.findOneAndDelete({ userId, _id: expenseId });
 };
 
 
-/**
- * Insert a new income record
- * @param {String} userId - User ID
- * @param {Number} amount - Income amount
- * @param {String} source - Income source
- * @param {String} note - Optional note
- * @returns {Promise<Object>} Created income document
- */
+// ── Income ───────────────────────────────────────────────
+
 const insertIncome = async (userId, amount, source, note) => {
-    const newIncome = new Income({ userId, amount, source, note });
-    await newIncome.save();
-    return newIncome;
+    return Income.create({ userId, amount, source, note });
 };
 
 
-/**
- * Insert a new monthly budget
- * @param {Object} budgetData - Budget data object
- * @returns {Promise<Object>} Created budget document
- */
+// ── Monthly Budget ───────────────────────────────────────
+
 const insertMonthlyBudget = async (budgetData) => {
-    const newBudget = new MonthlyBudget(budgetData);
-    await newBudget.save();
-    return newBudget;
+    return MonthlyBudget.create(budgetData);
 };
 
-
-/**
- * Find monthly budget by user, month, and year
- * @param {String} userId - User ID
- * @param {String} month - Month name
- * @param {String} year - Year
- * @returns {Promise<Object|null>} Budget document or null
- */
 const findMonthlyBudget = async (userId, month, year) => {
-    const budget = await MonthlyBudget.findOne({ userId, month, year });
-    return budget;
+    return MonthlyBudget.findOne({ userId, month, year });
 };
 
-
-/**
- * Find budget by ID
- * @param {String} budgetId - Budget ID
- * @returns {Promise<Object|null>} Budget document or null
- */
 const findBudgetById = async (budgetId) => {
-    const budget = await MonthlyBudget.findById(budgetId);
-    return budget;
+    return MonthlyBudget.findById(budgetId);
+};
+
+const updateMonthlyBudget = async (userId, budgetId, updateData) => {
+    return MonthlyBudget.findOneAndUpdate(
+        { _id: budgetId, userId },
+        updateData,
+        { new: true, runValidators: true }
+    );
 };
 
 
-/**
- * Insert a new budget allocation
- * @param {Object} allocationData - Allocation data object
- * @returns {Promise<Object>} Created allocation document with populated category
- */
+// ── Budget Allocation ────────────────────────────────────
+
 const insertBudgetAllocation = async (allocationData) => {
-    const newAllocation = new BudgetAllocation(allocationData);
-    await newAllocation.save();
-
-    const populatedAllocation = await BudgetAllocation.findById(newAllocation._id)
-        .populate('categoryId', 'name');
-    return populatedAllocation;
+    const allocation = await BudgetAllocation.create(allocationData);
+    return BudgetAllocation.findById(allocation._id).populate('categoryId', 'name');
 };
 
-
-/**
- * Find existing budget allocation
- * @param {String} userId - User ID
- * @param {String} budgetId - Budget ID
- * @param {String} categoryId - Category ID
- * @returns {Promise<Object|null>} Allocation document or null
- */
 const findBudgetAllocation = async (userId, budgetId, categoryId) => {
-    const allocation = await BudgetAllocation.findOne({ userId, budgetId, categoryId });
-    return allocation;
+    return BudgetAllocation.findOne({ userId, budgetId, categoryId });
 };
 
-
-/**
- * Find all budget allocations for a budget
- * @param {String} budgetId - Budget ID
- * @returns {Promise<Array>} Array of allocation documents
- */
 const findBudgetAllocationsByBudgetId = async (budgetId) => {
-    const allocations = await BudgetAllocation.find({ budgetId })
-        .populate('categoryId', 'name');
-    return allocations;
+    return BudgetAllocation.find({ budgetId }).populate('categoryId', 'name');
 };
 
-
-/**
- * Update budget allocation amount
- * @param {String} userId - User ID
- * @param {String} budgetId - Budget ID
- * @param {String} categoryId - Category ID
- * @param {Number} allocatedAmount - New allocation amount
- * @returns {Promise<Object|null>} Updated allocation document or null
- */
 const updateBudgetAllocation = async (userId, budgetId, categoryId, allocatedAmount) => {
-    const updatedAllocation = await BudgetAllocation.findOneAndUpdate(
+    return BudgetAllocation.findOneAndUpdate(
         { userId, budgetId, categoryId },
         { allocatedAmount },
         { new: true, runValidators: true }
     ).populate('categoryId', 'name');
-    return updatedAllocation;
 };
 
 
-/**
- * Find category by ID
- * @param {String} categoryId - Category ID
- * @returns {Promise<Object|null>} Category document or null
- */
+// ── Category ─────────────────────────────────────────────
+
 const findCategoryById = async (categoryId) => {
-    const category = await Category.findById(categoryId).select('name');
-    return category;
+    return Category.findById(categoryId).select('name');
 };
 
-
-/**
- * Find all default categories
- * @returns {Promise<Array>} Array of default category documents
- */
 const findDefaultCategories = async () => {
-    const categories = await Category.find({ isDefault: true }).select('_id name');
-    return categories;
-};
-
-
-/**
- * Find expenses by user ID and date range
- * @param {String} userId - User ID
- * @param {Number} month - Month number
- * @param {Number} year - Year number
- * @returns {Promise<Array>} Array of expense documents
- */
-const findExpensesByMonth = async (userId, month, year) => {
-    const expenses = await Expense.find({ userId, month, year });
-    return expenses;
-};
-
-
-/**
- * Find incomes by user ID and date range
- * @param {String} userId - User ID
- * @param {Number} month - Month number
- * @param {Number} year - Year number
- * @returns {Promise<Array>} Array of income documents
- */
-const findIncomesByMonth = async (userId, month, year) => {
-    const incomes = await Income.find({ userId, month, year });
-    return incomes;
+    return Category.find({ isDefault: true }).select('_id name');
 };
 
 
@@ -190,12 +86,11 @@ module.exports = {
     insertMonthlyBudget,
     findMonthlyBudget,
     findBudgetById,
+    updateMonthlyBudget,
     insertBudgetAllocation,
     findBudgetAllocation,
     findBudgetAllocationsByBudgetId,
     updateBudgetAllocation,
     findCategoryById,
     findDefaultCategories,
-    findExpensesByMonth,
-    findIncomesByMonth
 };

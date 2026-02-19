@@ -204,6 +204,7 @@ const BudgetSummary: React.FC<{ budgetData?: BudgetDetails, budgetSummary: any, 
                     categories={categories}
                     historyMode={historyMode}
                     onDataRefresh={handleShowBudgetBreakdown}
+                    onBudgetUpdate={onBudgetUpdate}
                 />
             </>
         )

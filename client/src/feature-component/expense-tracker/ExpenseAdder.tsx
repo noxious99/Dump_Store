@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Delete, Loader2Icon } from "lucide-react";
+import { Delete, Loader2Icon, CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -7,6 +7,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
     Select,
     SelectContent,
@@ -41,6 +47,8 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
 }) => {
     const [error, setError] = useState("");
     const [calcValue, setCalcValue] = useState("");
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [datePopoverOpen, setDatePopoverOpen] = useState(false);
     const [addExpenseData, setAddExpenseData] = useState({
         amount: 0,
         categoryId: "",
@@ -107,7 +115,10 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             setError("Please select a category");
             return;
         }
-        const expenseData = { ...addExpenseData, amount: result };
+        const expenseData: ExpensePayload = { ...addExpenseData, amount: result };
+        if (selectedDate) {
+            expenseData.date = selectedDate.toLocaleDateString("en-CA");
+        }
         await addExpense(expenseData);
 
         setAddExpenseData({
@@ -116,6 +127,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             note: "",
         });
         setCalcValue("");
+        setSelectedDate(undefined);
         setError("");
     };
 
@@ -207,6 +219,45 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                             ))}
                         </SelectContent>
                     </Select>
+                    <div className="flex items-center gap-2">
+                        <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-1"
+                                >
+                                    <CalendarIcon className="w-3.5 h-3.5" />
+                                    <span>
+                                        {selectedDate
+                                            ? selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                            : "Add to a previous date"
+                                        }
+                                    </span>
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="center" sideOffset={8}>
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => { setSelectedDate(date); setDatePopoverOpen(false); }}
+                                    disabled={{ after: new Date() }}
+                                    defaultMonth={selectedDate || new Date()}
+                                    classNames={{
+                                        root: "w-[300px]",
+                                    }}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {selectedDate && (
+                            <button
+                                type="button"
+                                className="p-1 rounded-md hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
+                                onClick={() => setSelectedDate(undefined)}
+                            >
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
                     <Input
                         type="text"
                         placeholder="Add a note "
