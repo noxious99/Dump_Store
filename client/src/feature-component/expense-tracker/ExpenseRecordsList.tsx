@@ -26,7 +26,7 @@ const groupRecordsByDate = (records: ExpenseRecord[]) => {
     const groupMap = new Map<string, ExpenseRecord[]>()
 
     records.forEach(record => {
-        const recordDate = moment(record.createdAt).startOf('day')
+        const recordDate = moment(record.date || record.createdAt).startOf('day')
         let label: string
 
         if (recordDate.isSame(today)) {
@@ -139,7 +139,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                                                         -${expense.amount.toLocaleString()}
                                                     </p>
                                                     <p className="text-[10px] sm:text-xs text-muted-foreground">
-                                                        {moment(expense.createdAt).format('h:mm A')}
+                                                        {moment(expense.date || expense.createdAt).format('h:mm A')}
                                                     </p>
                                                 </div>
 

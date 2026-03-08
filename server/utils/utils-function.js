@@ -16,4 +16,12 @@ const getMonthBoundaries = (dateVal) => {
     return { startOfMonth, endOfMonth };
 }
 
-module.exports = {getMonthBoundaries}
+const getMonthName = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'long' });
+};
+
+const getYear = (date) => {
+    return date.getFullYear().toString();
+};
+
+module.exports = { getMonthBoundaries, getMonthName, getYear };

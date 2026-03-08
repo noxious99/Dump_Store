@@ -17,6 +17,10 @@ const expenseSchema = new Schema({
     },
     note: {
         type: String
+    },
+    date: {
+        type: Date,
+        default: Date.now
     }
 },
     { timestamps: true }
@@ -74,10 +78,9 @@ monthlyBudgetSchema.index({ userId: 1, month: 1, year: 1 }, { unique: true });
 
 const budgetAllocationSchema = new Schema({
     userId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
-    }, 
+    },
     budgetId: {
         type: Schema.Types.ObjectId,
         ref: 'MonthlyBudget',
@@ -97,6 +100,7 @@ const budgetAllocationSchema = new Schema({
 }, {
     timestamps: true
 });
+budgetAllocationSchema.index({ budgetId: 1, categoryId: 1 }, { unique: true });
 
 const categorySchema = new mongoose.Schema({
   name: {

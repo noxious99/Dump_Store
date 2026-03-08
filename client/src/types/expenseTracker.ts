@@ -6,6 +6,7 @@ export interface ExpenseRecord {
         _id: string,
         name: string
     };
+    date: string;
     createdAt: string;
     updatedAt: string;
     note: string;
@@ -42,6 +43,7 @@ export interface ExpensePayload {
     amount: number;
     categoryId: string;
     note: string;
+    date?: string;
 }
 
 export interface IncomePayload {

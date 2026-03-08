@@ -205,6 +205,7 @@ const ExpenseTracker: React.FC = () => {
                             </div>
                             <div className='flex items-center gap-2 sm:gap-3'>
                                 <Button
+                                    variant="ghost"
                                     className='flex-1 sm:flex-none bg-error hover:bg-error/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
                                     onClick={() => setIsAddDialogOpen(true)}
                                     disabled={isLoadingFetch || isHistoryMode}
@@ -212,6 +213,7 @@ const ExpenseTracker: React.FC = () => {
                                     Add Expense
                                 </Button>
                                 <Button
+                                    variant="ghost"
                                     className='flex-1 sm:flex-none bg-success hover:bg-success/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
                                     onClick={() => setIsAddIncomeDialogOpen(true)}
                                     disabled={isLoadingFetch || isHistoryMode}
