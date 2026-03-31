@@ -14,7 +14,7 @@ const insertUser = async (username, email, avatar, hashedPassword) => {
         username,
         email,
         avatar,
-        hashedPassword,
+        password: hashedPassword,
     });
     await user.save();
     return user;
