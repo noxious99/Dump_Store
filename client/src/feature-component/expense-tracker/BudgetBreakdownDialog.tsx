@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Pencil } from "lucide-react"
+import { Pencil, Check } from "lucide-react"
 import { TiTick } from "react-icons/ti"
 import { IoClose } from "react-icons/io5"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,7 @@ interface BudgetBreakdownDialogProps {
     categories: any
     historyMode: boolean
     onDataRefresh: () => void
+    onBudgetUpdate?: () => void
 }
 
 const GRADIENT_CLASSES = [
@@ -62,13 +63,35 @@ const BudgetBreakdownDialog: React.FC<BudgetBreakdownDialogProps> = ({
     categories,
     historyMode,
     onDataRefresh,
+    onBudgetUpdate,
 }) => {
     const [editModeActive, setEditModeActive] = useState<string | null>(null)
     const [updatedAllocationAmount, setUpdatedAllocationAmount] = useState("")
     const [showAddCategory, setShowAddCategory] = useState(false)
     const [newAllocation, setNewAllocation] = useState({ categoryId: "", amount: "" })
+    const [editingBudget, setEditingBudget] = useState(false)
+    const [editBudgetAmount, setEditBudgetAmount] = useState("")
 
     const totalBudgetAmount = budgetBreakdownData?.amount ?? 0
+
+    const handleUpdateBudget = async () => {
+        const amount = Number(editBudgetAmount)
+        if (!amount || amount <= 0) return
+        try {
+            await axiosInstance.patch("/v1/expenses/monthly-budget", {
+                budgetId: budgetSummary.budgetId,
+                amount,
+            })
+            onDataRefresh()
+            onBudgetUpdate?.()
+            toast.success("Budget updated")
+        } catch (error: any) {
+            toast.error(error?.msg || "Failed to update budget")
+        } finally {
+            setEditingBudget(false)
+            setEditBudgetAmount("")
+        }
+    }
 
     const handleAllocationEditMode = (category: any) => {
         setEditModeActive(category._id)
@@ -132,7 +155,38 @@ const BudgetBreakdownDialog: React.FC<BudgetBreakdownDialogProps> = ({
                         <div className="flex items-center justify-between mb-2">
                             <div>
                                 <p className="text-xs font-medium text-primary/70 uppercase tracking-wide mb-0.5">Total Budget</p>
-                                <p className="text-base font-bold text-primary">${totalBudgetAmount}</p>
+                                {editingBudget ? (
+                                    <div className="flex items-center gap-1.5">
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={editBudgetAmount}
+                                            onChange={(e) => { if (/^\d*\.?\d*$/.test(e.target.value)) setEditBudgetAmount(e.target.value); }}
+                                            placeholder={String(totalBudgetAmount)}
+                                            className="w-[100px] px-2 py-0.5 text-sm font-bold rounded-md border border-primary bg-transparent focus:outline-none focus:ring-1 focus:ring-primary"
+                                            autoFocus
+                                            onKeyDown={(e) => { if (e.key === 'Enter') handleUpdateBudget(); if (e.key === 'Escape') setEditingBudget(false); }}
+                                        />
+                                        <button className="p-0.5 hover:bg-success/10 rounded transition-colors" onClick={handleUpdateBudget}>
+                                            <Check className="w-4 h-4 text-success" />
+                                        </button>
+                                        <button className="p-0.5 hover:bg-error/10 rounded transition-colors" onClick={() => setEditingBudget(false)}>
+                                            <IoClose className="w-4 h-4 text-error" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1.5">
+                                        <p className="text-base font-bold text-primary">${totalBudgetAmount}</p>
+                                        {!historyMode && (
+                                            <button
+                                                className="p-1 hover:bg-primary/10 rounded transition-colors"
+                                                onClick={() => { setEditingBudget(true); setEditBudgetAmount(String(totalBudgetAmount)); }}
+                                            >
+                                                <Pencil className="w-3 h-3 text-primary/60" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Remaining</p>
