@@ -1,288 +1,270 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Wallet, ArrowRight, Target, TrendingUp } from 'lucide-react'
-import axiosInstance from '@/utils/axiosInstance';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Link } from 'react-router-dom';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import axiosInstance from '@/utils/axiosInstance'
+import type { TopCategory } from '@/types/dashboard'
+import type { ExpensePayload, IncomePayload } from '@/types/expenseTracker'
+import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
+import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
 
-const SkeletonCard = () => (
-    <Card className='bg-card border border-border rounded-xl h-full flex flex-col'>
-        <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="skeleton w-9 h-9 sm:w-10 sm:h-10 rounded-lg" />
-                <div className="skeleton h-5 w-32" />
-            </div>
-        </CardHeader>
-        <CardContent className="flex-1 space-y-4 px-4 sm:px-6">
-            <div className="skeleton h-14 w-full rounded-lg" />
-            <div className="space-y-2">
-                <div className="flex justify-between">
-                    <div className="skeleton h-4 w-20" />
-                    <div className="skeleton h-4 w-28" />
-                </div>
-                <div className="skeleton h-2 w-full rounded-full" />
-            </div>
-            <div className="skeleton h-10 w-full rounded-lg" />
-        </CardContent>
-        <CardFooter className="pt-3 px-4 sm:px-6">
-            <div className="skeleton h-10 w-full rounded-lg" />
-        </CardFooter>
-    </Card>
-)
+interface ExpenseSummaryCardProps {
+  totalSpend: number
+  budget: number
+  budgetPct: number
+  topCategories: TopCategory[]
+  isLoading: boolean
+  onBudgetSaved: () => void
+}
 
-const ExpenseSummaryCard: React.FC = () => {
-    const [walletBalance, setWalletBalance] = useState(0)
-    const [totalSpend, setTotalSpend] = useState(0)
-    const [usedPercent, setUsedPercent] = useState(0)
-    const [budget, setBudget] = useState(0)
-    const [topSpendCategory, setTopSpendCategory] = useState({
-        name: "",
-        amount: 0
-    })
-    const [daysLeft, setDaysLeft] = useState(0)
-    const [showAddBudgetDialog, setShowAddBudgetDialog] = useState(false)
-    const [newBudgetAmount, setNewBudgetAmount] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
-    const [isSummaryLoading, setIsSummaryLoading] = useState(true)
+const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
+  totalSpend,
+  budget,
+  budgetPct,
+  topCategories,
+  isLoading,
+  onBudgetSaved,
+}) => {
+  const [showBudgetDialog, setShowBudgetDialog] = useState(false)
+  const [newBudget, setNewBudget] = useState('')
+  const [saving, setSaving] = useState(false)
 
-    const fetchSummary = async () => {
-        setIsSummaryLoading(true)
-        try {
-            const res = await axiosInstance.get("/v1/expenses/dashboard-summary")
+  const [showExpenseAdder, setShowExpenseAdder] = useState(false)
+  const [showIncomeAdder, setShowIncomeAdder] = useState(false)
+  const [isExpenseLoading, setIsExpenseLoading] = useState(false)
+  const [isIncomeLoading, setIsIncomeLoading] = useState(false)
+  const [categories, setCategories] = useState<{ _id: string; name: string }[]>([])
 
-            const totalIncomeAmount = res.data?.totalIncome?.amount || 0
-            const totalSpendAmount = res.data?.totalSpend?.amount || 0
-            const budgetAmount = res.data?.budget?.amount || 0
-            const topCategory = res.data?.topCategory[0] || { category: "None", amount: 0 }
+  useEffect(() => {
+    axiosInstance.get('/v1/expenses/category')
+      .then((res) => setCategories(res.data))
+      .catch(console.error)
+  }, [])
 
-            const balance = totalIncomeAmount - totalSpendAmount
-            const calculatedUsedPercent = budgetAmount > 0
-                ? Math.round((totalSpendAmount / budgetAmount) * 100)
-                : 0
-
-            setWalletBalance(balance)
-            setTotalSpend(totalSpendAmount)
-            setBudget(budgetAmount)
-            setTopSpendCategory({
-                name: topCategory.name || "None",
-                amount: topCategory.amount || 0
-            })
-            setUsedPercent(calculatedUsedPercent)
-        } catch (error) {
-            console.error("Error fetching expense summary:", error)
-        } finally {
-            setIsSummaryLoading(false)
-        }
+  const handleAddExpense = async (payload: ExpensePayload) => {
+    setIsExpenseLoading(true)
+    try {
+      await axiosInstance.post('/v1/expenses', payload)
+      setShowExpenseAdder(false)
+      onBudgetSaved() // refresh dashboard
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsExpenseLoading(false)
     }
+  }
 
-    useEffect(() => {
-        const now = new Date()
-        const currentDay = now.getDate();
-        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        const calculatedDaysLeft = lastDayOfMonth - currentDay;
-        setDaysLeft(calculatedDaysLeft)
-
-        fetchSummary()
-    }, [])
-
-    const handleNewBudgetSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        try {
-            setIsLoading(true)
-            const body = {
-                amount: newBudgetAmount
-            }
-            await axiosInstance.post("/v1/expenses/monthly-budget", body)
-            setNewBudgetAmount("")
-            await fetchSummary()
-        } catch (error) {
-            console.log(error)
-        } finally {
-            setIsLoading(false)
-            setShowAddBudgetDialog(false)
-        }
+  const handleAddIncome = async (payload: IncomePayload) => {
+    setIsIncomeLoading(true)
+    try {
+      await axiosInstance.post('/v1/expenses/add-income', payload)
+      setShowIncomeAdder(false)
+      onBudgetSaved() // refresh dashboard
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsIncomeLoading(false)
     }
+  }
 
-    const remainingBudget = budget - totalSpend
-    const dailyBudget = daysLeft > 0 ? (remainingBudget / daysLeft).toFixed(0) : "0"
-    const categoryPercent = totalSpend > 0
-        ? Math.floor((topSpendCategory.amount / totalSpend) * 100)
-        : 0
+  // Status badge: only shows a colored state when there's an actual problem
+  const isAlert = budgetPct >= 100
+  const isWatch = budgetPct >= 70 && budgetPct < 100
+  const statusLabel = isAlert ? 'Over budget' : isWatch ? `${budgetPct}% used` : null
 
-    const getStatusColor = () => {
-        if (usedPercent > 90) return 'error'
-        if (usedPercent > 70) return 'warning'
-        return 'success'
+  // Progress bar: primary by default, only red when over budget
+  const barColor = isAlert ? 'var(--error)' : 'var(--primary)'
+
+  const handleBudgetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setSaving(true)
+      await axiosInstance.post('/v1/expenses/monthly-budget', { amount: newBudget })
+      setNewBudget('')
+      setShowBudgetDialog(false)
+      onBudgetSaved()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSaving(false)
     }
+  }
 
-    const statusColor = getStatusColor()
-
-    if (isSummaryLoading) return <SkeletonCard />
-
+  if (isLoading) {
     return (
-        <>
-            <Card className='bg-card border border-border rounded-xl shadow-sm transition-colors duration-200 h-full flex flex-col'>
-                {/* Header */}
-                <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5 sm:gap-3">
-                            <div className="p-2 sm:p-2.5 bg-primary/10 rounded-lg">
-                                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                            </div>
-                            <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
-                                Expense Tracker
-                            </CardTitle>
-                        </div>
-                        <span className={`text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full bg-${statusColor}/10 text-${statusColor}`}>
-                            {usedPercent > 90 ? 'Alert' : usedPercent > 70 ? 'Watch' : 'On Track'}
-                        </span>
-                    </div>
-                </CardHeader>
-
-                {/* Content */}
-                <CardContent className="flex-1 space-y-3 sm:space-y-4 px-4 sm:px-6">
-                    {/* Wallet Balance */}
-                    <div className="flex items-center justify-between py-3 px-3 sm:px-4 bg-grey-x100 rounded-lg">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Wallet className="w-4 h-4" />
-                            <span className="text-xs sm:text-sm font-medium">Balance</span>
-                        </div>
-                        <span className={`text-lg sm:text-xl font-bold tracking-tight ${walletBalance < 0 ? 'text-error' : 'text-foreground'}`}>
-                            ${walletBalance.toLocaleString()}
-                        </span>
-                    </div>
-
-                    {/* Monthly Budget Progress */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-muted-foreground shrink-0">
-                                <Target className="w-4 h-4" />
-                                <span className="text-xs sm:text-sm font-medium">Budget</span>
-                            </div>
-                            <div className="text-right min-w-0">
-                                <span className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                                    ${totalSpend.toLocaleString()}
-                                </span>
-                                <span className="text-xs sm:text-sm text-muted-foreground"> / ${budget.toLocaleString()}</span>
-                            </div>
-                        </div>
-
-                        {budget > 0 ? (
-                            <div className="space-y-2">
-                                <div className="w-full bg-grey-x100 rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className={`h-2 rounded-full transition-all duration-700 ease-out ${usedPercent > 90 ? 'bg-error' : usedPercent > 70 ? 'bg-warning' : 'bg-primary'}`}
-                                        style={{ width: `${Math.min(usedPercent, 100)}%` }}
-                                    />
-                                </div>
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>{usedPercent}% used</span>
-                                    <span>${remainingBudget.toLocaleString()} left</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-3 bg-grey-x100 rounded-lg">
-                                <p className="text-sm text-muted-foreground mb-2">No budget set</p>
-                                <Button
-                                    variant="link"
-                                    className='text-primary h-auto p-0 text-sm font-medium'
-                                    onClick={() => setShowAddBudgetDialog(true)}
-                                >
-                                    Set Monthly Budget
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Top Category */}
-                    {topSpendCategory.name && topSpendCategory.amount > 0 && (
-                        <div className="flex items-center justify-between py-2.5 sm:py-3 border-t border-border">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <TrendingUp className="w-4 h-4" />
-                                <span className="text-xs sm:text-sm font-medium">Top Category</span>
-                            </div>
-                            <div className="text-right">
-                                <span className="text-xs sm:text-sm font-semibold text-foreground capitalize">
-                                    {topSpendCategory.name}
-                                </span>
-                                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                                    ${topSpendCategory.amount.toLocaleString()} ({categoryPercent}%)
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Daily Budget Alert */}
-                    {budget > 0 && remainingBudget > 0 && daysLeft > 0 && (
-                        <div className={`p-2.5 sm:p-3 rounded-lg border ${usedPercent > 90 ? 'bg-error/5 border-error/20' : 'bg-warning/5 border-warning/20'}`}>
-                            <p className={`text-[11px] sm:text-xs font-medium ${usedPercent > 90 ? 'text-error' : 'text-warning'}`}>
-                                Daily Budget: ${dailyBudget}/day for {daysLeft} days
-                            </p>
-                        </div>
-                    )}
-                </CardContent>
-
-                {/* Footer */}
-                <CardFooter className="pt-3 sm:pt-4 mt-auto px-4 sm:px-6">
-                    <Button asChild className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground h-10 sm:h-11 active:scale-[0.98] transition-all duration-200">
-                        <Link to="/expense-tracker" className="flex items-center justify-center gap-2">
-                            <span className="text-sm">Manage Expenses</span>
-                            <ArrowRight className="w-4 h-4" />
-                        </Link>
-                    </Button>
-                </CardFooter>
-            </Card>
-
-            {/* Budget Dialog */}
-            <Dialog open={showAddBudgetDialog} onOpenChange={setShowAddBudgetDialog}>
-                <DialogContent className="sm:max-w-[400px] rounded-xl">
-                    <form onSubmit={handleNewBudgetSubmit}>
-                        <DialogHeader>
-                            <DialogTitle>Set Monthly Budget</DialogTitle>
-                            <DialogDescription>
-                                Define your spending limit for this month.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="py-4">
-                            <Input
-                                type="number"
-                                placeholder="Enter amount"
-                                value={newBudgetAmount}
-                                onChange={(e) => setNewBudgetAmount(e.target.value)}
-                                className="h-12 bg-input border-border focus:border-primary rounded-lg"
-                            />
-                        </div>
-
-                        <DialogFooter className="gap-2">
-                            <DialogClose asChild>
-                                <Button variant="outline" className="rounded-lg">Cancel</Button>
-                            </DialogClose>
-                            <Button type="submit" disabled={isLoading} className="rounded-lg bg-primary hover:bg-primary/90">
-                                {isLoading ? 'Saving...' : 'Save Budget'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </>
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="skeleton w-7 h-7 rounded-lg" />
+            <div className="skeleton h-4 w-20" />
+          </div>
+          <div className="skeleton h-5 w-16 rounded-full" />
+        </div>
+        <div className="skeleton h-7 w-32 mb-2.5" />
+        <div className="skeleton h-1 w-full rounded mb-3" />
+        <div className="flex gap-3 mb-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="skeleton h-3 w-10 rounded" />
+          ))}
+        </div>
+        <div className="skeleton h-px w-full mb-3" />
+        <div className="flex gap-2">
+          <div className="skeleton h-8 flex-1 rounded-lg" />
+          <div className="skeleton h-8 flex-1 rounded-lg" />
+          <div className="skeleton h-8 w-20 rounded-lg" />
+        </div>
+      </div>
     )
+  }
+
+  return (
+    <>
+      <div className="bg-card border border-border rounded-2xl p-4">
+        {/* Header — no click, no chevron */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+              💳
+            </div>
+            <span className="text-sm font-bold text-foreground">Expenses</span>
+          </div>
+          {statusLabel && (
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{
+                color: isAlert ? 'var(--error)' : 'var(--warning)',
+                backgroundColor: isAlert ? 'var(--error-x100)' : 'var(--warning-x100)',
+              }}
+            >
+              {statusLabel}
+            </span>
+          )}
+        </div>
+
+        {/* Amount */}
+        <div className="flex items-baseline gap-1.5 mb-2.5">
+          <span className="text-2xl font-extrabold text-foreground tracking-tight">
+            ${totalSpend.toLocaleString()}
+          </span>
+          {budget > 0 ? (
+            <span className="text-sm text-muted-foreground">/ ${budget.toLocaleString()}</span>
+          ) : (
+            <button
+              onClick={() => setShowBudgetDialog(true)}
+              className="text-xs text-primary font-semibold hover:underline"
+            >
+              Set budget
+            </button>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {budget > 0 && (
+          <div className="h-1 bg-border rounded-full overflow-hidden mb-3">
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${Math.min(budgetPct, 100)}%`, backgroundColor: barColor }}
+            />
+          </div>
+        )}
+
+        {/* Top categories */}
+        {topCategories.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            {topCategories.map((cat, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <span className="text-xs">{cat.emoji}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  ${cat.amount >= 1000
+                    ? `${(cat.amount / 1000).toFixed(1)}k`
+                    : cat.amount.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Action row — contextual actions live here, not floating above */}
+        <div className="flex items-center gap-2 pt-3 border-t border-border">
+          <button
+            onClick={() => setShowExpenseAdder(true)}
+            className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
+          >
+            + Expense
+          </button>
+          <button
+            onClick={() => setShowIncomeAdder(true)}
+            className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
+          >
+            + Income
+          </button>
+          <Link
+            to="/expense-tracker"
+            className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
+          >
+            View all →
+          </Link>
+        </div>
+      </div>
+
+      <ExpenseAdder
+        isOpen={showExpenseAdder}
+        handlePopupExpenseDialog={setShowExpenseAdder}
+        addExpense={handleAddExpense}
+        isLoading={isExpenseLoading}
+        categories={categories}
+      />
+
+      <IncomeAdder
+        isOpen={showIncomeAdder}
+        handlePopupIncomeDialog={setShowIncomeAdder}
+        addIncome={handleAddIncome}
+        isLoading={isIncomeLoading}
+      />
+
+      {/* Budget Dialog */}
+      <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
+        <DialogContent className="sm:max-w-[400px] rounded-xl">
+          <form onSubmit={handleBudgetSubmit}>
+            <DialogHeader>
+              <DialogTitle>Set Monthly Budget</DialogTitle>
+              <DialogDescription>Define your spending limit for this month.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={newBudget}
+                onChange={(e) => setNewBudget(e.target.value)}
+                className="h-12 bg-input border-border focus:border-primary rounded-lg"
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <DialogClose asChild>
+                <Button variant="outline" className="rounded-lg">Cancel</Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-primary hover:bg-primary/90"
+              >
+                {saving ? 'Saving...' : 'Save Budget'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
 export default ExpenseSummaryCard
