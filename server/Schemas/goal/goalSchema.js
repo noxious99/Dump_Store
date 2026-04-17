@@ -19,21 +19,19 @@ const mileStoneSchema = new Schema({
   completedAt: {
     type: Date
   }
-},
-  {
-    timestamps: true
-  }
-)
+}, { timestamps: true });
 
 const goalSchema = new Schema({
   title: {
     type: String,
     required: true,
+    trim: true,
   },
   author: {
     type: Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: true,
+    index: true,
   },
   tasks: [{
     type: Schema.Types.ObjectId,
@@ -45,7 +43,7 @@ const goalSchema = new Schema({
   }],
   category: {
     type: String,
-    enum: ['longTerm', 'shortTerm']
+    enum: ['longTerm', 'shortTerm'],
   },
   isCompleted: {
     type: Boolean,
@@ -58,10 +56,7 @@ const goalSchema = new Schema({
   completionDate: {
     type: Date,
   }
-},
-  {
-    timestamps: true
-  });
+}, { timestamps: true });
 
 const Goal = mongoose.model("Goal", goalSchema);
 const MileStone = mongoose.model("MileStone", mileStoneSchema);

@@ -1,42 +1,76 @@
 import React from 'react'
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { HandCoins, Clock } from 'lucide-react'
+import type { IouData } from '@/types/dashboard'
 
-const IouSummaryCard: React.FC = () => {
-    return (
-        <Card className='bg-card border border-border rounded-xl shadow-sm transition-colors duration-200 h-full flex flex-col'>
-            <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div className="p-2 sm:p-2.5 bg-accent/10 rounded-lg">
-                            <HandCoins className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
-                        </div>
-                        <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
-                            IOU Tracker
-                        </CardTitle>
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent">
-                        Coming Soon
-                    </span>
-                </div>
-            </CardHeader>
+interface IouSummaryCardProps {
+  iouData: IouData
+}
 
-            <CardContent className="flex-1 flex flex-col items-center justify-center py-6 sm:py-8 px-4 sm:px-6">
-                <div className="p-4 bg-grey-x100 rounded-xl mb-3 sm:mb-4">
-                    <Clock className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium text-foreground mb-1">Coming Soon</p>
-                <p className="text-xs text-muted-foreground text-center max-w-[200px]">
-                    Track who owes you and who you owe — all in one place
-                </p>
-            </CardContent>
-        </Card>
-    )
+const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
+  const netPositive = iouData.net >= 0
+
+  return (
+    // No onClick — IOU tracker page not built yet.
+    // TODO: Add cursor-pointer + navigate('/iou-tracker') once the page exists
+    <div className="bg-card border border-border rounded-2xl p-4">
+      {/* Header — neutral icon, financial value badge only */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+            🤝
+          </div>
+          <span className="text-sm font-bold text-foreground">IOUs</span>
+        </div>
+        {/* Net badge uses success/error — this is a financial value, semantic color is correct */}
+        <span
+          className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          style={{
+            color: netPositive ? 'var(--success)' : 'var(--error)',
+            backgroundColor: netPositive ? 'var(--success-x100)' : 'var(--error-x100)',
+          }}
+        >
+          {netPositive ? '+' : '-'}${Math.abs(iouData.net)} net
+        </span>
+      </div>
+
+      {/* You owe / Owed to you — financial values, success/error is correct here */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="bg-grey-x100 rounded-xl p-2.5 text-center border border-border">
+          <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
+            You owe
+          </p>
+          <p className="text-lg font-extrabold text-error">${iouData.youOwe}</p>
+        </div>
+        <div className="bg-grey-x100 rounded-xl p-2.5 text-center border border-border">
+          <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
+            Owed to you
+          </p>
+          <p className="text-lg font-extrabold text-success">${iouData.owedToYou}</p>
+        </div>
+      </div>
+
+      {/* People chips */}
+      <div className="flex flex-wrap gap-1.5">
+        {iouData.people.map((person, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2 py-1"
+          >
+            <div className="w-5 h-5 rounded-md bg-grey-x200 flex items-center justify-center text-[9px] font-bold text-muted-foreground flex-shrink-0">
+              {person.initial}
+            </div>
+            <span className="text-[10px] text-muted-foreground">{person.name}</span>
+            {/* Amount uses success/error — financial signal */}
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: person.net >= 0 ? 'var(--success)' : 'var(--error)' }}
+            >
+              {person.net >= 0 ? '+' : ''}{person.net}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default IouSummaryCard
