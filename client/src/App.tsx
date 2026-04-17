@@ -6,6 +6,7 @@ import Footer from "@/common-components/Footer.tsx";
 import Auth from './pages/Auth-Page';
 import Dashboard from './pages/Dashboard-Page';
 import ExpenseTracker from './pages/ExpenseTracker-Page';
+import ExpenseTrackerPreview from './pages/ExpenseTracker-Preview';
 import ResetPassword from './pages/ResetPassword-Page';
 import Profile from './pages/Profile-Page';
 import ProtectedRoutes from './feature-component/auth/ProtectedRoutes';
@@ -24,7 +25,7 @@ const AppContent: React.FC = () => {
     dispatch(rehydrateUser());
   }, [dispatch]);
 
-  const hideFooterRoutes = ['/dashboard', '/expense-tracker'];
+  const hideFooterRoutes = ['/dashboard', '/expense-tracker', '/expense-tracker-preview'];
   const hideFooter = hideFooterRoutes.some((route) => 
     location.pathname.startsWith(route)
   );
@@ -46,6 +47,7 @@ const AppContent: React.FC = () => {
           <Route element={<ProtectedRoutes/>}>
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/expense-tracker' element={<ExpenseTracker />} />
+            <Route path='/expense-tracker-preview' element={<ExpenseTrackerPreview />} />
             <Route path='/profile' element={<Profile />} />
           </Route>
         </Routes>
