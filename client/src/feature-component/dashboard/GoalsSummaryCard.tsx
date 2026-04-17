@@ -12,12 +12,6 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
   const activeGoals = goals.filter((g) => !g.isCompleted)
   const displayGoals = activeGoals.slice(0, 2)
 
-  const getGoalPct = (goal: Goal) => {
-    if (!goal.mileStone || goal.mileStone.length === 0) return 0
-    const done = goal.mileStone.filter((m) => m.isCompleted).length
-    return Math.round((done / goal.mileStone.length) * 100)
-  }
-
   if (isLoading) {
     return (
       <div className="bg-card border border-border rounded-2xl p-4">
@@ -66,10 +60,10 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
       ) : (
         <div className="grid grid-cols-2 gap-2.5 mb-4">
           {displayGoals.map((goal) => {
-            const pct = getGoalPct(goal)
-            const done = goal.mileStone?.filter((m) => m.isCompleted).length ?? 0
-            const total = goal.mileStone?.length ?? 0
-            const allDone = pct === 100
+            const pct = goal.progress?.pct ?? 0
+            const tasksTotal = goal.progress?.tasksTotal ?? 0
+            const tasksStarted = goal.progress?.tasksStarted ?? 0
+            const allDone = pct >= 100
             // Ring: primary always, success only on full completion (semantic)
             const ringColor = allDone ? 'var(--success)' : 'var(--primary)'
 
@@ -87,25 +81,25 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
                 <div className="flex items-center gap-2">
                   <Ring pct={pct} size={36} sw={3} strokeColor={ringColor}>
                     <span className="text-[8px] font-extrabold text-foreground">
-                      {allDone ? '✓' : `${done}/${total}`}
+                      {allDone ? '✓' : `${pct}%`}
                     </span>
                   </Ring>
                   <div>
-                    <p className="text-[10px] text-muted-foreground">Milestones</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {tasksTotal > 0 ? 'Tasks' : 'Progress'}
+                    </p>
                     <p
                       className="text-[10px] font-semibold"
                       style={{ color: allDone ? 'var(--success)' : 'var(--foreground)' }}
                     >
                       {allDone
-                        ? 'All done!'
-                        : total === 0
-                        ? 'None set'
-                        : `${total - done} left`}
+                        ? 'Completed!'
+                        : tasksTotal > 0
+                        ? `${tasksStarted}/${tasksTotal} started`
+                        : 'On track'}
                     </p>
                   </div>
                 </div>
-                {/* Streak dots removed — no real streak data yet.
-                    TODO: Add per-goal streak history from backend and re-enable */}
               </div>
             )
           })}

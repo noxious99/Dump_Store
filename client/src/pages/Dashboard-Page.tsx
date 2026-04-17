@@ -8,8 +8,9 @@ import DailyPulse from '@/feature-component/dashboard/DailyPulse'
 import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard'
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
-import type { Goal, ExpenseSummary, RecentExpense, TopCategory, IouData } from '@/types/dashboard'
+import type { Goal, ExpenseSummary, RecentExpense, IouData } from '@/types/dashboard'
 import { categoryEmojiMap } from '@/utils/constant'
+import { getGreeting } from '@/utils/utils-functions'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -29,27 +30,15 @@ const INSIGHTS = [
   },
 ]
 
-// TODO: Replace with real IOU API data once IOU tracker backend is built.
-// Expected: GET /v1/iou/summary → { youOwe, owedToYou, net, people }
-const IOU_DATA: IouData = {
-  youOwe: 30,
-  owedToYou: 57,
-  net: 27,
-  people: [
-    { initial: 'A', name: 'Alex', net: -30 },
-    { initial: 'S', name: 'Sarah', net: 15 },
-    { initial: 'M', name: 'Mike', net: 42 },
-  ],
+const EMPTY_IOU: IouData = {
+  youOwe: 0,
+  owedToYou: 0,
+  net: 0,
+  pendingCount: 0,
+  people: [],
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const getGreeting = () => {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
 
 const getCategoryEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
@@ -176,27 +165,26 @@ const Dashboard_Page: React.FC = () => {
   })
   const [goals, setGoals] = useState<Goal[]>([])
   const [recentExpenses, setRecentExpenses] = useState<RecentExpense[]>([])
+  const [iouData, setIouData] = useState<IouData>(EMPTY_IOU)
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
-
-  // TODO: Replace 0 with real streak data from backend (goals streak API)
-  const streak = 0
 
   useEffect(() => {
     const fetchAll = async () => {
       setIsLoading(true)
       try {
-        const [expRes, goalsRes, recentRes] = await Promise.all([
+        const [expRes, goalsRes, recentRes, iouRes] = await Promise.all([
           axiosInstance.get('/v1/expenses/dashboard-summary'),
           axiosInstance.get('/v1/goals').catch(() => ({ data: { goals: [] } })),
           axiosInstance
             .get(`/v1/expenses/details?date=${moment().format('YYYY-MM-DD')}`)
             .catch(() => ({ data: { expenseRecords: [] } })),
+          axiosInstance.get('/v1/iou/summary').catch(() => ({ data: EMPTY_IOU })),
         ])
         setExpenseSummary(processExpenseData(expRes.data))
         setGoals(goalsRes.data?.goals ?? [])
-        // Fetch up to 7 — right column on desktop shows more rows
         setRecentExpenses((recentRes.data?.expenseRecords ?? []).slice(0, 7))
+        setIouData({ ...EMPTY_IOU, ...(iouRes.data ?? {}) })
       } catch (err) {
         console.error('Dashboard fetch error:', err)
       } finally {
@@ -218,14 +206,19 @@ const Dashboard_Page: React.FC = () => {
     ? Math.max(0, Math.round(budgetLeft / daysLeft))
     : 0
 
+  // Aggregate goal progress across active goals.
+  // Prefer task-count aggregation when tasks exist; fall back to averaged progress pct.
   const activeGoals = goals.filter((g) => !g.isCompleted)
-  const totalMilestones = activeGoals.reduce((s, g) => s + (g.mileStone?.length ?? 0), 0)
-  const doneMilestones = activeGoals.reduce(
-    (s, g) => s + (g.mileStone?.filter((m) => m.isCompleted).length ?? 0), 0
-  )
-  const milestonePct = totalMilestones > 0
-    ? Math.round((doneMilestones / totalMilestones) * 100)
+  const tasksTotal = activeGoals.reduce((s, g) => s + (g.progress?.tasksTotal ?? 0), 0)
+  const tasksStarted = activeGoals.reduce((s, g) => s + (g.progress?.tasksStarted ?? 0), 0)
+  const avgPct = activeGoals.length > 0
+    ? Math.round(
+        activeGoals.reduce((s, g) => s + (g.progress?.pct ?? 0), 0) / activeGoals.length
+      )
     : 0
+  const progressPct = tasksTotal > 0
+    ? Math.round((tasksStarted / tasksTotal) * 100)
+    : avgPct
 
   return (
     <div className="min-h-screen bg-background">
@@ -246,12 +239,6 @@ const Dashboard_Page: React.FC = () => {
             </h1>
           </div>
           {/* TODO: Show streak badge when backend streak data is available */}
-          {streak > 0 && (
-            <div className="flex items-center gap-1 bg-warning/10 border border-warning/20 px-2.5 py-1 rounded-full">
-              <span className="text-sm">🔥</span>
-              <span className="text-xs font-bold text-warning">{streak}</span>
-            </div>
-          )}
         </header>
 
         {/*
@@ -270,11 +257,11 @@ const Dashboard_Page: React.FC = () => {
               budgetTotal={expenseSummary.budget}
               budgetPct={budgetPct}
               daysLeft={daysLeft}
-              milestoneDone={doneMilestones}
-              milestoneTotal={totalMilestones}
-              milestonePct={milestonePct}
-              iouNet={IOU_DATA.net}
-              iouPending={1}
+              milestoneDone={tasksStarted}
+              milestoneTotal={tasksTotal}
+              milestonePct={progressPct}
+              iouNet={iouData.net}
+              iouPending={iouData.pendingCount}
               isLoading={isLoading}
             />
 
@@ -289,7 +276,7 @@ const Dashboard_Page: React.FC = () => {
 
             <GoalsSummaryCard goals={goals} isLoading={isLoading} />
 
-            <IouSummaryCard iouData={IOU_DATA} />
+            <IouSummaryCard iouData={iouData} />
 
             {/*
               Mobile only: Insights + Recent Expenses appear here, below the cards,

@@ -1,17 +1,21 @@
 // Shared domain types for the dashboard feature.
 // Component prop interfaces stay co-located with their component files.
 
-export interface MileStone {
-  isCompleted: boolean
-  completedAt?: string
+export interface GoalProgress {
+  pct: number
+  tasksTotal: number
+  tasksStarted: number
 }
 
 export interface Goal {
   _id: string
   title: string
+  category?: 'longTerm' | 'shortTerm'
   isCompleted: boolean
   targetDate: string
-  mileStone: MileStone[]
+  completionDate?: string | null
+  createdAt?: string
+  progress: GoalProgress
 }
 
 export interface TopCategory {
@@ -45,5 +49,6 @@ export interface IouData {
   youOwe: number
   owedToYou: number
   net: number
+  pendingCount: number
   people: Person[]
 }

@@ -1,10 +1,6 @@
 import React from 'react'
 import type { IouData } from '@/types/dashboard'
 
-// TODO: Replace this entire component with real IOU API data once IOU tracker backend is built.
-// Expected shape from API:
-//   GET /v1/iou/summary → { youOwe: number, owedToYou: number, net: number, people: Person[] }
-
 interface IouSummaryCardProps {
   iouData: IouData
 }

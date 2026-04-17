@@ -1,21 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const Auth = require("../middleware/auth");
+const auth = require("../middleware/auth");
 const goalController = require("../controller/goalController");
 
-// Goal routes
-router.post("/", Auth, goalController.createGoalHandler);
-router.get("/", Auth, goalController.getAllGoalsHandler);
-router.get("/:id", Auth, goalController.getGoalByIdHandler);
-router.delete("/:id", Auth, goalController.deleteGoalHandler);
+// Goals
+router.post("/", auth, goalController.createGoalHandler);
+router.get("/", auth, goalController.getAllGoalsHandler);
+router.get("/:id", auth, goalController.getGoalByIdHandler);
+router.patch("/:id", auth, goalController.updateGoalHandler);
+router.delete("/:id", auth, goalController.deleteGoalHandler);
 
-// Milestone routes
-router.post("/:id/milestones", Auth, goalController.addMilestoneHandler);
-
-// Task routes (to be implemented)
-router.post("/:id/tasks", Auth);
-router.get("/:id/tasks", Auth);
-router.put("/:id/tasks/:taskId", Auth);
-router.delete("/:id/tasks/:taskId", Auth);
+// Tasks (nested under a goal)
+router.post("/:id/tasks", auth, goalController.createTaskHandler);
+router.get("/:id/tasks", auth, goalController.getGoalTasksHandler);
+router.patch("/:id/tasks/:taskId", auth, goalController.updateTaskHandler);
+router.post("/:id/tasks/:taskId/toggle", auth, goalController.toggleTaskCompletionHandler);
+router.delete("/:id/tasks/:taskId", auth, goalController.deleteTaskHandler);
 
 module.exports = router;
