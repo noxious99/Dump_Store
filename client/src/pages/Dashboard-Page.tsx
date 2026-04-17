@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { selectUser } from '@/feature-component/auth/userSlice'
 import moment from 'moment'
 import axiosInstance from '@/utils/axiosInstance'
 import DailyPulse from '@/feature-component/dashboard/DailyPulse'
@@ -157,7 +155,6 @@ const SmartInsights: React.FC = () => (
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const Dashboard_Page: React.FC = () => {
-  const user = useSelector(selectUser)
   const navigate = useNavigate()
 
   const [expenseSummary, setExpenseSummary] = useState<ExpenseSummary>({
