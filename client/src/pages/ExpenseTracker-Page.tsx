@@ -269,7 +269,7 @@ const ExpenseTracker: React.FC = () => {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-12">
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-12">
           {/* ── Header ─────────────────────────────────────────── */}
           <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
             <div>
@@ -332,57 +332,63 @@ const ExpenseTracker: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <MonthGlance
-                income={income}
-                spent={spent}
-                topCategories={expenseDetails.topCategory || []}
-              />
-
-              {/* Desktop: full inline budget card */}
-              <div className="hidden lg:block">
-                <BudgetCard {...budgetCardProps} />
-              </div>
-
-              {/* Mobile: compact strip → bottom sheet */}
-              <div className="lg:hidden">
-                <BudgetStrip
-                  monthLabel={monthLabel}
-                  hasBudget={Boolean(budgetId)}
-                  total={budgetTotal}
+            <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5">
+              {/* Left column on desktop: glance + budget */}
+              <div className="space-y-4 lg:col-span-7 lg:sticky lg:top-6 lg:self-start">
+                <MonthGlance
+                  income={income}
                   spent={spent}
-                  daysLeft={daysLeft}
-                  allocationCount={allocations.length}
-                  unallocated={unallocated}
-                  onOpen={() => setBudgetSheetOpen(true)}
-                  historyMode={isHistoryMode}
+                  topCategories={expenseDetails.topCategory || []}
                 />
-                <Sheet
-                  open={budgetSheetOpen}
-                  onOpenChange={setBudgetSheetOpen}
-                >
-                  <SheetContent
-                    side="bottom"
-                    className="rounded-t-2xl max-h-[88vh] overflow-y-auto p-0"
+
+                {/* Desktop: full inline budget card */}
+                <div className="hidden lg:block">
+                  <BudgetCard {...budgetCardProps} />
+                </div>
+
+                {/* Mobile: compact strip → bottom sheet */}
+                <div className="lg:hidden">
+                  <BudgetStrip
+                    monthLabel={monthLabel}
+                    hasBudget={Boolean(budgetId)}
+                    total={budgetTotal}
+                    spent={spent}
+                    daysLeft={daysLeft}
+                    allocationCount={allocations.length}
+                    unallocated={unallocated}
+                    onOpen={() => setBudgetSheetOpen(true)}
+                    historyMode={isHistoryMode}
+                  />
+                  <Sheet
+                    open={budgetSheetOpen}
+                    onOpenChange={setBudgetSheetOpen}
                   >
-                    <SheetHeader className="px-5 pt-5 pb-3 text-left">
-                      <SheetTitle className="text-base font-extrabold text-foreground">
-                        Budget · {monthLabel}
-                      </SheetTitle>
-                    </SheetHeader>
-                    <div className="px-5 pb-6">
-                      <BudgetCard {...budgetCardProps} embedded />
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                    <SheetContent
+                      side="bottom"
+                      className="rounded-t-2xl max-h-[88vh] overflow-y-auto p-0"
+                    >
+                      <SheetHeader className="px-5 pt-5 pb-3 text-left">
+                        <SheetTitle className="text-base font-extrabold text-foreground">
+                          Budget · {monthLabel}
+                        </SheetTitle>
+                      </SheetHeader>
+                      <div className="px-5 pb-6">
+                        <BudgetCard {...budgetCardProps} embedded />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
               </div>
 
-              <ExpenseRecordsList
-                expenseRecords={expenseDetails.expenseRecords}
-                onRecordDeleted={
-                  isHistoryMode ? undefined : handleDeleteRecord
-                }
-              />
+              {/* Right column on desktop: records */}
+              <div className="lg:col-span-5">
+                <ExpenseRecordsList
+                  expenseRecords={expenseDetails.expenseRecords}
+                  onRecordDeleted={
+                    isHistoryMode ? undefined : handleDeleteRecord
+                  }
+                />
+              </div>
             </div>
           )}
         </div>
