@@ -1,280 +1,414 @@
-import { Button } from '@/components/ui/button'
-import { FaCaretLeft, FaCaretRight } from "react-icons/fa6";
 import React, { useEffect, useState } from 'react'
-import BalanceOverview from '@/feature-component/expense-tracker/BalanceOverview';
-import ExpenseSummary from '@/feature-component/expense-tracker/ExpenseSummary';
-import axiosInstance from '@/utils/axiosInstance';
-import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder';
-import type { ExpenseDetails, ExpensePayload, IncomePayload } from '@/types/expenseTracker';
-import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder';
-import { Loader2 } from 'lucide-react';
-import BudgetSummary from '@/feature-component/expense-tracker/BudgetSummary';
-import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList';
-import SummaryCarousel from '@/feature-component/expense-tracker/SummaryCarousel';
-import { toast } from 'sonner';
+import { FaCaretLeft, FaCaretRight } from 'react-icons/fa6'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+import axiosInstance from '@/utils/axiosInstance'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+
+import MonthGlance from '@/feature-component/expense-tracker/MonthGlance'
+import BudgetCard from '@/feature-component/expense-tracker/BudgetCard'
+import BudgetStrip from '@/feature-component/expense-tracker/BudgetStrip'
+import MobileFab from '@/feature-component/expense-tracker/MobileFab'
+import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList'
+import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
+import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
+
+import type {
+  ExpenseDetails,
+  ExpensePayload,
+  IncomePayload,
+  BudgetAllocation,
+  CategoryOption,
+} from '@/types/expenseTracker'
+
+const formatMonthLabel = (d: Date) =>
+  d.toLocaleString('default', { month: 'short', year: 'numeric' })
+
+const formatDateParam = (d: Date) => d.toLocaleDateString('en-CA')
+
+const monthBoundaryInfo = (selected: Date) => {
+  const now = new Date()
+  const sameMonth =
+    now.getFullYear() === selected.getFullYear() &&
+    now.getMonth() === selected.getMonth()
+
+  const daysInMonth = new Date(
+    selected.getFullYear(),
+    selected.getMonth() + 1,
+    0
+  ).getDate()
+
+  const dayOfMonth = sameMonth ? now.getDate() : daysInMonth
+  const daysLeft = sameMonth ? Math.max(daysInMonth - now.getDate(), 0) : 0
+  return { dayOfMonth, daysInMonth, daysLeft }
+}
 
 const ExpenseTracker: React.FC = () => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [expenseCategoryList, setExpenseCategoryList] = useState([
-        {
-            _id: "",
-            name: ""
-        }
-    ])
-    const [expenseDetails, setExpenseDetails] = useState<ExpenseDetails>({
-        expenseRecords: [],
-        totalSpend: { amount: 0 },
-        totalIncome: { amount: 0 },
-        topCategory: [],
-        monthlyBudget: {
-            _id: '',
-            amount: 0,
-            alertThreshold: 0,
-            allocationCount: 0
-        }
-    });
-    const [isLoadingFetch, setIsLoadingFetch] = useState(false);
-    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [isAddIncomeDialogOpen, setIsAddIncomeDialogOpen] = useState(false);
-    const [isExpenseAddingLoading, setIsExpenseAddingLoading] = useState(false)
-    const [isIncomeAddingLoading, setIsIncomeAddingLoading] = useState(false)
-    const [isHistoryMode, setIsHistoryMode] = useState(false)
-    const balanceOverviewData = {
-        totalIncome: expenseDetails.totalIncome?.amount || 0,
-        totalExpense: expenseDetails.totalSpend?.amount || 0,
-        walletBalance: (expenseDetails.totalIncome?.amount || 0) - (expenseDetails.totalSpend?.amount || 0)
-    };
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [expenseDetails, setExpenseDetails] = useState<ExpenseDetails>({
+    expenseRecords: [],
+    totalSpend: { amount: 0 },
+    totalIncome: { amount: 0 },
+    topCategory: [],
+    monthlyBudget: {
+      _id: '',
+      amount: 0,
+      alertThreshold: 0,
+      allocationCount: 0,
+    },
+  })
+  const [allocations, setAllocations] = useState<BudgetAllocation[]>([])
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
+  const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false)
+  const [isExpenseAdding, setIsExpenseAdding] = useState(false)
+  const [isIncomeAdding, setIsIncomeAdding] = useState(false)
+  const [isHistoryMode, setIsHistoryMode] = useState(false)
+  const [budgetSheetOpen, setBudgetSheetOpen] = useState(false)
 
-    const budgetSummary = {
-        budgetId: expenseDetails.monthlyBudget?._id,
-        amount: expenseDetails.monthlyBudget?.amount || 0,
-        alertThreshold: expenseDetails.monthlyBudget?.alertThreshold || 80,
-        remaining: (expenseDetails.monthlyBudget?.amount || 0) - (expenseDetails.totalSpend?.amount || 0),
-        allocationCount: expenseDetails.monthlyBudget?.allocationCount
-    };
+  const monthLabel = formatMonthLabel(currentDate)
+  const { dayOfMonth, daysInMonth, daysLeft } = monthBoundaryInfo(currentDate)
 
-    const topCategory = expenseDetails.topCategory || []
-    const totalSpend = expenseDetails?.totalSpend?.amount || 0
+  const income = expenseDetails.totalIncome?.amount || 0
+  const spent = expenseDetails.totalSpend?.amount || 0
+  const budgetId = expenseDetails.monthlyBudget?._id || ''
+  const budgetTotal = expenseDetails.monthlyBudget?.amount || 0
 
-    const handleMonthChange = (direction: "left" | "right") => {
-        setCurrentDate(prevDate => {
-            const newMonth = direction === "right" ? prevDate.getMonth() + 1 : prevDate.getMonth() - 1;
-            return new Date(prevDate.getFullYear(), newMonth);
-        });
-    };
+  const totalAllocated = allocations.reduce(
+    (s, a) => s + (a.allocatedAmount || 0),
+    0
+  )
+  const unallocated = Math.max(budgetTotal - totalAllocated, 0)
 
-    const formattedMonth = currentDate.toLocaleString("default", { month: "short", year: "numeric" });
-
-    const fetchExpenseDetails = async () => {
-        setIsLoadingFetch(true);
-        try {
-            const dateParam = currentDate.toLocaleDateString("en-CA");
-            const res = await axiosInstance.get("/v1/expenses/details", {
-                params: { date: dateParam }
-            });
-            setExpenseDetails(res.data);
-        } catch (error) {
-            console.error("Error fetching expenses:", error);
-        } finally {
-            setIsLoadingFetch(false);
-        }
-    };
-
-    const handleAddExpense = async (val: ExpensePayload) => {
-        setIsExpenseAddingLoading(true)
-        try {
-            const res = await axiosInstance.post("/v1/expenses", val);
-            setExpenseDetails((prev) => ({
-                ...prev,
-                expenseRecords: [res.data, ...(prev.expenseRecords || [])],
-                totalSpend: {
-                    amount: (prev.totalSpend?.amount || 0) + res.data.amount,
-                }
-            }));
-            setIsAddDialogOpen(false);
-            await fetchExpenseDetails()
-        } catch (error) {
-            console.error("Error adding expense:", error);
-            fetchExpenseDetails();
-        } finally {
-            setIsExpenseAddingLoading(false)
-        }
-    };
-
-    const handleAddIncome = async (val: IncomePayload) => {
-        setIsIncomeAddingLoading(true)
-        try {
-            const res = await axiosInstance.post("/v1/expenses/add-income", val);
-            setExpenseDetails((prev) => ({
-                ...prev,
-                totalIncome: {
-                    amount: (prev.totalIncome?.amount || 0) + res.data.amount
-                }
-            }));
-            setIsAddIncomeDialogOpen(false);
-        } catch (error) {
-            console.error("Error adding income:", error);
-            fetchExpenseDetails();
-        } finally {
-            setIsIncomeAddingLoading(false)
-        }
-    };
-
-    const handleExpenseRecordDelete = async (expenseId: string) => {
-        try {
-            await axiosInstance.delete(`/v1/expenses/${expenseId}`);
-
-            setExpenseDetails((prev) => ({
-                ...prev,
-                expenseRecords: prev.expenseRecords?.filter(
-                    (expense) => expense._id !== expenseId
-                ) || []
-            }));
-
-            toast.success("Record deleted");
-        } catch (error) {
-            console.error("Error deleting expense:", error);
-            toast.error("Failed to delete record");
-        }
-    };
-
-    const fetchCategoryList = async () => {
-        try {
-            const res = await axiosInstance.get("/v1/expenses/category")
-            setExpenseCategoryList(res.data)
-        } catch (error) {
-            console.log(error)
-        }
+  const fetchAllocations = async (id: string) => {
+    if (!id) {
+      setAllocations([])
+      return
     }
-
-    const handleBudgetUpdate = async () => {
-        await fetchExpenseDetails()
+    try {
+      const res = await axiosInstance.get('/v1/expenses/budget-allocate', {
+        params: { budgetId: id },
+      })
+      setAllocations(res.data?.categories || [])
+    } catch (error) {
+      console.error('Error fetching allocations:', error)
+      setAllocations([])
     }
+  }
 
-    useEffect(() => {
-        fetchCategoryList();
-    }, [])
+  const fetchExpenseDetails = async () => {
+    setIsLoading(true)
+    try {
+      const res = await axiosInstance.get('/v1/expenses/details', {
+        params: { date: formatDateParam(currentDate) },
+      })
+      setExpenseDetails(res.data)
+      const id = res.data?.monthlyBudget?._id || ''
+      await fetchAllocations(id)
+    } catch (error) {
+      console.error('Error fetching expenses:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-    useEffect(() => {
-        const now = new Date()
-        const runningDate = `${now.getFullYear()}-${now.getMonth() + 1}`;
-        const selectedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
-        if (runningDate != selectedDate) {
-            setIsHistoryMode(true)
-        } else {
-            setIsHistoryMode(false)
-        }
-        fetchExpenseDetails();
-    }, [currentDate]);
+  const fetchCategories = async () => {
+    try {
+      const res = await axiosInstance.get('/v1/expenses/category')
+      setCategories(res.data || [])
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
 
-    return (
-        <>
-            <div className='min-h-screen bg-grey-x100 relative'>
-                <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
-                    {/* Header */}
-                    <header className='mb-6 sm:mb-8 animate-fade-up'>
-                        <h1 className='text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-1'>
-                            <span className='text-gradient'>Expense Tracker</span>
-                        </h1>
-                        <p className='text-sm sm:text-base text-muted-foreground'>
-                            Manage your income and expenses
-                        </p>
-                    </header>
+  const handleMonthChange = (direction: 'left' | 'right') => {
+    setCurrentDate((prev) => {
+      const offset = direction === 'right' ? 1 : -1
+      return new Date(prev.getFullYear(), prev.getMonth() + offset)
+    })
+  }
 
-                    {/* Month Navigation + Actions */}
-                    <section className='mb-5 sm:mb-8 animate-fade-up'>
-                        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4'>
-                            <div className='flex items-center gap-2 sm:gap-3'>
-                                <button
-                                    onClick={() => handleMonthChange("left")}
-                                    className='p-2 sm:p-2.5 hover:bg-grey-x200 rounded-lg transition-colors active:scale-[0.98]'
-                                    disabled={isLoadingFetch}
-                                >
-                                    <FaCaretLeft className='text-primary text-lg sm:text-xl' />
-                                </button>
-                                <div className='px-3 sm:px-4 py-2 bg-card border border-border rounded-lg font-medium text-foreground min-w-[130px] text-center shadow-sm'>
-                                    {formattedMonth}
-                                </div>
-                                <button
-                                    onClick={() => handleMonthChange("right")}
-                                    className='p-2 sm:p-2.5 hover:bg-grey-x200 rounded-lg transition-colors active:scale-[0.98]'
-                                    disabled={isLoadingFetch}
-                                >
-                                    <FaCaretRight className='text-primary text-lg sm:text-xl' />
-                                </button>
-                            </div>
-                            <div className='flex items-center gap-2 sm:gap-3'>
-                                <Button
-                                    variant="ghost"
-                                    className='flex-1 sm:flex-none bg-error hover:bg-error/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
-                                    onClick={() => setIsAddDialogOpen(true)}
-                                    disabled={isLoadingFetch || isHistoryMode}
-                                >
-                                    Add Expense
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    className='flex-1 sm:flex-none bg-success hover:bg-success/90 text-white font-medium shadow-sm rounded-lg h-10 sm:h-11 active:scale-[0.98] transition-all duration-200'
-                                    onClick={() => setIsAddIncomeDialogOpen(true)}
-                                    disabled={isLoadingFetch || isHistoryMode}
-                                >
-                                    Add Income
-                                </Button>
-                            </div>
-                        </div>
-                    </section>
+  const handleAddExpense = async (val: ExpensePayload) => {
+    setIsExpenseAdding(true)
+    try {
+      await axiosInstance.post('/v1/expenses', val)
+      setIsAddExpenseOpen(false)
+      await fetchExpenseDetails()
+      toast.success('Expense added')
+    } catch (error) {
+      console.error('Error adding expense:', error)
+      toast.error('Failed to add expense')
+    } finally {
+      setIsExpenseAdding(false)
+    }
+  }
 
-                    {isLoadingFetch ? (
-                        <div className='flex flex-col items-center justify-center py-12 gap-3'>
-                            <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                            <p className='text-sm text-muted-foreground'>Loading your records...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Summary Cards */}
-                            <section className='mb-5 sm:mb-8'>
-                                <SummaryCarousel>
-                                    <BalanceOverview balanceData={balanceOverviewData} />
-                                    <BudgetSummary
-                                        budgetSummary={budgetSummary}
-                                        onBudgetUpdate={handleBudgetUpdate}
-                                        categories={expenseCategoryList}
-                                        historyMode={isHistoryMode}
-                                    />
-                                    <ExpenseSummary
-                                        topCategory={topCategory}
-                                        totalSpend={totalSpend}
-                                    />
-                                </SummaryCarousel>
-                            </section>
+  const handleAddIncome = async (val: IncomePayload) => {
+    setIsIncomeAdding(true)
+    try {
+      await axiosInstance.post('/v1/expenses/add-income', val)
+      setIsAddIncomeOpen(false)
+      await fetchExpenseDetails()
+      toast.success('Income added')
+    } catch (error) {
+      console.error('Error adding income:', error)
+      toast.error('Failed to add income')
+    } finally {
+      setIsIncomeAdding(false)
+    }
+  }
 
-                            {/* Records */}
-                            <section className='pb-6 sm:pb-0'>
-                                <ExpenseRecordsList
-                                    expenseRecords={expenseDetails?.expenseRecords}
-                                    onRecordDeleted={handleExpenseRecordDelete}
-                                />
-                            </section>
-                        </>
-                    )}
-                </div>
+  const handleDeleteRecord = async (expenseId: string) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/${expenseId}`)
+      await fetchExpenseDetails()
+      toast.success('Record deleted')
+    } catch (error) {
+      console.error('Error deleting expense:', error)
+      toast.error('Failed to delete record')
+    }
+  }
+
+  const handleCreateBudget = async (amount: number) => {
+    try {
+      await axiosInstance.post('/v1/expenses/monthly-budget', { amount })
+      await fetchExpenseDetails()
+      toast.success('Budget created')
+    } catch (error: any) {
+      console.error('Error creating budget:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to create budget')
+    }
+  }
+
+  const handleUpdateBudgetTotal = async (amount: number) => {
+    try {
+      await axiosInstance.patch('/v1/expenses/monthly-budget', {
+        budgetId,
+        amount,
+      })
+      await fetchExpenseDetails()
+      toast.success('Budget updated')
+    } catch (error: any) {
+      console.error('Error updating budget:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to update budget')
+    }
+  }
+
+  const handleUpdateAllocation = async (
+    allocation: BudgetAllocation,
+    amount: number
+  ) => {
+    try {
+      await axiosInstance.patch('/v1/expenses/budget-allocate', {
+        budgetId: allocation.budgetId,
+        categoryId: allocation.categoryId,
+        amount,
+      })
+      await fetchAllocations(budgetId)
+      toast.success('Allocation updated')
+    } catch (error: any) {
+      console.error('Error updating allocation:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to update allocation')
+    }
+  }
+
+  const handleAddAllocation = async (
+    categoryId: string,
+    allocatedAmount: number
+  ) => {
+    try {
+      await axiosInstance.post('/v1/expenses/budget-allocate', {
+        budgetId,
+        categoryId,
+        allocatedAmount,
+      })
+      await fetchExpenseDetails()
+      toast.success('Allocation added')
+    } catch (error: any) {
+      console.error('Error adding allocation:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to add allocation')
+    }
+  }
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  useEffect(() => {
+    const now = new Date()
+    const sameMonth =
+      now.getFullYear() === currentDate.getFullYear() &&
+      now.getMonth() === currentDate.getMonth()
+    setIsHistoryMode(!sameMonth)
+    fetchExpenseDetails()
+  }, [currentDate])
+
+  const budgetCardProps = {
+    budgetId,
+    total: budgetTotal,
+    spent,
+    daysLeft,
+    dayOfMonth,
+    daysInMonth,
+    allocations,
+    categories,
+    historyMode: isHistoryMode,
+    onCreateBudget: handleCreateBudget,
+    onUpdateBudgetTotal: handleUpdateBudgetTotal,
+    onUpdateAllocation: handleUpdateAllocation,
+    onAddAllocation: handleAddAllocation,
+  }
+
+  return (
+    <>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-12">
+          {/* ── Header ─────────────────────────────────────────── */}
+          <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Expense Tracker
+              </p>
+              <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5 font-heading">
+                Manage your spending
+                <span className="text-primary">.</span>
+              </h1>
             </div>
 
-            <ExpenseAdder
-                addExpense={handleAddExpense}
-                handlePopupExpenseDialog={setIsAddDialogOpen}
-                isOpen={isAddDialogOpen}
-                isLoading={isExpenseAddingLoading}
-                categories={expenseCategoryList}
-            />
-            <IncomeAdder
-                addIncome={handleAddIncome}
-                handlePopupIncomeDialog={setIsAddIncomeDialogOpen}
-                isOpen={isAddIncomeDialogOpen}
-                isLoading={isIncomeAddingLoading}
-            />
-        </>
-    );
-};
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
+                <button
+                  onClick={() => handleMonthChange('left')}
+                  disabled={isLoading}
+                  className="w-7 h-7 rounded-md hover:bg-grey-x100 text-muted-foreground flex items-center justify-center disabled:opacity-50"
+                  aria-label="Previous month"
+                >
+                  <FaCaretLeft className="text-sm" />
+                </button>
+                <span className="px-2 text-sm font-semibold text-foreground min-w-[75px] text-center">
+                  {monthLabel}
+                </span>
+                <button
+                  onClick={() => handleMonthChange('right')}
+                  disabled={isLoading}
+                  className="w-7 h-7 rounded-md hover:bg-grey-x100 text-muted-foreground flex items-center justify-center disabled:opacity-50"
+                  aria-label="Next month"
+                >
+                  <FaCaretRight className="text-sm" />
+                </button>
+              </div>
 
-export default ExpenseTracker;
+              <div className="hidden lg:flex items-center gap-2">
+                <button
+                  onClick={() => setIsAddExpenseOpen(true)}
+                  disabled={isLoading || isHistoryMode}
+                  className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  + Expense
+                </button>
+                <button
+                  onClick={() => setIsAddIncomeOpen(true)}
+                  disabled={isLoading || isHistoryMode}
+                  className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  + Income
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Loading your records...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <MonthGlance
+                income={income}
+                spent={spent}
+                topCategories={expenseDetails.topCategory || []}
+              />
+
+              {/* Desktop: full inline budget card */}
+              <div className="hidden lg:block">
+                <BudgetCard {...budgetCardProps} />
+              </div>
+
+              {/* Mobile: compact strip → bottom sheet */}
+              <div className="lg:hidden">
+                <BudgetStrip
+                  monthLabel={monthLabel}
+                  hasBudget={Boolean(budgetId)}
+                  total={budgetTotal}
+                  spent={spent}
+                  daysLeft={daysLeft}
+                  allocationCount={allocations.length}
+                  unallocated={unallocated}
+                  onOpen={() => setBudgetSheetOpen(true)}
+                  historyMode={isHistoryMode}
+                />
+                <Sheet
+                  open={budgetSheetOpen}
+                  onOpenChange={setBudgetSheetOpen}
+                >
+                  <SheetContent
+                    side="bottom"
+                    className="rounded-t-2xl max-h-[88vh] overflow-y-auto p-0"
+                  >
+                    <SheetHeader className="px-5 pt-5 pb-3 text-left">
+                      <SheetTitle className="text-base font-extrabold text-foreground">
+                        Budget · {monthLabel}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="px-5 pb-6">
+                      <BudgetCard {...budgetCardProps} embedded />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              <ExpenseRecordsList
+                expenseRecords={expenseDetails.expenseRecords}
+                onRecordDeleted={
+                  isHistoryMode ? undefined : handleDeleteRecord
+                }
+              />
+            </div>
+          )}
+        </div>
+
+        <MobileFab
+          onAddExpense={() => setIsAddExpenseOpen(true)}
+          onAddIncome={() => setIsAddIncomeOpen(true)}
+          disabled={isHistoryMode}
+        />
+      </div>
+
+      <ExpenseAdder
+        addExpense={handleAddExpense}
+        handlePopupExpenseDialog={setIsAddExpenseOpen}
+        isOpen={isAddExpenseOpen}
+        isLoading={isExpenseAdding}
+        categories={categories}
+      />
+      <IncomeAdder
+        addIncome={handleAddIncome}
+        handlePopupIncomeDialog={setIsAddIncomeOpen}
+        isOpen={isAddIncomeOpen}
+        isLoading={isIncomeAdding}
+      />
+    </>
+  )
+}
+
+export default ExpenseTracker
