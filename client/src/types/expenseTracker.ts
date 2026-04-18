@@ -33,12 +33,6 @@ export interface ExpenseDetails {
     }
 }
 
-export interface BalanceData {
-    totalIncome: number,
-    totalExpense: number,
-    walletBalance: number
-}
-
 export interface ExpensePayload {
     amount: number;
     categoryId: string;
@@ -50,4 +44,25 @@ export interface IncomePayload {
     amount: number;
     source: string;
     note: string;
+}
+
+export interface BudgetAllocation {
+    _id: string;
+    budgetId: string;
+    categoryId: string;
+    categoryName: string;
+    allocatedAmount: number;
+    spent: number;
+    remaining: number;
+}
+
+export interface TopCategoryItem {
+    categoryId: string;
+    name: string;
+    amount: number;
+}
+
+export interface CategoryOption {
+    _id: string;
+    name: string;
 }
