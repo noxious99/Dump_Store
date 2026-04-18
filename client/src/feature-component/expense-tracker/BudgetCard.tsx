@@ -113,7 +113,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
               className="w-7 h-7 rounded-md hover:bg-primary/10 text-primary flex items-center justify-center"
               aria-label="Save budget"
             >
-              <Check className="w-3.5 h-3.5" />
+              <Check className="w-4 h-4" />
             </button>
             <button
               onClick={() => {
@@ -123,7 +123,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
               className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
               aria-label="Cancel"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -376,7 +376,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                           value={allocDraft}
                           onChange={(e) => setAllocDraft(e.target.value)}
                           autoFocus
-                          className="w-20 h-7 px-2 text-xs rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+                          className="w-28 h-8 px-2 text-sm rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
                         />
                         <button
                           onClick={() => commitAlloc(a)}
@@ -448,7 +448,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                 setNewAlloc((prev) => ({ ...prev, categoryId: v }))
               }
             >
-              <SelectTrigger className="h-8 text-xs flex-1">
+              <SelectTrigger className="h-9 text-sm sm:flex-1">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -469,34 +469,41 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                 )}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <input
                 type="number"
                 min="0"
-                placeholder="$"
+                placeholder="Amount"
                 value={newAlloc.amount}
                 onChange={(e) =>
                   setNewAlloc((prev) => ({ ...prev, amount: e.target.value }))
                 }
-                className="w-20 h-8 px-2 text-xs rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+                className="flex-1 sm:flex-none sm:w-32 h-9 px-3 text-sm rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
               />
-              <button
-                onClick={commitNewAlloc}
-                className="w-7 h-7 rounded-md hover:bg-primary/10 text-primary flex items-center justify-center"
-                aria-label="Save"
-              >
-                <Check className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setIsAllocating(false)
-                  setNewAlloc({ categoryId: '', amount: '' })
-                }}
-                className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
-                aria-label="Cancel"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider leading-none">
+                  Allocate?
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={commitNewAlloc}
+                    className="w-6 h-6 rounded-md hover:bg-primary/10 text-primary flex items-center justify-center"
+                    aria-label="Confirm allocate"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsAllocating(false)
+                      setNewAlloc({ categoryId: '', amount: '' })
+                    }}
+                    className="w-6 h-6 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+                    aria-label="Cancel"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

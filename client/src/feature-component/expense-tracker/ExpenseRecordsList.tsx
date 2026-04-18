@@ -107,24 +107,29 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
 
                         {onRecordDeleted &&
                           (isConfirming ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => {
-                                  onRecordDeleted(r._id)
-                                  setConfirmId(null)
-                                }}
-                                className="w-7 h-7 rounded-md hover:bg-error/10 text-error flex items-center justify-center"
-                                aria-label="Confirm delete"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => setConfirmId(null)}
-                                className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
-                                aria-label="Cancel"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider leading-none">
+                                Delete?
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    onRecordDeleted(r._id)
+                                    setConfirmId(null)
+                                  }}
+                                  className="w-6 h-6 rounded-md hover:bg-error/10 text-error flex items-center justify-center"
+                                  aria-label="Confirm delete"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setConfirmId(null)}
+                                  className="w-6 h-6 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+                                  aria-label="Cancel"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <button
