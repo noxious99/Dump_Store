@@ -29,10 +29,76 @@ Tracero's design system is built on:
 - **Three brand colors**: Primary (Indigo), Secondary (Teal), Accent (Violet)
 
 ### Design Philosophy
-- Clean, modern aesthetic with subtle gradients
-- Playful use of color while maintaining professionalism
-- Clear visual hierarchy through color and spacing
+- Clean, modern aesthetic. Restraint over decoration.
+- Color is signal, not ornament — see the **Color Budget** rule below
+- Clear visual hierarchy through color, spacing, and typography
 - Consistent patterns across all pages
+- Mobile-first; desktop layouts are progressive enhancement
+
+---
+
+## Color Budget — strict rule
+
+Adopted in the dashboard redesign (2026-04-12) and expense-tracker redesign (2026-04-18). Carried into all new feature pages.
+
+| Token | Use ONLY for |
+|---|---|
+| `--success` | Income amounts, positive balance, on-pace cue, owed-to-you |
+| `--error` | Expense amounts, overspent state, you-owe |
+| `--warning` | Budget watch chip (≥70% used, <100%) |
+| `--primary` | Interactive: progress bar fills, CTAs, edit/add icons, active nav |
+| `--primary-lite` | Branded icon backgrounds (e.g. wallet icon on its tile) |
+| `--grey-x100` | Neutral icon backgrounds, footer action zones, inner surfaces |
+| `--border`, `--muted-foreground`, `--foreground` | Everything else |
+
+### Forbidden
+- Gradient fills on financial cards (replace with solid `--primary` or `--error`)
+- Per-metric accent colors on static values (e.g. blue "balance" + orange "spent" — pick one or none)
+- Colored card backgrounds (use `--card` + `--border`)
+- Status badges that exist when there's nothing to flag — only show when it's actionable
+
+---
+
+## Typography Scale (6 sizes + 1 exception)
+
+Documented at the top of redesigned pages. Applied uniformly.
+
+| Class | px | Use |
+|---|---|---|
+| `text-[10px]` | 10 | Uppercase section labels, timestamps, micro-meta |
+| `text-xs` | 12 | Meta, captions, small secondary text |
+| `text-sm` | 14 | Body, button labels, primary row text |
+| `text-base` | 16 | Emphasized body, sheet titles |
+| `text-2xl` | 24 | Glance values, secondary hero numbers |
+| `text-3xl` | 30 | Page H1, mobile budget hero |
+| `text-4xl` | 36 | Desktop budget hero (single intentional exception) |
+
+Headings use `font-heading` (Manrope). Body uses `font-sans` (Inter). Both are below.
+
+---
+
+## Button Scale (3 sizes)
+
+| Class | Use |
+|---|---|
+| `h-7 w-7` | Icon buttons (nav, edit, confirm, cancel, delete) |
+| `h-8 px-3` | Compact text actions (`+ Allocate`, `+ Expense`, month-nav text) |
+| `h-14 w-14` | Mobile FAB |
+
+Standard shadcn `<Button>` heights `h-10` / `h-12` are reserved for **form inputs and primary form-submit buttons** (e.g. inside dialogs/sheets). Don't use them for inline page actions.
+
+---
+
+## Two-row Confirm Cluster
+
+Used inline anywhere a destructive or commit action needs a beat of confirmation. Pattern shipped in the expense tracker (Allocate / Delete).
+
+```
+   ALLOCATE?      ← text-[10px] font-extrabold uppercase tracking-wider, foreground
+   [✓]   [✗]     ← w-6 h-6 icon buttons, gap-2 between
+```
+
+Label changes per action: "Allocate?", "Delete?", "Save?", "Set?", "Update?". Always title-case + question mark, no period.
 
 ---
 
@@ -488,4 +554,10 @@ className="px-4 sm:px-8 lg:px-16"
 
 ---
 
-*Last updated: January 2026*
+## Cross-platform note
+
+This system applies to both the web (this codebase) and the planned React Native Android app (see `client/plans/android_app_implementation.md`). The token names and rules transfer directly; only the styling layer (Tailwind classes vs RN StyleSheet/NativeWind) differs.
+
+---
+
+*Last updated: 2026-04-22 — added Color Budget rule, Typography Scale, Button Scale, Confirm Cluster, and cross-platform note after dashboard + expense-tracker redesigns.*
