@@ -23,7 +23,7 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
         Month at a glance
       </p>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-3 mb-4 lg:mb-3">
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Income</p>
           <p

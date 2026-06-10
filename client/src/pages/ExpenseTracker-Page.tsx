@@ -165,6 +165,20 @@ const ExpenseTracker: React.FC = () => {
     }
   }
 
+  const handleEditRecord = async (
+    expenseId: string,
+    payload: { amount: number; note: string }
+  ) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/${expenseId}`, payload)
+      await fetchExpenseDetails()
+      toast.success('Record updated')
+    } catch (error: any) {
+      console.error('Error updating expense:', error)
+      toast.error(error?.msg || 'Failed to update record')
+    }
+  }
+
   const handleDeleteRecord = async (expenseId: string) => {
     try {
       await axiosInstance.delete(`/v1/expenses/${expenseId}`)
@@ -268,10 +282,14 @@ const ExpenseTracker: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-background">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-12">
+      {/* Navbar above is 68px tall and in normal flow */}
+      {/* Navbar above is 68px tall and in normal flow — a smaller offset
+          makes the page taller than the viewport and brings back the
+          whole-page scrollbar */}
+      <div className="min-h-screen bg-background lg:h-[calc(100vh-68px)] lg:min-h-0 lg:overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8 lg:h-full lg:flex lg:flex-col">
           {/* ── Header ─────────────────────────────────────────── */}
-          <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 lg:mb-4">
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Expense Tracker
@@ -332,17 +350,19 @@ const ExpenseTracker: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5">
-              {/* Left column on desktop: glance + budget */}
-              <div className="space-y-4 lg:col-span-7 lg:sticky lg:top-6 lg:self-start">
+            <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 lg:flex-1 lg:min-h-0">
+              {/* Left column on desktop: glance + budget (no column scrollbar;
+                  the budget card shrinks to fit and its allocation list
+                  scrolls internally) */}
+              <div className="space-y-4 lg:space-y-3 lg:col-span-7 lg:min-h-0 lg:flex lg:flex-col">
                 <MonthGlance
                   income={income}
                   spent={spent}
                   topCategories={expenseDetails.topCategory || []}
                 />
 
-                {/* Desktop: full inline budget card */}
-                <div className="hidden lg:block">
+                {/* Desktop: full inline budget card, stretches to fill the column */}
+                <div className="hidden lg:flex lg:flex-col lg:min-h-0 lg:flex-1">
                   <BudgetCard {...budgetCardProps} />
                 </div>
 
@@ -380,13 +400,15 @@ const ExpenseTracker: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right column on desktop: records */}
-              <div className="lg:col-span-5">
+              {/* Right column on desktop: records card fills the column and
+                  scrolls its list internally */}
+              <div className="lg:col-span-5 lg:min-h-0 lg:flex lg:flex-col">
                 <ExpenseRecordsList
                   expenseRecords={expenseDetails.expenseRecords}
                   onRecordDeleted={
                     isHistoryMode ? undefined : handleDeleteRecord
                   }
+                  onRecordEdited={isHistoryMode ? undefined : handleEditRecord}
                 />
               </div>
             </div>

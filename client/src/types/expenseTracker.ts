@@ -54,6 +54,9 @@ export interface BudgetAllocation {
     allocatedAmount: number;
     spent: number;
     remaining: number;
+    // Server-computed row for a category with spending but no saved
+    // allocation; editing it creates the real allocation.
+    isVirtual?: boolean;
 }
 
 export interface TopCategoryItem {

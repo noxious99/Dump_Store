@@ -13,6 +13,14 @@ const deleteExpenseById = async (userId, expenseId) => {
     return Expense.findOneAndDelete({ userId, _id: expenseId });
 };
 
+const updateExpenseById = async (userId, expenseId, updateData) => {
+    return Expense.findOneAndUpdate(
+        { userId, _id: expenseId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+    );
+};
+
 
 // ── Income ───────────────────────────────────────────────
 
@@ -82,6 +90,7 @@ const findDefaultCategories = async () => {
 module.exports = {
     insertExpense,
     deleteExpenseById,
+    updateExpenseById,
     insertIncome,
     insertMonthlyBudget,
     findMonthlyBudget,

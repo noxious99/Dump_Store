@@ -25,4 +25,8 @@ router.patch('/budget-allocate', auth, expenseController.updateAllocatedCategory
 router.get('/dashboard-summary', auth, expenseController.getDashboardSummaryHandler);
 router.get('/category', auth, expenseController.getCategoryListHandler);
 
+// Expense update — registered last so '/:id' can't shadow the
+// fixed-path PATCH routes above (monthly-budget, budget-allocate)
+router.patch('/:id', auth, expenseController.updateExpenseHandler);
+
 module.exports = router;
