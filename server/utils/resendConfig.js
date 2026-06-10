@@ -1,9 +1,21 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init: the Resend constructor throws on a missing key, which would
+// crash the server at require() time.
+let resend;
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('Email service is not configured (RESEND_API_KEY missing)');
+  }
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+};
 
 const sendResetEmail = async (toEmail, resetUrl) => {
   try {
+    const resend = getResendClient();
     const result = await resend.emails.send({
       from: 'noreply@tracero.me',
       to: [toEmail],
