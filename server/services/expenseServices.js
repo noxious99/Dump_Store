@@ -93,6 +93,22 @@ const deleteExpense = async (userId, expenseId) => {
     return { message: "Deleted successfully" };
 };
 
+const updateExpense = async (userId, expenseId, { amount, note, categoryId, date }) => {
+    const updateData = {};
+    if (amount !== undefined) updateData.amount = amount;
+    if (note !== undefined) updateData.note = note;
+    if (date !== undefined) updateData.date = date;
+    if (categoryId !== undefined) {
+        const category = await expenseRepository.findCategoryById(categoryId);
+        if (!category) throw new Error('Category not found');
+        updateData.categoryId = categoryId;
+    }
+
+    const updated = await expenseRepository.updateExpenseById(userId, expenseId, updateData);
+    if (!updated) throw new Error('Expense not found');
+    return updated;
+};
+
 
 // ── Income CRUD ──────────────────────────────────────────
 
@@ -265,6 +281,7 @@ const getCategoryList = async () => {
 module.exports = {
     addExpense,
     deleteExpense,
+    updateExpense,
     addIncome,
     addMonthlyBudget,
     getMonthlyBudget,

@@ -1,12 +1,16 @@
 import React, { useState } from 'react'
 import moment from 'moment'
-import { Trash2, Check, X } from 'lucide-react'
+import { Trash2, Pencil, Check, X } from 'lucide-react'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { ExpenseRecord } from '@/types/expenseTracker'
 
 interface ExpenseRecordsListProps {
   expenseRecords?: ExpenseRecord[]
   onRecordDeleted?: (expenseId: string) => void
+  onRecordEdited?: (
+    expenseId: string,
+    payload: { amount: number; note: string }
+  ) => Promise<void> | void
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString()
@@ -49,8 +53,11 @@ const groupByCategory = (records: ExpenseRecord[]) => {
 const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
   expenseRecords = [],
   onRecordDeleted,
+  onRecordEdited,
 }) => {
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState({ amount: '', note: '' })
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
   const dayGroups = groupRecordsByDate(expenseRecords)
 
@@ -63,70 +70,173 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
     })
   }
 
-  const renderDeleteControl = (recordId: string) => {
-    if (!onRecordDeleted) return null
-    return confirmId === recordId ? (
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider leading-none">
-          Delete?
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              onRecordDeleted(recordId)
-              setConfirmId(null)
-            }}
-            className="w-6 h-6 rounded-md hover:bg-error/10 text-error flex items-center justify-center"
-            aria-label="Confirm delete"
-          >
-            <Check className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setConfirmId(null)}
-            className="w-6 h-6 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
-            aria-label="Cancel"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+  const startEdit = (r: ExpenseRecord) => {
+    setConfirmId(null)
+    setEditId(r._id)
+    setEditDraft({ amount: String(r.amount), note: r.note || '' })
+  }
+
+  const commitEdit = async (r: ExpenseRecord) => {
+    const n = Number(editDraft.amount)
+    if (onRecordEdited && !Number.isNaN(n) && n > 0) {
+      await onRecordEdited(r._id, { amount: n, note: editDraft.note.trim() })
+    }
+    setEditId(null)
+  }
+
+  // Width the action cluster occupies on normal rows; group headers
+  // reserve the same footprint so amounts stay right-aligned.
+  const actionSlotClass =
+    onRecordDeleted && onRecordEdited
+      ? 'w-[60px]'
+      : onRecordDeleted || onRecordEdited
+        ? 'w-7'
+        : ''
+
+  const renderRowActions = (r: ExpenseRecord) => {
+    if (!onRecordDeleted && !onRecordEdited) return null
+
+    if (editId === r._id) {
+      return (
+        <div className="flex flex-col items-center gap-1 pr-2">
+          <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider leading-none">
+            Update?
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => commitEdit(r)}
+              className="w-6 h-6 rounded-md hover:bg-primary/10 text-primary flex items-center justify-center"
+              aria-label="Confirm update"
+            >
+              <Check className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setEditId(null)}
+              className="w-6 h-6 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+              aria-label="Cancel edit"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
+      )
+    }
+
+    if (confirmId === r._id) {
+      return (
+        <div className="flex flex-col items-center gap-1 pr-2">
+          <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider leading-none">
+            Delete?
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onRecordDeleted!(r._id)
+                setConfirmId(null)
+              }}
+              className="w-6 h-6 rounded-md hover:bg-error/10 text-error flex items-center justify-center"
+              aria-label="Confirm delete"
+            >
+              <Check className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setConfirmId(null)}
+              className="w-6 h-6 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+              aria-label="Cancel"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex items-center gap-1">
+        {onRecordEdited && (
+          <button
+            onClick={() => startEdit(r)}
+            className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+            aria-label="Edit record"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {onRecordDeleted && (
+          <button
+            onClick={() => setConfirmId(r._id)}
+            className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
+            aria-label="Delete record"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
-    ) : (
-      <button
-        onClick={() => setConfirmId(recordId)}
-        className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center"
-        aria-label="Delete record"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
     )
   }
 
-  const renderSingleRow = (r: ExpenseRecord) => (
-    <div key={r._id} className="group flex items-center gap-3 py-3 px-1">
-      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-        {getEmoji(r.category?.name)}
-      </div>
+  const renderSingleRow = (r: ExpenseRecord) => {
+    const isEditingRow = editId === r._id
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground capitalize truncate">
-          {r.category?.name}
-        </p>
-        {r.note && (
-          <p className="text-xs text-muted-foreground truncate">{r.note}</p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="text-right">
-          <p className="text-sm font-bold text-error">-${fmt(r.amount)}</p>
-          <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
-            {moment(r.date || r.createdAt).format('h:mm A')}
-          </p>
+    return (
+      <div key={r._id} className="group flex items-center gap-3 py-3 px-1">
+        <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
+          {getEmoji(r.category?.name)}
         </div>
-        {renderDeleteControl(r._id)}
+
+        {isEditingRow ? (
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <p className="text-sm font-semibold text-foreground capitalize whitespace-nowrap flex-shrink-0">
+              {r.category?.name}
+            </p>
+            <input
+              type="text"
+              value={editDraft.note}
+              onChange={(e) =>
+                setEditDraft((prev) => ({ ...prev, note: e.target.value }))
+              }
+              placeholder="Note"
+              className="flex-1 min-w-0 h-8 px-2 text-xs rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+            />
+          </div>
+        ) : (
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground capitalize truncate">
+              {r.category?.name}
+            </p>
+            {r.note && (
+              <p className="text-xs text-muted-foreground truncate">
+                {r.note}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {isEditingRow ? (
+            <input
+              type="number"
+              min="0"
+              autoFocus
+              value={editDraft.amount}
+              onChange={(e) =>
+                setEditDraft((prev) => ({ ...prev, amount: e.target.value }))
+              }
+              className="w-20 h-8 px-2 text-sm text-right rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+            />
+          ) : (
+            <div className="text-right">
+              <p className="text-sm font-bold text-error">-${fmt(r.amount)}</p>
+              <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
+                {moment(r.date || r.createdAt).format('h:mm A')}
+              </p>
+            </div>
+          )}
+          {renderRowActions(r)}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderCategoryGroup = (
     records: ExpenseRecord[],
@@ -169,36 +279,72 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                 {moment(first.date || first.createdAt).format('h:mm A')}
               </p>
             </div>
-            {/* Reserve the delete-control footprint so amounts align with single rows */}
-            {onRecordDeleted && <div className="w-7" aria-hidden />}
+            {/* Reserve the action-cluster footprint so amounts align with single rows */}
+            {actionSlotClass && (
+              <div className={actionSlotClass} aria-hidden />
+            )}
           </div>
         </button>
 
         {isOpen && (
           <div className="ml-[34px] pl-3 border-l border-border mb-2">
-            {records.map((r) => (
-              <div
-                key={r._id}
-                className="group flex items-center gap-3 py-2"
-              >
-                <div className="flex-1 min-w-0 flex items-baseline gap-2">
-                  <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
-                    {moment(r.date || r.createdAt).format('h:mm A')}
-                  </p>
-                  {r.note && (
-                    <p className="text-xs text-foreground truncate">
-                      {r.note}
+            {records.map((r) => {
+              const isEditingRow = editId === r._id
+              return (
+                <div
+                  key={r._id}
+                  className="group flex items-center gap-3 py-2"
+                >
+                  <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                    <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
+                      {moment(r.date || r.createdAt).format('h:mm A')}
                     </p>
-                  )}
+                    {isEditingRow ? (
+                      <input
+                        type="text"
+                        value={editDraft.note}
+                        onChange={(e) =>
+                          setEditDraft((prev) => ({
+                            ...prev,
+                            note: e.target.value,
+                          }))
+                        }
+                        placeholder="Note"
+                        className="flex-1 min-w-0 h-7 px-2 text-xs rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+                      />
+                    ) : (
+                      r.note && (
+                        <p className="text-xs text-foreground truncate">
+                          {r.note}
+                        </p>
+                      )
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {isEditingRow ? (
+                      <input
+                        type="number"
+                        min="0"
+                        autoFocus
+                        value={editDraft.amount}
+                        onChange={(e) =>
+                          setEditDraft((prev) => ({
+                            ...prev,
+                            amount: e.target.value,
+                          }))
+                        }
+                        className="w-20 h-8 px-2 text-sm text-right rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+                      />
+                    ) : (
+                      <p className="text-xs font-bold text-error">
+                        -${fmt(r.amount)}
+                      </p>
+                    )}
+                    {renderRowActions(r)}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <p className="text-xs font-bold text-error">
-                    -${fmt(r.amount)}
-                  </p>
-                  {renderDeleteControl(r._id)}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -206,7 +352,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 lg:p-5">
+    <div className="bg-card border border-border rounded-2xl p-4 lg:p-5 lg:flex lg:flex-col lg:min-h-0 lg:flex-1">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
           Expense Records
@@ -224,7 +370,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto [scrollbar-width:thin] lg:pr-1">
           {dayGroups.map(({ label, records }) => {
             const categoryGroups = groupByCategory(records)
             const dayTotal = records.reduce((s, r) => s + (r.amount || 0), 0)

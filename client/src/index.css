@@ -307,6 +307,18 @@
         @apply outline-2 outline-offset-2 outline-ring;
     }
 
+    /* Hide number input spinners app-wide */
+    input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
     /* Selection */
     ::selection {
         @apply bg-primary/20 text-foreground;

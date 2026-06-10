@@ -59,7 +59,9 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
   const [budgetDraft, setBudgetDraft] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const chrome = embedded ? '' : 'bg-card border border-border rounded-2xl p-5 lg:p-6'
+  const chrome = embedded
+    ? ''
+    : 'bg-card border border-border rounded-2xl p-5 lg:p-6 lg:flex lg:flex-col lg:min-h-0 lg:flex-1'
 
   // ── Empty state: no budget for this month ──────────────────
   if (!budgetId) {
@@ -202,7 +204,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
   return (
     <div className={chrome}>
       {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 lg:mb-4">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
             💳
@@ -280,7 +282,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground mb-4">
+      <p className="text-xs text-muted-foreground mb-4 lg:mb-3">
         {daysLeft > 0 ? (
           <>
             ~
@@ -311,7 +313,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           />
         )}
       </div>
-      <div className="flex items-center justify-between text-[10px] mb-6 gap-2 flex-wrap">
+      <div className="flex items-center justify-between text-[10px] mb-6 lg:mb-4 gap-2 flex-wrap">
         <span className="text-muted-foreground">
           <span className="text-foreground font-semibold">${fmt(spent)}</span>{' '}
           spent · {pct}%
@@ -337,11 +339,11 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
       </div>
 
       {allocations.length === 0 ? (
-        <div className="py-6 text-center text-xs text-muted-foreground">
+        <div className="py-6 text-center text-xs text-muted-foreground lg:flex-1 lg:flex lg:items-center lg:justify-center">
           No allocations yet. Split your budget into categories.
         </div>
       ) : (
-        <div className="divide-y divide-border">
+        <div className="divide-y divide-border lg:flex-1 lg:min-h-0 lg:overflow-y-auto [scrollbar-width:thin] lg:pr-1">
           {allocations.map((a) => {
             const isVirtual = Boolean(a.isVirtual)
             const pctUsed =

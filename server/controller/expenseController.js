@@ -36,6 +36,41 @@ const addExpenseHandler = async (req, res) => {
 };
 
 /**
+ * @desc    Update an expense record (amount, note, categoryId, date)
+ * @route   PATCH /api/v1/expenses/:id
+ * @access  Private
+ */
+const updateExpenseHandler = async (req, res) => {
+    try {
+        const { amount, note, categoryId, date } = req.body;
+        if (amount === undefined && note === undefined && categoryId === undefined && date === undefined) {
+            return res.status(400).json({ msg: 'Nothing to update' });
+        }
+        if (amount !== undefined && (isNaN(amount) || amount <= 0)) {
+            return res.status(400).json({ msg: 'Amount must be greater than 0' });
+        }
+
+        let expenseDate;
+        if (date !== undefined) {
+            expenseDate = new Date(date);
+            if (isNaN(expenseDate)) {
+                return res.status(400).json({ msg: 'Invalid date format' });
+            }
+            if (expenseDate > new Date()) {
+                return res.status(400).json({ msg: 'Date cannot be in the future' });
+            }
+        }
+
+        const result = await expenseService.updateExpense(req.user.id, req.params.id, {
+            amount, note, categoryId, date: expenseDate
+        });
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 400).json({ msg: error.message });
+    }
+};
+
+/**
  * @desc    Delete an expense record
  * @route   DELETE /api/v1/expenses/:id
  * @access  Private
@@ -269,6 +304,7 @@ const getCategoryListHandler = async (req, res) => {
 
 module.exports = {
     addExpenseHandler,
+    updateExpenseHandler,
     deleteExpenseHandler,
     addIncomeHandler,
     addMonthlyBudgetHandler,
