@@ -3,6 +3,20 @@ const { generateToken } = require("../helpers/general");
 const { comparePassword, hashPassword } = require("../helpers/user");
 const emailValidator = require("email-validator");
 const gravatar = require("gravatar");
+const cloudinary = require("../utils/cloudinaryV2");
+
+
+/**
+ * Public projection of a user document — never exposes the password hash.
+ */
+const sanitizeUser = (user) => ({
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    name: user.name ?? "",
+    avatar: user.avatar ?? "",
+    created_at: user.createdAt,
+});
 
 
 /**
@@ -96,7 +110,100 @@ const getUserInfo = async (userId) => {
 
     return {
         success: true,
-        userInfo
+        userInfo: sanitizeUser(userInfo)
+    };
+};
+
+
+/**
+ * Update profile fields (name, username, email)
+ */
+const updateUserProfile = async (userId, { name, username, email }) => {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+        throw new Error("Profile not found");
+    }
+
+    const updateData = {};
+
+    if (name !== undefined) {
+        updateData.name = String(name).trim();
+    }
+
+    if (username !== undefined && username !== user.username) {
+        const trimmedUsername = String(username).trim();
+        if (!trimmedUsername) {
+            throw new Error("Username cannot be empty");
+        }
+        const usernameTaken = await userRepository.findUserByUsername(trimmedUsername);
+        if (usernameTaken && usernameTaken.id !== user.id) {
+            throw new Error("Username already taken, try a different one");
+        }
+        updateData.username = trimmedUsername;
+    }
+
+    if (email !== undefined && email !== user.email) {
+        if (!emailValidator.validate(email)) {
+            throw new Error("Invalid email address. Please provide a valid email.");
+        }
+        const emailTaken = await userRepository.findUserByEmail(email);
+        if (emailTaken && emailTaken.id !== user.id) {
+            throw new Error("A user with this email address already exists.");
+        }
+        updateData.email = email;
+    }
+
+    const updatedUser = await userRepository.updateUserById(userId, updateData);
+
+    return {
+        success: true,
+        userInfo: sanitizeUser(updatedUser)
+    };
+};
+
+
+/**
+ * Change password after verifying the current one
+ */
+const changeUserPassword = async (userId, currentPassword, newPassword) => {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+        throw new Error("Profile not found");
+    }
+
+    const passwordMatched = await comparePassword(user, currentPassword);
+    if (!passwordMatched) {
+        throw new Error("Current password is incorrect");
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await userRepository.updateUserById(userId, { password: hashedPassword });
+
+    return { success: true, message: "Password updated successfully" };
+};
+
+
+/**
+ * Upload a new avatar image and save its URL
+ */
+const updateUserAvatar = async (userId, fileBuffer) => {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+        throw new Error("Profile not found");
+    }
+
+    const uploadResult = await cloudinary.uploadOnCloudinary(fileBuffer);
+    if (!uploadResult?.secure_url) {
+        throw new Error("Failed to upload image");
+    }
+
+    const updatedUser = await userRepository.updateUserById(userId, {
+        avatar: uploadResult.secure_url
+    });
+
+    return {
+        success: true,
+        userInfo: sanitizeUser(updatedUser)
     };
 };
 
@@ -104,5 +211,8 @@ const getUserInfo = async (userId) => {
 module.exports = {
     loginUser,
     registerUser,
-    getUserInfo
+    getUserInfo,
+    updateUserProfile,
+    changeUserPassword,
+    updateUserAvatar
 };
