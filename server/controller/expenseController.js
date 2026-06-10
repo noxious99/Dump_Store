@@ -171,9 +171,11 @@ const allocateBudgetHandler = async (req, res) => {
 const getBudgetBreakdownHandler = async (req, res) => {
     try {
         const { budgetId } = req.query;
-        const { startOfMonth, endOfMonth } = getMonthBoundaries(new Date());
+        if (!budgetId) {
+            return res.status(400).json({ msg: "Budget ID is required" });
+        }
 
-        const content = await expenseService.getBudgetBreakdown(req.user.id, budgetId, startOfMonth, endOfMonth);
+        const content = await expenseService.getBudgetBreakdown(req.user.id, budgetId);
         return res.status(200).json(content);
     } catch (error) {
         if (error.message.includes('not found')) {

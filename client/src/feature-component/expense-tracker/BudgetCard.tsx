@@ -343,6 +343,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
       ) : (
         <div className="divide-y divide-border">
           {allocations.map((a) => {
+            const isVirtual = Boolean(a.isVirtual)
             const pctUsed =
               a.allocatedAmount > 0
                 ? Math.min(
@@ -350,7 +351,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                     100
                   )
                 : 0
-            const overLimit = a.spent > a.allocatedAmount
+            const overLimit = !isVirtual && a.spent > a.allocatedAmount
             const isEditing = editingAllocId === a._id
 
             return (
@@ -364,9 +365,22 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <p className="text-sm font-semibold text-foreground capitalize truncate">
-                      {a.categoryName}
-                    </p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-sm font-semibold text-foreground capitalize truncate">
+                        {a.categoryName}
+                      </p>
+                      {isVirtual && (
+                        <span
+                          className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                          style={{
+                            color: 'var(--warning)',
+                            backgroundColor: 'var(--warning-x100)',
+                          }}
+                        >
+                          Unbudgeted
+                        </span>
+                      )}
+                    </div>
 
                     {isEditing ? (
                       <div className="flex items-center gap-1">
@@ -405,7 +419,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                           >
                             ${fmt(a.spent)}
                           </span>
-                          {' / '}${fmt(a.allocatedAmount)}
+                          {isVirtual ? ' spent' : <>{' / '}${fmt(a.allocatedAmount)}</>}
                         </span>
                         {!historyMode && (
                           <button
@@ -424,10 +438,12 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
-                        width: `${pctUsed}%`,
-                        backgroundColor: overLimit
-                          ? 'var(--error)'
-                          : 'var(--primary)',
+                        width: isVirtual ? '100%' : `${pctUsed}%`,
+                        backgroundColor: isVirtual
+                          ? 'var(--warning)'
+                          : overLimit
+                            ? 'var(--error)'
+                            : 'var(--primary)',
                       }}
                     />
                   </div>

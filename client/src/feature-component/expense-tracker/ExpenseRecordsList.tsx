@@ -63,9 +63,14 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
         <div className="space-y-4">
           {groups.map(({ label, records }) => (
             <div key={label}>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
-                {label}
-              </p>
+              <div className="flex items-center justify-between bg-grey-x100 rounded-lg px-2.5 py-1.5 mb-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  {label}
+                </p>
+                <span className="text-xs font-bold text-foreground">
+                  -${fmt(records.reduce((s, r) => s + (r.amount || 0), 0))}
+                </span>
+              </div>
               <div>
                 {records.map((r, i) => {
                   const isConfirming = confirmId === r._id

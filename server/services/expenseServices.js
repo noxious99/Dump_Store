@@ -1,6 +1,6 @@
 const { Expense, Income, MonthlyBudget } = require('../Schemas/expenseSchema');
 const expenseRepository = require('../db/expense');
-const { getMonthName, getYear } = require('../utils/utils-function');
+const { getMonthName, getYear, getMonthBoundaries } = require('../utils/utils-function');
 
 
 // ── Internal Helpers (not exported) ──────────────────────
@@ -50,15 +50,22 @@ const getExpenseRecords = async (userId, startOfMonth, endOfMonth) => {
     ]);
 };
 
-const getCategorySpending = async (userId, categoryIds, startOfMonth, endOfMonth) => {
-    const results = await Expense.aggregate([
-        { $match: { userId, categoryId: { $in: categoryIds }, date: { $gte: startOfMonth, $lte: endOfMonth } } },
-        { $group: { _id: "$categoryId", totalSpent: { $sum: "$amount" } } }
+const getSpendingByCategory = async (userId, startOfMonth, endOfMonth) => {
+    return Expense.aggregate([
+        { $match: { userId, date: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: "$categoryId", totalSpent: { $sum: "$amount" } } },
+        { $lookup: { from: "categories", localField: "_id", foreignField: "_id", as: "category" } },
+        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 0, categoryId: "$_id", name: "$category.name", totalSpent: 1 } }
     ]);
-    return results.reduce((map, item) => {
-        map[item._id.toString()] = item.totalSpent;
-        return map;
-    }, {});
+};
+
+// A budget stores its period as month name + year strings ("June", "2026").
+// Reconstruct the UTC date range from those, since expense dates are stored
+// and queried in UTC. Day 15 keeps the date inside the month in any timezone.
+const getBudgetMonthBoundaries = (budget) => {
+    const monthIndex = new Date(`${budget.month} 1, 2000`).getMonth();
+    return getMonthBoundaries(new Date(Date.UTC(Number(budget.year), monthIndex, 15)));
 };
 
 
@@ -130,19 +137,25 @@ const updateMonthlyBudget = async (userId, budgetId, amount, alertThreshold) => 
 
 // ── Budget Allocation ────────────────────────────────────
 
-const getBudgetBreakdown = async (userId, budgetId, startOfMonth, endOfMonth) => {
+const getBudgetBreakdown = async (userId, budgetId) => {
     const budget = await expenseRepository.findBudgetById(budgetId);
-    if (!budget) throw new Error("Budget not found");
+    if (!budget || budget.userId !== userId) throw new Error("Budget not found");
 
-    const allocations = await expenseRepository.findBudgetAllocationsByBudgetId(budgetId);
+    // Spending window always follows the budget's own month, not "now".
+    const { startOfMonth, endOfMonth } = getBudgetMonthBoundaries(budget);
 
-    const categoryIds = allocations.map(a => a.categoryId._id);
-    const spending = categoryIds.length > 0
-        ? await getCategorySpending(userId, categoryIds, startOfMonth, endOfMonth)
-        : {};
+    const [allocations, spendingByCategory] = await Promise.all([
+        expenseRepository.findBudgetAllocationsByBudgetId(budgetId),
+        getSpendingByCategory(userId, startOfMonth, endOfMonth)
+    ]);
+
+    const spending = spendingByCategory.reduce((map, item) => {
+        map[item.categoryId.toString()] = item;
+        return map;
+    }, {});
 
     const categories = allocations.map(a => {
-        const spent = spending[a.categoryId._id.toString()] || 0;
+        const spent = spending[a.categoryId._id.toString()]?.totalSpent || 0;
         return {
             _id: a._id,
             budgetId: a.budgetId,
@@ -155,6 +168,24 @@ const getBudgetBreakdown = async (userId, budgetId, startOfMonth, endOfMonth) =>
         };
     });
 
+    // Virtual rows: categories with spending this month but no saved
+    // allocation. Computed at read time, never persisted — they become real
+    // rows only when the user assigns an amount (upsert on update).
+    const allocatedIds = new Set(allocations.map(a => a.categoryId._id.toString()));
+    for (const item of spendingByCategory) {
+        if (allocatedIds.has(item.categoryId.toString())) continue;
+        categories.push({
+            _id: `virtual-${item.categoryId}`,
+            budgetId: budget._id,
+            categoryId: item.categoryId,
+            categoryName: item.name,
+            allocatedAmount: 0,
+            spent: item.totalSpent,
+            remaining: -item.totalSpent,
+            isVirtual: true
+        });
+    }
+
     return {
         budgetId: budget._id,
         amount: budget.amount,
@@ -166,7 +197,7 @@ const getBudgetBreakdown = async (userId, budgetId, startOfMonth, endOfMonth) =>
 
 const allocateBudget = async (userId, budgetId, categoryId, allocatedAmount) => {
     const budget = await expenseRepository.findBudgetById(budgetId);
-    if (!budget) throw new Error("No record found to attach");
+    if (!budget || budget.userId !== userId) throw new Error("No record found to attach");
 
     const existing = await expenseRepository.findBudgetAllocation(userId, budgetId, categoryId);
     if (existing) throw new Error("A budget allocation for this category already exists. Please update the existing allocation or select a different category.");
@@ -183,7 +214,15 @@ const updateAllocatedCategory = async (userId, budgetId, categoryId, amount) => 
         expenseRepository.findBudgetAllocation(userId, budgetId, categoryId)
     ]);
 
-    if (!budget || !allocation) throw new Error("No record found to update");
+    if (!budget || budget.userId !== userId) throw new Error("No record found to update");
+
+    // Upsert: editing a virtual (unbudgeted) row creates the real allocation.
+    if (!allocation) {
+        const newAllocation = await expenseRepository.insertBudgetAllocation({
+            userId, budgetId, categoryId, allocatedAmount: amount
+        });
+        return { updatedAllocation: newAllocation };
+    }
 
     const updatedAllocation = await expenseRepository.updateBudgetAllocation(userId, budgetId, categoryId, amount);
     return { updatedAllocation };
