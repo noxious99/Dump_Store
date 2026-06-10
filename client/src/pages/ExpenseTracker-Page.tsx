@@ -16,6 +16,7 @@ import BudgetCard from '@/feature-component/expense-tracker/BudgetCard'
 import BudgetStrip from '@/feature-component/expense-tracker/BudgetStrip'
 import MobileFab from '@/feature-component/expense-tracker/MobileFab'
 import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList'
+import RecordDetailSheet from '@/feature-component/expense-tracker/RecordDetailSheet'
 import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
 import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
 
@@ -25,6 +26,7 @@ import type {
   IncomePayload,
   BudgetAllocation,
   CategoryOption,
+  ExpenseRecord,
 } from '@/types/expenseTracker'
 
 const formatMonthLabel = (d: Date) =>
@@ -72,6 +74,10 @@ const ExpenseTracker: React.FC = () => {
   const [isIncomeAdding, setIsIncomeAdding] = useState(false)
   const [isHistoryMode, setIsHistoryMode] = useState(false)
   const [budgetSheetOpen, setBudgetSheetOpen] = useState(false)
+  const [selectedRecord, setSelectedRecord] = useState<ExpenseRecord | null>(
+    null
+  )
+  const [recordSheetOpen, setRecordSheetOpen] = useState(false)
 
   const monthLabel = formatMonthLabel(currentDate)
   const { dayOfMonth, daysInMonth, daysLeft } = monthBoundaryInfo(currentDate)
@@ -165,9 +171,9 @@ const ExpenseTracker: React.FC = () => {
     }
   }
 
-  const handleEditRecord = async (
+  const handleSaveRecord = async (
     expenseId: string,
-    payload: { amount: number; note: string }
+    payload: { amount: number; note: string; categoryId: string }
   ) => {
     try {
       await axiosInstance.patch(`/v1/expenses/${expenseId}`, payload)
@@ -405,10 +411,10 @@ const ExpenseTracker: React.FC = () => {
               <div className="lg:col-span-5 lg:min-h-0 lg:flex lg:flex-col">
                 <ExpenseRecordsList
                   expenseRecords={expenseDetails.expenseRecords}
-                  onRecordDeleted={
-                    isHistoryMode ? undefined : handleDeleteRecord
-                  }
-                  onRecordEdited={isHistoryMode ? undefined : handleEditRecord}
+                  onSelectRecord={(record) => {
+                    setSelectedRecord(record)
+                    setRecordSheetOpen(true)
+                  }}
                 />
               </div>
             </div>
@@ -434,6 +440,15 @@ const ExpenseTracker: React.FC = () => {
         handlePopupIncomeDialog={setIsAddIncomeOpen}
         isOpen={isAddIncomeOpen}
         isLoading={isIncomeAdding}
+      />
+      <RecordDetailSheet
+        record={selectedRecord}
+        open={recordSheetOpen}
+        onOpenChange={setRecordSheetOpen}
+        categories={categories}
+        readOnly={isHistoryMode}
+        onSave={handleSaveRecord}
+        onDelete={handleDeleteRecord}
       />
     </>
   )
