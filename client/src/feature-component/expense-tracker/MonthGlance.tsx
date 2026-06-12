@@ -1,6 +1,7 @@
 import React from 'react'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { TopCategoryItem } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface MonthGlanceProps {
   income: number
@@ -14,6 +15,7 @@ const fmtShort = (n: number) =>
 const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories }) => {
+  const { symbol } = useCurrency()
   const balance = income - spent
   const balanceColor = balance >= 0 ? 'var(--success)' : 'var(--error)'
 
@@ -30,19 +32,19 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
             className="text-2xl font-extrabold tracking-tight"
             style={{ color: income > 0 ? 'var(--success)' : 'var(--foreground)' }}
           >
-            ${fmt(income)}
+            {symbol}{fmt(income)}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Spent</p>
           <p className="text-2xl font-extrabold text-foreground tracking-tight">
-            ${fmt(spent)}
+            {symbol}{fmt(spent)}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
           <p className="text-2xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
-            {balance < 0 ? '-' : ''}${fmt(Math.abs(balance))}
+            {balance < 0 ? '-' : ''}{symbol}{fmt(Math.abs(balance))}
           </p>
         </div>
       </div>
@@ -60,7 +62,7 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
               >
                 <span className="text-sm">{getEmoji(c.name)}</span>
                 <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span>
-                <span className="text-xs text-muted-foreground">${fmtShort(c.amount)}</span>
+                <span className="text-xs text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
               </div>
             ))}
           </div>

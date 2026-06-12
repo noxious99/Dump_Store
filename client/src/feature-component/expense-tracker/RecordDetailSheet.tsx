@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { ExpenseRecord, CategoryOption } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface RecordDetailSheetProps {
   record: ExpenseRecord | null
@@ -45,6 +46,7 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { symbol } = useCurrency()
   const [mode, setMode] = useState<Mode>('view')
   const [isBusy, setIsBusy] = useState(false)
   const [draft, setDraft] = useState({ amount: '', note: '', categoryId: '' })
@@ -121,7 +123,7 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
               </p>
             </div>
             <p className="ml-auto text-2xl font-extrabold text-error tracking-tight whitespace-nowrap">
-              -${fmt(record.amount)}
+              -{symbol}{fmt(record.amount)}
             </p>
           </div>
 

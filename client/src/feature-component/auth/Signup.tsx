@@ -32,6 +32,7 @@ import type { SignupPayload } from '@/types/user'
 import { useDispatch, useSelector } from 'react-redux'
 import { signupUser } from './userSlice'
 import type { AppDispatch, RootState } from '@/store/store'
+import { detectCurrencyFromLocale } from '@/utils/currency'
 
 const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -85,7 +86,9 @@ const Signup: React.FC = () => {
     const payload: SignupPayload = {
       username: values.username,
       email: values.email,
-      password: values.password
+      password: values.password,
+      // Region from browser locale (e.g. bn-BD → BDT); user can change it in Profile → Preferences
+      currency: detectCurrencyFromLocale(navigator.language)
     }
     setIsLoading(true)
     const res: any = await dispatch(signupUser(payload))

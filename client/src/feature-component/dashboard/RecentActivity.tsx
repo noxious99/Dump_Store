@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import axiosInstance from '@/utils/axiosInstance'
 import moment from 'moment'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface ExpenseRecord {
     _id: string
@@ -43,6 +44,7 @@ const SkeletonRows = () => (
 )
 
 const RecentActivity: React.FC = () => {
+    const { symbol } = useCurrency()
     const [records, setRecords] = useState<ExpenseRecord[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
@@ -120,7 +122,7 @@ const RecentActivity: React.FC = () => {
                                 </div>
                                 <div className="text-right shrink-0 ml-2 sm:ml-3">
                                     <p className="text-sm font-semibold text-error tracking-tight">
-                                        -${record.amount.toLocaleString()}
+                                        -{symbol}{record.amount.toLocaleString()}
                                     </p>
                                     <p className="text-[10px] sm:text-xs text-muted-foreground">
                                         {moment(record.createdAt).fromNow()}

@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { BudgetAllocation, CategoryOption } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface BudgetCardProps {
   budgetId: string
@@ -50,6 +51,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
   onUpdateAllocation,
   onAddAllocation,
 }) => {
+  const { symbol } = useCurrency()
   const [editingTotal, setEditingTotal] = useState(false)
   const [totalDraft, setTotalDraft] = useState('')
   const [editingAllocId, setEditingAllocId] = useState<string | null>(null)
@@ -237,11 +239,11 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           className="text-4xl font-extrabold tracking-tight"
           style={{ color: isAlert ? 'var(--error)' : 'var(--foreground)' }}
         >
-          ${fmt(Math.abs(remaining))}
+          {symbol}{fmt(Math.abs(remaining))}
         </span>
         {editingTotal ? (
           <div className="flex items-center gap-1">
-            <span className="text-base text-muted-foreground">of $</span>
+            <span className="text-base text-muted-foreground">of {symbol}</span>
             <input
               type="number"
               min="0"
@@ -268,7 +270,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
         ) : (
           <div className="flex items-center gap-1">
             <span className="text-base text-muted-foreground">
-              of ${fmt(total)}
+              of {symbol}{fmt(total)}
             </span>
             {!historyMode && (
               <button
@@ -287,7 +289,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           <>
             ~
             <span className="text-foreground font-semibold">
-              ${fmt(dailyLimit)}
+              {symbol}{fmt(dailyLimit)}
             </span>
             /day for {daysLeft} more {daysLeft === 1 ? 'day' : 'days'}
           </>
@@ -315,7 +317,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
       </div>
       <div className="flex items-center justify-between text-[10px] mb-6 lg:mb-4 gap-2 flex-wrap">
         <span className="text-muted-foreground">
-          <span className="text-foreground font-semibold">${fmt(spent)}</span>{' '}
+          <span className="text-foreground font-semibold">{symbol}{fmt(spent)}</span>{' '}
           spent · {pct}%
         </span>
         {paceLabel && (
@@ -334,7 +336,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           Allocations
         </p>
         <span className="text-[10px] text-muted-foreground">
-          ${fmt(totalAllocated)} of ${fmt(total)} allocated
+          {symbol}{fmt(totalAllocated)} of {symbol}{fmt(total)} allocated
         </span>
       </div>
 
@@ -419,9 +421,9 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                                 : 'text-foreground font-semibold'
                             }
                           >
-                            ${fmt(a.spent)}
+                            {symbol}{fmt(a.spent)}
                           </span>
-                          {isVirtual ? ' spent' : <>{' / '}${fmt(a.allocatedAmount)}</>}
+                          {isVirtual ? ' spent' : <>{' / '}{symbol}{fmt(a.allocatedAmount)}</>}
                         </span>
                         {!historyMode && (
                           <button
@@ -530,7 +532,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
               <Plus className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               <p className="text-sm truncate">
                 <span className="font-semibold text-foreground">
-                  ${fmt(unallocated)}
+                  {symbol}{fmt(unallocated)}
                 </span>
                 <span className="text-muted-foreground"> unallocated</span>
               </p>

@@ -20,6 +20,12 @@ const userSchema = new schema({
     required: false,
     default: ""
   },
+  preferences: {
+    currency: {
+      type: String,
+      default: "USD"
+    },
+  },
 }, {
   timestamps: true
 });

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import moment from 'moment'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { ExpenseRecord } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface ExpenseRecordsListProps {
   expenseRecords?: ExpenseRecord[]
@@ -49,6 +50,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
   expenseRecords = [],
   onSelectRecord,
 }) => {
+  const { symbol } = useCurrency()
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
   const dayGroups = groupRecordsByDate(expenseRecords)
 
@@ -81,7 +83,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
       </div>
 
       <div className="text-right flex-shrink-0">
-        <p className="text-sm font-bold text-error">-${fmt(r.amount)}</p>
+        <p className="text-sm font-bold text-error">-{symbol}{fmt(r.amount)}</p>
         <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
           {moment(r.date || r.createdAt).format('h:mm A')}
         </p>
@@ -103,7 +105,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
           onClick={() => toggleExpanded(groupKey)}
           className="w-full flex items-center gap-3 py-3 px-1 text-left rounded-lg hover:bg-grey-x100/60 transition-colors"
           aria-expanded={isOpen}
-          aria-label={`${first.category?.name}, ${records.length} records, $${fmt(total)} total`}
+          aria-label={`${first.category?.name}, ${records.length} records, ${symbol}${fmt(total)} total`}
         >
           <div className="relative w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
             {getEmoji(first.category?.name)}
@@ -122,7 +124,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
           </div>
 
           <div className="text-right flex-shrink-0">
-            <p className="text-sm font-bold text-error">-${fmt(total)}</p>
+            <p className="text-sm font-bold text-error">-{symbol}{fmt(total)}</p>
             <p className="text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
               {moment(records[records.length - 1].date || records[records.length - 1].createdAt).format('h:mm A')}
               {' – '}
@@ -150,7 +152,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                   )}
                 </div>
                 <p className="text-xs font-bold text-error flex-shrink-0">
-                  -${fmt(r.amount)}
+                  -{symbol}{fmt(r.amount)}
                 </p>
               </button>
             ))}
@@ -191,7 +193,7 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                     {label}
                   </p>
                   <span className="text-xs font-bold text-foreground">
-                    -${fmt(dayTotal)}
+                    -{symbol}{fmt(dayTotal)}
                   </span>
                 </div>
 

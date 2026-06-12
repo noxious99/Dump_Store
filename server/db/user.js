@@ -7,14 +7,16 @@ const User = require("../Schemas/userSchema");
  * @param {String} email - Email address
  * @param {String} avatar - Avatar URL
  * @param {String} hashedPassword - Hashed password
+ * @param {String} currency - Preferred currency code (e.g. "USD", "BDT")
  * @returns {Promise<Object>} Created user document
  */
-const insertUser = async (username, email, avatar, hashedPassword) => {
+const insertUser = async (username, email, avatar, hashedPassword, currency) => {
     const user = new User({
         username,
         email,
         avatar,
         password: hashedPassword,
+        preferences: { currency },
     });
     await user.save();
     return user;

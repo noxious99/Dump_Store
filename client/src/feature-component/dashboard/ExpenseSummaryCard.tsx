@@ -16,6 +16,7 @@ import type { TopCategory } from '@/types/dashboard'
 import type { ExpensePayload, IncomePayload } from '@/types/expenseTracker'
 import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
 import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface ExpenseSummaryCardProps {
   totalSpend: number
@@ -34,6 +35,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   isLoading,
   onBudgetSaved,
 }) => {
+  const { symbol } = useCurrency()
   const [showBudgetDialog, setShowBudgetDialog] = useState(false)
   const [newBudget, setNewBudget] = useState('')
   const [saving, setSaving] = useState(false)
@@ -153,10 +155,10 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Amount */}
         <div className="flex items-baseline gap-1.5 mb-2.5">
           <span className="text-2xl font-extrabold text-foreground tracking-tight">
-            ${totalSpend.toLocaleString()}
+            {symbol}{totalSpend.toLocaleString()}
           </span>
           {budget > 0 ? (
-            <span className="text-sm text-muted-foreground">/ ${budget.toLocaleString()}</span>
+            <span className="text-sm text-muted-foreground">/ {symbol}{budget.toLocaleString()}</span>
           ) : (
             <button
               onClick={() => setShowBudgetDialog(true)}
@@ -184,7 +186,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
               <div key={i} className="flex items-center gap-1">
                 <span className="text-xs">{cat.emoji}</span>
                 <span className="text-[10px] text-muted-foreground font-medium">
-                  ${cat.amount >= 1000
+                  {symbol}{cat.amount >= 1000
                     ? `${(cat.amount / 1000).toFixed(1)}k`
                     : cat.amount.toLocaleString()}
                 </span>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { FaWallet, FaArrowRight } from 'react-icons/fa6'
 import { Plus } from 'lucide-react'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface BudgetStripProps {
   monthLabel: string
@@ -29,6 +30,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
   onOpen,
   historyMode,
 }) => {
+  const { symbol } = useCurrency()
   // ── Empty state ──────────────────────────────────────────────
   if (!hasBudget) {
     return (
@@ -133,10 +135,10 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
                   color: isAlert ? 'var(--error)' : 'var(--foreground)',
                 }}
               >
-                ${fmt(Math.abs(remaining))}
+                {symbol}{fmt(Math.abs(remaining))}
               </span>
               <span className="text-xs text-muted-foreground">
-                of ${fmtShort(total)}
+                of {symbol}{fmtShort(total)}
               </span>
             </p>
           </div>
@@ -144,7 +146,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
           {daysLeft > 0 && !isAlert && (
             <div className="text-right flex-shrink-0">
               <p className="text-xs font-semibold text-foreground leading-tight">
-                ${fmt(dailyLimit)}
+                {symbol}{fmt(dailyLimit)}
                 <span className="font-normal text-muted-foreground">/day</span>
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -175,7 +177,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
             <>
               {' · '}
               <span className="font-semibold text-foreground">
-                ${fmtShort(unallocated)}
+                {symbol}{fmtShort(unallocated)}
               </span>{' '}
               unallocated
             </>
