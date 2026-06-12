@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import axiosInstance from '@/utils/axiosInstance'
 import type { TopCategory } from '@/types/dashboard'
-import type { ExpensePayload, IncomePayload } from '@/types/expenseTracker'
+import type { ExpensePayload, ExpenseRecord, IncomePayload } from '@/types/expenseTracker'
 import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
 import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -52,14 +52,16 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
       .catch(console.error)
   }, [])
 
-  const handleAddExpense = async (payload: ExpensePayload) => {
+  const handleAddExpense = async (payload: ExpensePayload): Promise<ExpenseRecord | null> => {
     setIsExpenseLoading(true)
     try {
-      await axiosInstance.post('/v1/expenses', payload)
+      const res = await axiosInstance.post('/v1/expenses', payload)
       setShowExpenseAdder(false)
       onBudgetSaved() // refresh dashboard
+      return res.data?._id ? res.data : null
     } catch (err) {
       console.error(err)
+      return null
     } finally {
       setIsExpenseLoading(false)
     }

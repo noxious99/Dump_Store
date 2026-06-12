@@ -28,6 +28,7 @@ import type {
   CategoryOption,
   ExpenseRecord,
 } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 const formatMonthLabel = (d: Date) =>
   d.toLocaleString('default', { month: 'short', year: 'numeric' })
@@ -52,6 +53,7 @@ const monthBoundaryInfo = (selected: Date) => {
 }
 
 const ExpenseTracker: React.FC = () => {
+  const { symbol } = useCurrency()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [expenseDetails, setExpenseDetails] = useState<ExpenseDetails>({
     expenseRecords: [],
@@ -141,16 +143,42 @@ const ExpenseTracker: React.FC = () => {
     })
   }
 
-  const handleAddExpense = async (val: ExpensePayload) => {
+  const handleUndoExpense = async (expenseId: string) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/${expenseId}`)
+      await fetchExpenseDetails()
+      toast.success('Expense removed')
+    } catch (error) {
+      console.error('Error undoing expense:', error)
+      toast.error('Failed to undo')
+    }
+  }
+
+  const handleAddExpense = async (
+    val: ExpensePayload,
+    opts?: { undoable?: boolean }
+  ): Promise<ExpenseRecord | null> => {
     setIsExpenseAdding(true)
     try {
-      await axiosInstance.post('/v1/expenses', val)
+      const res = await axiosInstance.post('/v1/expenses', val)
+      const created: ExpenseRecord | null = res.data?._id ? res.data : null
       setIsAddExpenseOpen(false)
       await fetchExpenseDetails()
-      toast.success('Expense added')
+      if (opts?.undoable && created) {
+        toast.success(`Logged ${symbol}${created.amount.toLocaleString()}`, {
+          action: {
+            label: 'Undo',
+            onClick: () => void handleUndoExpense(created._id),
+          },
+        })
+      } else {
+        toast.success('Expense added')
+      }
+      return created
     } catch (error) {
       console.error('Error adding expense:', error)
       toast.error('Failed to add expense')
+      return null
     } finally {
       setIsExpenseAdding(false)
     }
@@ -434,6 +462,7 @@ const ExpenseTracker: React.FC = () => {
         isOpen={isAddExpenseOpen}
         isLoading={isExpenseAdding}
         categories={categories}
+        expenseRecords={expenseDetails.expenseRecords || []}
       />
       <IncomeAdder
         addIncome={handleAddIncome}

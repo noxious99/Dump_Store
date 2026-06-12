@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Delete, Loader2Icon, CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,18 +19,17 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import type { ExpensePayload } from "@/types/expenseTracker";
+import type { ExpensePayload, ExpenseRecord } from "@/types/expenseTracker";
 import { categoryEmojiMap } from "@/utils/constant";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useCurrency } from "@/hooks/useCurrency";
+import {
+    recordCategoryUse,
+    getCategoryRanking,
+    getLastUsedCategory,
+} from "@/utils/categoryUsage";
 
 type Category = {
     _id: string;
@@ -38,11 +37,24 @@ type Category = {
 }
 
 type ExpenseAdderProps = {
-    addExpense: (expenseData: ExpensePayload) => void;
+    addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean }) => Promise<ExpenseRecord | null>;
     handlePopupExpenseDialog: (isOpen: boolean) => void;
     isOpen: boolean;
     isLoading: boolean;
     categories: Category[];
+    // Current month's records — source for the quick-add chips
+    expenseRecords?: ExpenseRecord[];
+}
+
+// A repeated (category, amount, note) combo offered as a one-tap log
+type QuickChip = {
+    key: string;
+    categoryId: string;
+    categoryName: string;
+    amount: number;
+    note: string;
+    count: number;
+    lastDate: string;
 }
 
 const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
@@ -50,17 +62,85 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
     handlePopupExpenseDialog,
     isOpen,
     isLoading,
-    categories
+    categories,
+    expenseRecords = []
 }) => {
     const [error, setError] = useState("");
     const [calcValue, setCalcValue] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
+    const [savingChipKey, setSavingChipKey] = useState<string | null>(null);
     const [addExpenseData, setAddExpenseData] = useState({
         amount: 0,
         categoryId: "",
         note: "",
     });
+    const { symbol } = useCurrency();
+
+    // Preselect the last-used category each time the sheet opens
+    useEffect(() => {
+        if (!isOpen) return;
+        setAddExpenseData((d) => {
+            if (d.categoryId) return d;
+            const last = getLastUsedCategory();
+            if (last && categories.some((c) => c._id === last)) {
+                return { ...d, categoryId: last };
+            }
+            return d;
+        });
+    }, [isOpen, categories]);
+
+    // Tiles ordered by personal usage; unused ones keep their default order
+    const orderedCategories = useMemo(() => {
+        const rank = new Map(getCategoryRanking().map((id, i) => [id, i]));
+        return [...categories].sort(
+            (a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity)
+        );
+        // re-rank on every open so fresh usage counts apply
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [categories, isOpen]);
+
+    // Quick-add chips: combos logged ≥2 times this month, most frequent first.
+    // History months never reach here — the adder only opens for the current month.
+    const quickChips = useMemo<QuickChip[]>(() => {
+        const map = new Map<string, QuickChip>();
+        for (const r of expenseRecords) {
+            if (!r.category?._id) continue;
+            const note = (r.note || "").trim();
+            const key = `${r.category._id}|${r.amount}|${note.toLowerCase()}`;
+            const existing = map.get(key);
+            if (existing) {
+                existing.count += 1;
+                if (r.date > existing.lastDate) existing.lastDate = r.date;
+            } else {
+                map.set(key, {
+                    key,
+                    categoryId: r.category._id,
+                    categoryName: r.category.name,
+                    amount: r.amount,
+                    note,
+                    count: 1,
+                    lastDate: r.date,
+                });
+            }
+        }
+        return [...map.values()]
+            .filter((c) => c.count >= 2)
+            .sort((a, b) => b.count - a.count || b.lastDate.localeCompare(a.lastDate))
+            .slice(0, 3);
+    }, [expenseRecords]);
+
+    const handleChipSave = async (chip: QuickChip) => {
+        if (savingChipKey || isLoading) return;
+        setSavingChipKey(chip.key);
+        const created = await addExpense(
+            { amount: chip.amount, categoryId: chip.categoryId, note: chip.note },
+            { undoable: true }
+        );
+        if (created) recordCategoryUse(chip.categoryId);
+        setSavingChipKey(null);
+    };
 
 
     const sanitizeInput = (input: string) => {
@@ -126,8 +206,10 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         if (selectedDate) {
             expenseData.date = selectedDate.toLocaleDateString("en-CA");
         }
-        await addExpense(expenseData);
+        const created = await addExpense(expenseData);
+        if (!created) return; // failed — keep the form so nothing is lost
 
+        recordCategoryUse(expenseData.categoryId);
         setAddExpenseData({
             amount: 0,
             categoryId: "",
@@ -135,6 +217,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         });
         setCalcValue("");
         setSelectedDate(undefined);
+        setMoreOpen(false);
         setError("");
     };
 
@@ -150,8 +233,42 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                     </AlertDescription>
                 </Alert>
             )}
+            {quickChips.length > 0 && (
+                <div className="mb-2 space-y-1.5">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Quick add
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-0.5">
+                        {quickChips.map((chip) => (
+                            <button
+                                key={chip.key}
+                                type="button"
+                                onClick={() => handleChipSave(chip)}
+                                disabled={savingChipKey !== null || isLoading}
+                                className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-grey-x100 hover:bg-grey-x200 transition-colors disabled:opacity-60 active:scale-95"
+                            >
+                                {savingChipKey === chip.key ? (
+                                    <Loader2Icon className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                                ) : (
+                                    <span className="text-sm leading-none">
+                                        {categoryEmojiMap[chip.categoryName] || "🔀"}
+                                    </span>
+                                )}
+                                <span className="text-sm font-semibold text-foreground">
+                                    {symbol}{chip.amount.toLocaleString()}
+                                </span>
+                                {chip.note && (
+                                    <span className="text-xs text-muted-foreground max-w-[72px] truncate">
+                                        {chip.note}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div className="space-y-2">
-                <div className="bg-muted rounded-lg p-2 min-h-[56px] flex items-center justify-start">
+                <div className="bg-muted rounded-lg p-2 min-h-[48px] flex items-center justify-start">
                     <p className="text-2xl font-mono text-foreground">
                         {calcValue.length === 0 ? '0' : calcValue}
                     </p>
@@ -163,7 +280,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                             key={num}
                             type="button"
                             variant="outline"
-                            className="h-12 text-base font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+                            className="h-10 text-base font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                             onClick={() => handleDigitClick(num)}
                         >
                             {num}
@@ -172,7 +289,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                     <Button
                         type="button"
                         variant="outline"
-                        className="h-12 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        className="h-10 hover:bg-destructive hover:text-destructive-foreground transition-colors"
                         onClick={() => handleDigitClick('bksp')}
                     >
                         <Delete className="h-5 w-5" />
@@ -181,7 +298,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                     <Button
                         type="button"
                         variant="outline"
-                        className="h-12 text-lg font-medium hover:bg-chart-2 hover:text-white transition-colors"
+                        className="h-10 text-lg font-medium hover:bg-chart-2 hover:text-white transition-colors"
                         onClick={() => handleDigitClick('+')}
                     >
                         +
@@ -189,7 +306,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                     <Button
                         type="button"
                         variant="outline"
-                        className="h-12 text-lg font-medium hover:bg-chart-4 hover:text-white transition-colors col-span-2"
+                        className="h-10 text-lg font-medium hover:bg-chart-4 hover:text-white transition-colors col-span-2"
                         onClick={() => handleDigitClick('-')}
                     >
                         -
@@ -197,32 +314,48 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                     <Button
                         type="button"
                         variant="outline"
-                        className="h-12 text-lg font-medium hover:bg-warning hover:text-white transition-colors col-span-2"
+                        className="h-10 text-lg font-medium hover:bg-warning hover:text-white transition-colors col-span-2"
                         onClick={() => handleDigitClick('=')}
                     >
                         =
                     </Button>
                 </div>
-                <Select
-                    value={addExpenseData.categoryId}
-                    onValueChange={(value) =>
-                        setAddExpenseData({ ...addExpenseData, categoryId: value })
-                    }
-                >
-                    <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {categories.map((option) => (
-                            <SelectItem key={option._id} value={option._id}>
-                                <span className="flex items-center gap-2">
+                <div className="grid grid-cols-5 gap-1.5">
+                    {orderedCategories.map((option) => {
+                        const selected = addExpenseData.categoryId === option._id;
+                        return (
+                            <button
+                                key={option._id}
+                                type="button"
+                                onClick={() =>
+                                    setAddExpenseData({ ...addExpenseData, categoryId: option._id })
+                                }
+                                aria-pressed={selected}
+                                className={`flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg transition-colors ${
+                                    selected
+                                        ? "bg-primary/5 ring-2 ring-primary"
+                                        : "bg-grey-x100 hover:bg-grey-x200"
+                                }`}
+                            >
+                                <span className="text-lg leading-none">
                                     {categoryEmojiMap[option.name] || "🔀"}
-                                    <span className="capitalize">{option.name}</span>
                                 </span>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                                <span className="text-[10px] font-medium capitalize truncate w-full text-center text-foreground">
+                                    {option.name}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+                {!moreOpen && !selectedDate ? (
+                    <button
+                        type="button"
+                        onClick={() => setMoreOpen(true)}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+                    >
+                        + More options
+                    </button>
+                ) : (
                 <div className="flex items-center gap-2">
                     <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                         <PopoverTrigger asChild>
@@ -262,6 +395,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                         </button>
                     )}
                 </div>
+                )}
                 <Input
                     type="text"
                     placeholder="Add a note "
