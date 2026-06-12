@@ -17,6 +17,7 @@ import BudgetStrip from '@/feature-component/expense-tracker/BudgetStrip'
 import MobileFab from '@/feature-component/expense-tracker/MobileFab'
 import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList'
 import RecordDetailSheet from '@/feature-component/expense-tracker/RecordDetailSheet'
+import IncomeDetailSheet from '@/feature-component/expense-tracker/IncomeDetailSheet'
 import TransactionAdder, {
   type TransactionMode,
 } from '@/feature-component/expense-tracker/TransactionAdder'
@@ -34,6 +35,7 @@ import type {
   BudgetAllocation,
   CategoryOption,
   ExpenseRecord,
+  IncomeRecord,
   RecurringRule,
   RecurringRulePayload,
 } from '@/types/expenseTracker'
@@ -88,6 +90,8 @@ const ExpenseTracker: React.FC = () => {
     null
   )
   const [recordSheetOpen, setRecordSheetOpen] = useState(false)
+  const [selectedIncome, setSelectedIncome] = useState<IncomeRecord | null>(null)
+  const [incomeSheetOpen, setIncomeSheetOpen] = useState(false)
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
   const [recurringMonthlyTotal, setRecurringMonthlyTotal] = useState(0)
 
@@ -317,6 +321,31 @@ const ExpenseTracker: React.FC = () => {
     } catch (error: any) {
       console.error('Error updating expense:', error)
       toast.error(error?.msg || 'Failed to update record')
+    }
+  }
+
+  const handleSaveIncome = async (
+    incomeId: string,
+    payload: { amount: number; source: string; note: string }
+  ) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/income/${incomeId}`, payload)
+      await fetchExpenseDetails()
+      toast.success('Income updated')
+    } catch (error: any) {
+      console.error('Error updating income:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to update income')
+    }
+  }
+
+  const handleDeleteIncome = async (incomeId: string) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/income/${incomeId}`)
+      await fetchExpenseDetails()
+      toast.success('Income record deleted')
+    } catch (error) {
+      console.error('Error deleting income:', error)
+      toast.error('Failed to delete income record')
     }
   }
 
@@ -564,9 +593,14 @@ const ExpenseTracker: React.FC = () => {
               <div className="lg:col-span-5 lg:min-h-0 lg:flex lg:flex-col">
                 <ExpenseRecordsList
                   expenseRecords={expenseDetails.expenseRecords}
+                  incomeRecords={expenseDetails.incomeRecords}
                   onSelectRecord={(record) => {
                     setSelectedRecord(record)
                     setRecordSheetOpen(true)
+                  }}
+                  onSelectIncome={(record) => {
+                    setSelectedIncome(record)
+                    setIncomeSheetOpen(true)
                   }}
                 />
               </div>
@@ -599,6 +633,14 @@ const ExpenseTracker: React.FC = () => {
         readOnly={isHistoryMode}
         onSave={handleSaveRecord}
         onDelete={handleDeleteRecord}
+      />
+      <IncomeDetailSheet
+        record={selectedIncome}
+        open={incomeSheetOpen}
+        onOpenChange={setIncomeSheetOpen}
+        readOnly={isHistoryMode}
+        onSave={handleSaveIncome}
+        onDelete={handleDeleteIncome}
       />
     </>
   )

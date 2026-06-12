@@ -6,6 +6,7 @@ import type { IncomePayload, RecurringRulePayload } from "@/types/expenseTracker
 import { Loader2Icon } from "lucide-react";
 import AmountPad, { evaluateAmountExpression } from "./AmountPad";
 import RepeatPicker, { DEFAULT_REPEAT, type RepeatValue } from "./RepeatPicker";
+import { incomeSourceOptions } from "@/utils/constant";
 
 interface IncomeFormProps {
     // Returns false when the save failed (so no recurring rule gets created)
@@ -14,17 +15,7 @@ interface IncomeFormProps {
     onCreateRecurringRule?: (payload: RecurringRulePayload) => Promise<void> | void;
 }
 
-const sourceOptions = [
-    { value: "salary", label: "Salary", emoji: "💼" },
-    { value: "freelance", label: "Freelance", emoji: "💻" },
-    { value: "investment", label: "Investment", emoji: "📈" },
-    { value: "rental", label: "Rental", emoji: "🏠" },
-    { value: "gift", label: "Gift", emoji: "🎁" },
-    { value: "bonus", label: "Bonus", emoji: "💰" },
-    { value: "refund", label: "Refund", emoji: "↩️" },
-    { value: "interest", label: "Interest", emoji: "🏦" },
-    { value: "miscellaneous", label: "Misc", emoji: "🔀" },
-];
+const sourceOptions = incomeSourceOptions;
 
 const IncomeForm: React.FC<IncomeFormProps> = ({
     addIncome,

@@ -107,6 +107,36 @@ const addIncomeHandler = async (req, res) => {
 };
 
 
+/**
+ * @desc    Update an income record (amount, source, note)
+ * @route   PATCH /api/v1/expenses/income/:id
+ * @access  Private
+ */
+const updateIncomeHandler = async (req, res) => {
+    try {
+        const { amount, source, note } = req.body;
+        const result = await expenseService.updateIncome(req.user.id, req.params.id, { amount, source, note });
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Delete an income record
+ * @route   DELETE /api/v1/expenses/income/:id
+ * @access  Private
+ */
+const deleteIncomeHandler = async (req, res) => {
+    try {
+        const result = await expenseService.deleteIncome(req.user.id, req.params.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 500).json({ msg: error.message });
+    }
+};
+
+
 // ── Budget ───────────────────────────────────────────────
 
 /**
@@ -372,6 +402,8 @@ module.exports = {
     updateExpenseHandler,
     deleteExpenseHandler,
     addIncomeHandler,
+    updateIncomeHandler,
+    deleteIncomeHandler,
     addMonthlyBudgetHandler,
     updateMonthlyBudgetHandler,
     getMonthlyBudgetHandler,

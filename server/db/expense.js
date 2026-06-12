@@ -31,6 +31,24 @@ const insertIncome = async (userId, amount, source, note, extra = {}) => {
     return Income.create({ userId, amount, source, note, ...extra });
 };
 
+const findIncomeRecordsInRange = async (userId, start, end) => {
+    return Income.find({ userId, createdAt: { $gte: start, $lte: end } })
+        .sort({ createdAt: -1 })
+        .select('_id amount source note createdAt recurringRuleId');
+};
+
+const updateIncomeById = async (userId, incomeId, updateData) => {
+    return Income.findOneAndUpdate(
+        { userId, _id: incomeId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+    );
+};
+
+const deleteIncomeById = async (userId, incomeId) => {
+    return Income.findOneAndDelete({ userId, _id: incomeId });
+};
+
 
 // ── Recurring Rules ──────────────────────────────────────
 
@@ -157,6 +175,9 @@ module.exports = {
     deleteExpenseById,
     updateExpenseById,
     insertIncome,
+    findIncomeRecordsInRange,
+    updateIncomeById,
+    deleteIncomeById,
     insertRecurringRule,
     findRecurringRulesByUser,
     findRecurringRuleById,

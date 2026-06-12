@@ -331,6 +331,30 @@ const addIncome = async (userId, amount, source, note) => {
     return expenseRepository.insertIncome(userId, amount, source, note);
 };
 
+const updateIncome = async (userId, incomeId, { amount, source, note }) => {
+    const updateData = {};
+    if (amount !== undefined) {
+        if (isNaN(amount) || amount <= 0) throw new Error('Amount must be greater than 0');
+        updateData.amount = amount;
+    }
+    if (source !== undefined) {
+        if (!String(source).trim()) throw new Error('Source cannot be empty');
+        updateData.source = source;
+    }
+    if (note !== undefined) updateData.note = note;
+    if (Object.keys(updateData).length === 0) throw new Error('Nothing to update');
+
+    const updated = await expenseRepository.updateIncomeById(userId, incomeId, updateData);
+    if (!updated) throw new Error('Income record not found');
+    return updated;
+};
+
+const deleteIncome = async (userId, incomeId) => {
+    const deleted = await expenseRepository.deleteIncomeById(userId, incomeId);
+    if (!deleted) throw new Error('Income record not found');
+    return { message: 'Deleted successfully' };
+};
+
 
 // ── Budget ───────────────────────────────────────────────
 
@@ -466,15 +490,16 @@ const getExpenseDetailsOfMonth = async (userId, startOfMonth, endOfMonth) => {
     // Lazy materialization: due recurring records spring into existence on read
     const recurring = await materializeDueRecurring(userId);
 
-    const [totalSpend, totalIncome, topCategory, expenseRecords, monthlyBudget] = await Promise.all([
+    const [totalSpend, totalIncome, topCategory, expenseRecords, incomeRecords, monthlyBudget] = await Promise.all([
         getMonthlyTotalExpense(userId, startOfMonth, endOfMonth),
         getMonthlyTotalIncome(userId, startOfMonth, endOfMonth),
         getTopCategories(userId, startOfMonth, endOfMonth),
         getExpenseRecords(userId, startOfMonth, endOfMonth),
+        expenseRepository.findIncomeRecordsInRange(userId, startOfMonth, endOfMonth),
         getCurrentMonthBudget(userId, startOfMonth)
     ]);
 
-    return { totalSpend, totalIncome, topCategory, expenseRecords, monthlyBudget, recurring };
+    return { totalSpend, totalIncome, topCategory, expenseRecords, incomeRecords, monthlyBudget, recurring };
 };
 
 const getDashboardSummary = async (userId, startOfMonth, endOfMonth) => {
@@ -503,6 +528,8 @@ module.exports = {
     deleteExpense,
     updateExpense,
     addIncome,
+    updateIncome,
+    deleteIncome,
     addMonthlyBudget,
     getMonthlyBudget,
     updateMonthlyBudget,

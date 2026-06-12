@@ -29,6 +29,7 @@ export interface ExpenseDetails {
         amount: number;
     }>;
     expenseRecords?: ExpenseRecord[];
+    incomeRecords?: IncomeRecord[];
     monthlyBudget: {
         _id: string,
         amount: number,
@@ -53,6 +54,15 @@ export interface IncomePayload {
     amount: number;
     source: string;
     note: string;
+}
+
+export interface IncomeRecord {
+    _id: string;
+    amount: number;
+    source: string;
+    note?: string;
+    createdAt: string;
+    recurringRuleId?: string;
 }
 
 export interface BudgetAllocation {

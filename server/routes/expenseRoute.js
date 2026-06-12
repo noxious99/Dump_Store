@@ -10,6 +10,8 @@ router.get('/details', auth, expenseController.getExpenseDetailsHandler);
 
 // Income
 router.post('/add-income', auth, expenseController.addIncomeHandler);
+router.patch('/income/:id', auth, expenseController.updateIncomeHandler);
+router.delete('/income/:id', auth, expenseController.deleteIncomeHandler);
 
 // Budget
 router.post('/monthly-budget', auth, expenseController.addMonthlyBudgetHandler);
