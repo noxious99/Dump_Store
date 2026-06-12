@@ -17,8 +17,9 @@ import BudgetStrip from '@/feature-component/expense-tracker/BudgetStrip'
 import MobileFab from '@/feature-component/expense-tracker/MobileFab'
 import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList'
 import RecordDetailSheet from '@/feature-component/expense-tracker/RecordDetailSheet'
-import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
-import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
+import TransactionAdder, {
+  type TransactionMode,
+} from '@/feature-component/expense-tracker/TransactionAdder'
 
 import type {
   ExpenseDetails,
@@ -70,8 +71,7 @@ const ExpenseTracker: React.FC = () => {
   const [allocations, setAllocations] = useState<BudgetAllocation[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
-  const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false)
+  const [adderMode, setAdderMode] = useState<TransactionMode | null>(null)
   const [isExpenseAdding, setIsExpenseAdding] = useState(false)
   const [isIncomeAdding, setIsIncomeAdding] = useState(false)
   const [isHistoryMode, setIsHistoryMode] = useState(false)
@@ -162,7 +162,7 @@ const ExpenseTracker: React.FC = () => {
     try {
       const res = await axiosInstance.post('/v1/expenses', val)
       const created: ExpenseRecord | null = res.data?._id ? res.data : null
-      setIsAddExpenseOpen(false)
+      setAdderMode(null)
       await fetchExpenseDetails()
       if (opts?.undoable && created) {
         toast.success(`Logged ${symbol}${created.amount.toLocaleString()}`, {
@@ -188,7 +188,7 @@ const ExpenseTracker: React.FC = () => {
     setIsIncomeAdding(true)
     try {
       await axiosInstance.post('/v1/expenses/add-income', val)
-      setIsAddIncomeOpen(false)
+      setAdderMode(null)
       await fetchExpenseDetails()
       toast.success('Income added')
     } catch (error) {
@@ -359,14 +359,14 @@ const ExpenseTracker: React.FC = () => {
 
               <div className="hidden lg:flex items-center gap-2">
                 <button
-                  onClick={() => setIsAddExpenseOpen(true)}
+                  onClick={() => setAdderMode('expense')}
                   disabled={isLoading || isHistoryMode}
                   className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + Expense
                 </button>
                 <button
-                  onClick={() => setIsAddIncomeOpen(true)}
+                  onClick={() => setAdderMode('income')}
                   disabled={isLoading || isHistoryMode}
                   className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -450,25 +450,20 @@ const ExpenseTracker: React.FC = () => {
         </div>
 
         <MobileFab
-          onAddExpense={() => setIsAddExpenseOpen(true)}
-          onAddIncome={() => setIsAddIncomeOpen(true)}
+          onAdd={() => setAdderMode('expense')}
           disabled={isHistoryMode}
         />
       </div>
 
-      <ExpenseAdder
+      <TransactionAdder
+        openMode={adderMode}
+        onClose={() => setAdderMode(null)}
         addExpense={handleAddExpense}
-        handlePopupExpenseDialog={setIsAddExpenseOpen}
-        isOpen={isAddExpenseOpen}
-        isLoading={isExpenseAdding}
+        addIncome={handleAddIncome}
+        isExpenseLoading={isExpenseAdding}
+        isIncomeLoading={isIncomeAdding}
         categories={categories}
         expenseRecords={expenseDetails.expenseRecords || []}
-      />
-      <IncomeAdder
-        addIncome={handleAddIncome}
-        handlePopupIncomeDialog={setIsAddIncomeOpen}
-        isOpen={isAddIncomeOpen}
-        isLoading={isIncomeAdding}
       />
       <RecordDetailSheet
         record={selectedRecord}

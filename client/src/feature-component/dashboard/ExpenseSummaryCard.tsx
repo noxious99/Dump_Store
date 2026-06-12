@@ -14,8 +14,9 @@ import { Input } from '@/components/ui/input'
 import axiosInstance from '@/utils/axiosInstance'
 import type { TopCategory } from '@/types/dashboard'
 import type { ExpensePayload, ExpenseRecord, IncomePayload } from '@/types/expenseTracker'
-import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
-import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
+import TransactionAdder, {
+  type TransactionMode,
+} from '@/feature-component/expense-tracker/TransactionAdder'
 import { useCurrency } from '@/hooks/useCurrency'
 
 interface ExpenseSummaryCardProps {
@@ -40,8 +41,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   const [newBudget, setNewBudget] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const [showExpenseAdder, setShowExpenseAdder] = useState(false)
-  const [showIncomeAdder, setShowIncomeAdder] = useState(false)
+  const [adderMode, setAdderMode] = useState<TransactionMode | null>(null)
   const [isExpenseLoading, setIsExpenseLoading] = useState(false)
   const [isIncomeLoading, setIsIncomeLoading] = useState(false)
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>([])
@@ -56,7 +56,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
     setIsExpenseLoading(true)
     try {
       const res = await axiosInstance.post('/v1/expenses', payload)
-      setShowExpenseAdder(false)
+      setAdderMode(null)
       onBudgetSaved() // refresh dashboard
       return res.data?._id ? res.data : null
     } catch (err) {
@@ -71,7 +71,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
     setIsIncomeLoading(true)
     try {
       await axiosInstance.post('/v1/expenses/add-income', payload)
-      setShowIncomeAdder(false)
+      setAdderMode(null)
       onBudgetSaved() // refresh dashboard
     } catch (err) {
       console.error(err)
@@ -200,13 +200,13 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Action row — contextual actions live here, not floating above */}
         <div className="flex items-center gap-2 pt-3 border-t border-border">
           <button
-            onClick={() => setShowExpenseAdder(true)}
+            onClick={() => setAdderMode('expense')}
             className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
           >
             + Expense
           </button>
           <button
-            onClick={() => setShowIncomeAdder(true)}
+            onClick={() => setAdderMode('income')}
             className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
           >
             + Income
@@ -220,19 +220,14 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         </div>
       </div>
 
-      <ExpenseAdder
-        isOpen={showExpenseAdder}
-        handlePopupExpenseDialog={setShowExpenseAdder}
+      <TransactionAdder
+        openMode={adderMode}
+        onClose={() => setAdderMode(null)}
         addExpense={handleAddExpense}
-        isLoading={isExpenseLoading}
-        categories={categories}
-      />
-
-      <IncomeAdder
-        isOpen={showIncomeAdder}
-        handlePopupIncomeDialog={setShowIncomeAdder}
         addIncome={handleAddIncome}
-        isLoading={isIncomeLoading}
+        isExpenseLoading={isExpenseLoading}
+        isIncomeLoading={isIncomeLoading}
+        categories={categories}
       />
 
       {/* Budget Dialog */}

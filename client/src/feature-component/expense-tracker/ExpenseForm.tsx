@@ -1,18 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Delete, Loader2Icon, CalendarIcon, X } from "lucide-react";
+import { Loader2Icon, CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
+import AmountPad, { evaluateAmountExpression } from "./AmountPad";
 import {
     Popover,
     PopoverContent,
@@ -23,7 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import type { ExpensePayload, ExpenseRecord } from "@/types/expenseTracker";
 import { categoryEmojiMap } from "@/utils/constant";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { useCurrency } from "@/hooks/useCurrency";
 import {
     recordCategoryUse,
@@ -36,10 +24,8 @@ type Category = {
     name: string;
 }
 
-type ExpenseAdderProps = {
+type ExpenseFormProps = {
     addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean }) => Promise<ExpenseRecord | null>;
-    handlePopupExpenseDialog: (isOpen: boolean) => void;
-    isOpen: boolean;
     isLoading: boolean;
     categories: Category[];
     // Current month's records — source for the quick-add chips
@@ -57,10 +43,8 @@ type QuickChip = {
     lastDate: string;
 }
 
-const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
+const ExpenseForm: React.FC<ExpenseFormProps> = ({
     addExpense,
-    handlePopupExpenseDialog,
-    isOpen,
     isLoading,
     categories,
     expenseRecords = []
@@ -78,9 +62,8 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
     });
     const { symbol } = useCurrency();
 
-    // Preselect the last-used category each time the sheet opens
+    // Preselect the last-used category (form mounts fresh each time the adder opens)
     useEffect(() => {
-        if (!isOpen) return;
         setAddExpenseData((d) => {
             if (d.categoryId) return d;
             const last = getLastUsedCategory();
@@ -89,7 +72,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             }
             return d;
         });
-    }, [isOpen, categories]);
+    }, [categories]);
 
     // Tiles ordered by personal usage; unused ones keep their default order
     const orderedCategories = useMemo(() => {
@@ -97,9 +80,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         return [...categories].sort(
             (a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity)
         );
-        // re-rank on every open so fresh usage counts apply
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [categories, isOpen]);
+    }, [categories]);
 
     // Quick-add chips: combos logged ≥2 times this month, most frequent first.
     // History months never reach here — the adder only opens for the current month.
@@ -142,53 +123,8 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         setSavingChipKey(null);
     };
 
-
-    const sanitizeInput = (input: string) => {
-        const allowedChars = input.replace(/[^0-9+\-*/().\s]/g, '');
-        const cleanVal = allowedChars.replace(/^[+\-*/]+|[+\-*/]+$/g, '');
-        return cleanVal;
-    };
-
-    const evaluateExpression = (expression: string) => {
-        try {
-            const cleanVal = sanitizeInput(expression + "");
-            const result = new Function('return ' + cleanVal)();
-            return result;
-        } catch (error) {
-            console.error('Error evaluating expression:', error);
-            return null;
-        }
-    };
-
-    const handleDigitClick = (digit: string) => {
-        if (digit === '=') {
-            const result = evaluateExpression(calcValue);
-            setCalcValue(result);
-        } else if (digit === 'bksp') {
-            if (calcValue.length === 0) return;
-            const strVal = calcValue.toString();
-            const newValue = strVal.slice(0, -1);
-            setCalcValue(newValue);
-        } else if (digit === '+' || digit === '-') {
-            if (calcValue.length === 0) {
-                setCalcValue(digit);
-            } else {
-                const lastChar = calcValue[calcValue.length - 1];
-                if (lastChar !== '+' && lastChar !== '-') {
-                    setCalcValue(calcValue + digit);
-                } else {
-                    const newValue = calcValue.slice(0, -1) + digit;
-                    setCalcValue(newValue);
-                }
-            }
-        } else {
-            const newValue = calcValue + digit;
-            setCalcValue(newValue);
-        }
-    };
-
     const handleSubmit = async () => {
-        const result = await evaluateExpression(calcValue);
+        const result = evaluateAmountExpression(calcValue);
         setError("")
         if (result === undefined || result === null) {
             setError("Please enter a valid amount");
@@ -221,10 +157,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
         setError("");
     };
 
-    const numberButtons = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
-    const isMobile = useIsMobile();
-
-    const formBody = (
+    return (
         <>
             {error && (
                 <Alert variant="destructive" className="py-2 px-3 border-red-200 bg-red-50">
@@ -268,58 +201,7 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
                 </div>
             )}
             <div className="space-y-2">
-                <div className="bg-muted rounded-lg p-2 min-h-[48px] flex items-center justify-start">
-                    <p className="text-2xl font-mono text-foreground">
-                        {calcValue.length === 0 ? '0' : calcValue}
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-4 gap-2">
-                    {numberButtons.map((num) => (
-                        <Button
-                            key={num}
-                            type="button"
-                            variant="outline"
-                            className="h-10 text-base font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
-                            onClick={() => handleDigitClick(num)}
-                        >
-                            {num}
-                        </Button>
-                    ))}
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="h-10 hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        onClick={() => handleDigitClick('bksp')}
-                    >
-                        <Delete className="h-5 w-5" />
-                    </Button>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="h-10 text-lg font-medium hover:bg-chart-2 hover:text-white transition-colors"
-                        onClick={() => handleDigitClick('+')}
-                    >
-                        +
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="h-10 text-lg font-medium hover:bg-chart-4 hover:text-white transition-colors col-span-2"
-                        onClick={() => handleDigitClick('-')}
-                    >
-                        -
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="h-10 text-lg font-medium hover:bg-warning hover:text-white transition-colors col-span-2"
-                        onClick={() => handleDigitClick('=')}
-                    >
-                        =
-                    </Button>
-                </div>
+                <AmountPad value={calcValue} onChange={setCalcValue} />
                 <div className="grid grid-cols-5 gap-1.5">
                     {orderedCategories.map((option) => {
                         const selected = addExpenseData.categoryId === option._id;
@@ -421,35 +303,6 @@ const ExpenseAdder: React.FC<ExpenseAdderProps> = ({
             </div>
         </>
     );
-
-    if (isMobile) {
-        return (
-            <Sheet open={isOpen} onOpenChange={handlePopupExpenseDialog}>
-                <SheetContent
-                    side="bottom"
-                    className="rounded-t-2xl max-h-[92vh] overflow-y-auto p-5"
-                >
-                    <SheetHeader className="text-left mb-3">
-                        <SheetTitle className="text-base font-extrabold text-foreground">
-                            Add Expense
-                        </SheetTitle>
-                    </SheetHeader>
-                    {formBody}
-                </SheetContent>
-            </Sheet>
-        );
-    }
-
-    return (
-        <Dialog open={isOpen} onOpenChange={handlePopupExpenseDialog}>
-            <DialogContent className="w-[370px] rounded-xl">
-                <DialogHeader>
-                    <DialogTitle className="text-lg font-semibold">Add Expense</DialogTitle>
-                </DialogHeader>
-                {formBody}
-            </DialogContent>
-        </Dialog>
-    );
 };
 
-export default ExpenseAdder;
+export default ExpenseForm;
