@@ -21,6 +21,12 @@ router.post('/budget-allocate', auth, expenseController.allocateBudgetHandler);
 router.get('/budget-allocate', auth, expenseController.getBudgetBreakdownHandler);
 router.patch('/budget-allocate', auth, expenseController.updateAllocatedCategoryHandler);
 
+// Recurring rules
+router.post('/recurring', auth, expenseController.createRecurringRuleHandler);
+router.get('/recurring', auth, expenseController.getRecurringRulesHandler);
+router.patch('/recurring/:id', auth, expenseController.updateRecurringRuleHandler);
+router.delete('/recurring/:id', auth, expenseController.deleteRecurringRuleHandler);
+
 // Summary & category
 router.get('/dashboard-summary', auth, expenseController.getDashboardSummaryHandler);
 router.get('/category', auth, expenseController.getCategoryListHandler);

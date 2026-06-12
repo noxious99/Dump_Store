@@ -24,4 +24,5 @@ dist-ssr
 *.sw?
 *.iml
 plans
-plans/*docs/spec
+plans/*
+docs/spec

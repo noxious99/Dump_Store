@@ -76,6 +76,9 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground capitalize truncate">
           {r.category?.name}
+          {r.recurringRuleId && (
+            <span className="ml-1.5 text-[10px] text-muted-foreground font-normal" title="Recurring">↻</span>
+          )}
         </p>
         {r.note && (
           <p className="text-xs text-muted-foreground truncate">{r.note}</p>
@@ -149,6 +152,9 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
                     <p className="text-xs text-foreground truncate">
                       {r.note}
                     </p>
+                  )}
+                  {r.recurringRuleId && (
+                    <span className="text-[10px] text-muted-foreground" title="Recurring">↻</span>
                   )}
                 </div>
                 <p className="text-xs font-bold text-error flex-shrink-0">

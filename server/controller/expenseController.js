@@ -285,6 +285,71 @@ const getDashboardSummaryHandler = async (req, res) => {
 };
 
 
+// ── Recurring Rules ──────────────────────────────────────
+
+/**
+ * @desc    Create a recurring rule
+ * @route   POST /api/v1/expenses/recurring
+ * @access  Private
+ */
+const createRecurringRuleHandler = async (req, res) => {
+    try {
+        const { kind, amount, categoryId, source, note, frequency, anchorDate, daysOfWeek } = req.body;
+        const result = await expenseService.createRecurringRule(req.user.id, {
+            kind, amount, categoryId, source, note, frequency, anchorDate, daysOfWeek
+        });
+        return res.status(201).json(result);
+    } catch (error) {
+        return res.status(400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    List recurring rules (+ derived monthly expense total)
+ * @route   GET /api/v1/expenses/recurring
+ * @access  Private
+ */
+const getRecurringRulesHandler = async (req, res) => {
+    try {
+        const result = await expenseService.getRecurringRules(req.user.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Update a recurring rule (amount, note, anchorDay, isActive — pause/resume)
+ * @route   PATCH /api/v1/expenses/recurring/:id
+ * @access  Private
+ */
+const updateRecurringRuleHandler = async (req, res) => {
+    try {
+        const { amount, note, isActive, anchorDay } = req.body;
+        const result = await expenseService.updateRecurringRule(req.user.id, req.params.id, {
+            amount, note, isActive, anchorDay
+        });
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Delete a recurring rule (already-materialized records are untouched)
+ * @route   DELETE /api/v1/expenses/recurring/:id
+ * @access  Private
+ */
+const deleteRecurringRuleHandler = async (req, res) => {
+    try {
+        const result = await expenseService.deleteRecurringRule(req.user.id, req.params.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 500).json({ msg: error.message });
+    }
+};
+
+
 // ── Category ─────────────────────────────────────────────
 
 /**
@@ -316,4 +381,8 @@ module.exports = {
     getExpenseDetailsHandler,
     getDashboardSummaryHandler,
     getCategoryListHandler,
+    createRecurringRuleHandler,
+    getRecurringRulesHandler,
+    updateRecurringRuleHandler,
+    deleteRecurringRuleHandler,
 };

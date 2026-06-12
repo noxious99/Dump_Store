@@ -10,7 +10,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import type { ExpensePayload, ExpenseRecord } from "@/types/expenseTracker";
+import type { ExpensePayload, ExpenseRecord, RecurringRulePayload } from "@/types/expenseTracker";
+import RepeatPicker, { DEFAULT_REPEAT, type RepeatValue } from "./RepeatPicker";
 import { categoryEmojiMap } from "@/utils/constant";
 import { useCurrency } from "@/hooks/useCurrency";
 import {
@@ -25,11 +26,13 @@ type Category = {
 }
 
 type ExpenseFormProps = {
-    addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean }) => Promise<ExpenseRecord | null>;
+    addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean; skipRecurringPrompt?: boolean }) => Promise<ExpenseRecord | null>;
     isLoading: boolean;
     categories: Category[];
     // Current month's records — source for the quick-add chips
     expenseRecords?: ExpenseRecord[];
+    // When provided, the "repeats" toggle appears in More options
+    onCreateRecurringRule?: (payload: RecurringRulePayload) => Promise<void> | void;
 }
 
 // A repeated (category, amount, note) combo offered as a one-tap log
@@ -47,13 +50,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     addExpense,
     isLoading,
     categories,
-    expenseRecords = []
+    expenseRecords = [],
+    onCreateRecurringRule
 }) => {
     const [error, setError] = useState("");
     const [calcValue, setCalcValue] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [datePopoverOpen, setDatePopoverOpen] = useState(false);
     const [moreOpen, setMoreOpen] = useState(false);
+    const [repeat, setRepeat] = useState<RepeatValue>(DEFAULT_REPEAT);
     const [savingChipKey, setSavingChipKey] = useState<string | null>(null);
     const [addExpenseData, setAddExpenseData] = useState({
         amount: 0,
@@ -142,10 +147,23 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         if (selectedDate) {
             expenseData.date = selectedDate.toLocaleDateString("en-CA");
         }
-        const created = await addExpense(expenseData);
+        // The user is already creating a rule via the toggle — don't let the
+        // server's "make it automatic?" suggestion double-prompt them
+        const created = await addExpense(expenseData, { skipRecurringPrompt: repeat.on });
         if (!created) return; // failed — keep the form so nothing is lost
 
         recordCategoryUse(expenseData.categoryId);
+        if (repeat.on && onCreateRecurringRule) {
+            await onCreateRecurringRule({
+                kind: "expense",
+                amount: result,
+                categoryId: expenseData.categoryId,
+                note: expenseData.note,
+                frequency: repeat.frequency,
+                anchorDate: expenseData.date,
+                ...(repeat.frequency === "daily" ? { daysOfWeek: repeat.days } : {}),
+            });
+        }
         setAddExpenseData({
             amount: 0,
             categoryId: "",
@@ -154,6 +172,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         setCalcValue("");
         setSelectedDate(undefined);
         setMoreOpen(false);
+        setRepeat(DEFAULT_REPEAT);
         setError("");
     };
 
@@ -229,7 +248,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                         );
                     })}
                 </div>
-                {!moreOpen && !selectedDate ? (
+                {!moreOpen && !selectedDate && !repeat.on ? (
                     <button
                         type="button"
                         onClick={() => setMoreOpen(true)}
@@ -238,6 +257,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                         + More options
                     </button>
                 ) : (
+                <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                     <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                         <PopoverTrigger asChild>
@@ -276,6 +296,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                             <X className="w-3.5 h-3.5" />
                         </button>
                     )}
+                </div>
+                {onCreateRecurringRule && (
+                    <RepeatPicker value={repeat} onChange={setRepeat} />
+                )}
                 </div>
                 )}
                 <Input

@@ -21,6 +21,11 @@ const expenseSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    // Set when this record was materialized from a recurring rule
+    recurringRuleId: {
+        type: Schema.Types.ObjectId,
+        ref: 'RecurringRule',
     }
 },
     { timestamps: true }
@@ -41,10 +46,68 @@ const incomeSchema = new Schema({
     },
     note: {
         type: String
+    },
+    recurringRuleId: {
+        type: Schema.Types.ObjectId,
+        ref: 'RecurringRule',
     }
 },
     { timestamps: true }
 );
+
+const recurringRuleSchema = new Schema({
+    userId: {
+        type: String,
+        required: true,
+        index: true
+    },
+    kind: {
+        type: String,
+        enum: ['expense', 'income'],
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    categoryId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category'
+    },
+    source: {
+        type: String
+    },
+    note: {
+        type: String
+    },
+    frequency: {
+        type: String,
+        enum: ['daily', 'weekdays', 'weekly', 'monthly'],
+        required: true
+    },
+    // monthly: day-of-month 1-31 (clamped to shorter months at run time,
+    // the anchor itself never mutates); weekly: weekday 0-6 (Sunday = 0);
+    // daily/weekdays: unused (0)
+    anchorDay: {
+        type: Number,
+        required: true
+    },
+    // daily only: which weekdays run (0=Sun..6=Sat); empty/missing = all 7
+    daysOfWeek: {
+        type: [Number],
+        default: undefined
+    },
+    nextRunDate: {
+        type: Date,
+        required: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+}, { timestamps: true });
+recurringRuleSchema.index({ userId: 1, isActive: 1, nextRunDate: 1 });
 
 const monthlyBudgetSchema = new Schema({
     userId: {
@@ -125,5 +188,6 @@ const Income = mongoose.model('Income', incomeSchema);
 const MonthlyBudget = mongoose.model('MonthlyBudget', monthlyBudgetSchema);
 const BudgetAllocation = mongoose.model('BudgetAllocation', budgetAllocationSchema);
 const Category = mongoose.model('Category', categorySchema);
+const RecurringRule = mongoose.model('RecurringRule', recurringRuleSchema);
 
-module.exports = { Expense, Income, MonthlyBudget, BudgetAllocation, Category };
+module.exports = { Expense, Income, MonthlyBudget, BudgetAllocation, Category, RecurringRule };

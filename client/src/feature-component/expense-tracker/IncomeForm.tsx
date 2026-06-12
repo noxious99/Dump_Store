@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import type { IncomePayload } from "@/types/expenseTracker";
+import type { IncomePayload, RecurringRulePayload } from "@/types/expenseTracker";
 import { Loader2Icon } from "lucide-react";
 import AmountPad, { evaluateAmountExpression } from "./AmountPad";
+import RepeatPicker, { DEFAULT_REPEAT, type RepeatValue } from "./RepeatPicker";
 
 interface IncomeFormProps {
-    addIncome: (incomeData: IncomePayload) => void;
-    isLoading: boolean
+    // Returns false when the save failed (so no recurring rule gets created)
+    addIncome: (incomeData: IncomePayload) => Promise<boolean | void> | void;
+    isLoading: boolean;
+    onCreateRecurringRule?: (payload: RecurringRulePayload) => Promise<void> | void;
 }
 
 const sourceOptions = [
@@ -25,14 +28,16 @@ const sourceOptions = [
 
 const IncomeForm: React.FC<IncomeFormProps> = ({
     addIncome,
-    isLoading
+    isLoading,
+    onCreateRecurringRule
 }) => {
     const [error, setError] = useState("");
     const [calcValue, setCalcValue] = useState("");
     const [source, setSource] = useState("");
     const [note, setNote] = useState("");
+    const [repeat, setRepeat] = useState<RepeatValue>(DEFAULT_REPEAT);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setError("");
         const result = evaluateAmountExpression(calcValue);
         if (result === null) {
@@ -47,7 +52,19 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
             setError("Please select a source");
             return;
         }
-        addIncome({ amount: result, source, note });
+        const ok = await addIncome({ amount: result, source, note });
+        if (ok === false) return;
+        if (repeat.on && onCreateRecurringRule) {
+            await onCreateRecurringRule({
+                kind: "income",
+                amount: result,
+                source,
+                note,
+                frequency: repeat.frequency,
+                ...(repeat.frequency === "daily" ? { daysOfWeek: repeat.days } : {}),
+            });
+        }
+        setRepeat(DEFAULT_REPEAT);
     };
 
     return (
@@ -84,6 +101,9 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
                         );
                     })}
                 </div>
+                {onCreateRecurringRule && (
+                    <RepeatPicker value={repeat} onChange={setRepeat} />
+                )}
                 <Input
                     type="text"
                     placeholder="Add a note"

@@ -20,6 +20,12 @@ import RecordDetailSheet from '@/feature-component/expense-tracker/RecordDetailS
 import TransactionAdder, {
   type TransactionMode,
 } from '@/feature-component/expense-tracker/TransactionAdder'
+import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
+import {
+  promptKey,
+  wasPromptShown,
+  markPromptShown,
+} from '@/utils/recurringPrompt'
 
 import type {
   ExpenseDetails,
@@ -28,6 +34,8 @@ import type {
   BudgetAllocation,
   CategoryOption,
   ExpenseRecord,
+  RecurringRule,
+  RecurringRulePayload,
 } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -80,6 +88,8 @@ const ExpenseTracker: React.FC = () => {
     null
   )
   const [recordSheetOpen, setRecordSheetOpen] = useState(false)
+  const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
+  const [recurringMonthlyTotal, setRecurringMonthlyTotal] = useState(0)
 
   const monthLabel = formatMonthLabel(currentDate)
   const { dayOfMonth, daysInMonth, daysLeft } = monthBoundaryInfo(currentDate)
@@ -118,12 +128,80 @@ const ExpenseTracker: React.FC = () => {
         params: { date: formatDateParam(currentDate) },
       })
       setExpenseDetails(res.data)
+      // Lazy materialization may have just created due recurring records
+      const recurring = res.data?.recurring
+      if (recurring?.materialized > 0) {
+        toast.info(
+          recurring.materialized === 1
+            ? 'Added 1 recurring record for you'
+            : `Added ${recurring.materialized} recurring records for you` +
+              (recurring.skipped > 0 ? ` (skipped ${recurring.skipped} older)` : '')
+        )
+      }
       const id = res.data?.monthlyBudget?._id || ''
       await fetchAllocations(id)
     } catch (error) {
       console.error('Error fetching expenses:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchRecurringRules = async () => {
+    try {
+      const res = await axiosInstance.get('/v1/expenses/recurring')
+      setRecurringRules(res.data?.rules || [])
+      setRecurringMonthlyTotal(res.data?.monthlyExpenseTotal || 0)
+    } catch (error) {
+      console.error('Error fetching recurring rules:', error)
+    }
+  }
+
+  const handleCreateRecurringRule = async (payload: RecurringRulePayload) => {
+    try {
+      await axiosInstance.post('/v1/expenses/recurring', payload)
+      let phrase = 'every month'
+      if (payload.frequency === 'weekly') phrase = 'every week'
+      if (payload.frequency === 'weekdays') phrase = 'every weekday'
+      if (payload.frequency === 'daily') {
+        const days = payload.daysOfWeek
+        if (days && days.length < 7) {
+          const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+          const monFirst = [1, 2, 3, 4, 5, 6, 0].filter((d) => days.includes(d))
+          phrase = `every ${monFirst.map((d) => names[d]).join(', ')}`
+        } else {
+          phrase = 'every day'
+        }
+      }
+      toast.success(`Done, this will repeat ${phrase}`)
+      await fetchRecurringRules()
+    } catch (error: any) {
+      console.error('Error creating recurring rule:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to set up recurring')
+    }
+  }
+
+  const handleToggleRecurringRule = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/recurring/${rule._id}`, {
+        isActive: !rule.isActive,
+      })
+      toast.success(rule.isActive ? 'Paused' : 'Back on, starting next due date')
+      await fetchRecurringRules()
+    } catch (error) {
+      console.error('Error updating recurring rule:', error)
+      toast.error('Failed to update rule')
+    }
+  }
+
+  const handleDeleteRecurringRule = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/recurring/${rule._id}`)
+      toast.success('Rule deleted. Your past records are safe')
+      await fetchRecurringRules()
+    } catch (error) {
+      console.error('Error deleting recurring rule:', error)
+      toast.error('Failed to delete rule')
     }
   }
 
@@ -156,7 +234,7 @@ const ExpenseTracker: React.FC = () => {
 
   const handleAddExpense = async (
     val: ExpensePayload,
-    opts?: { undoable?: boolean }
+    opts?: { undoable?: boolean; skipRecurringPrompt?: boolean }
   ): Promise<ExpenseRecord | null> => {
     setIsExpenseAdding(true)
     try {
@@ -174,6 +252,33 @@ const ExpenseTracker: React.FC = () => {
       } else {
         toast.success('Expense added')
       }
+      // Server saw a similar expense last month. Each (category, amount)
+      // pair prompts at most once per month, and never when the user just
+      // created a rule themselves via the repeat toggle.
+      if (
+        created?.recurringSuggestion &&
+        created.category?._id &&
+        !opts?.skipRecurringPrompt
+      ) {
+        const key = promptKey(created.category._id, created.amount)
+        if (!wasPromptShown(key)) {
+          markPromptShown(key)
+          toast(`You logged this last month too. Want it added automatically every month?`, {
+            duration: 8000,
+            action: {
+              label: 'Yes',
+              onClick: () =>
+                void handleCreateRecurringRule({
+                  kind: 'expense',
+                  amount: created.amount,
+                  categoryId: created.category._id,
+                  note: created.note,
+                  frequency: 'monthly',
+                }),
+            },
+          })
+        }
+      }
       return created
     } catch (error) {
       console.error('Error adding expense:', error)
@@ -184,16 +289,18 @@ const ExpenseTracker: React.FC = () => {
     }
   }
 
-  const handleAddIncome = async (val: IncomePayload) => {
+  const handleAddIncome = async (val: IncomePayload): Promise<boolean> => {
     setIsIncomeAdding(true)
     try {
       await axiosInstance.post('/v1/expenses/add-income', val)
       setAdderMode(null)
       await fetchExpenseDetails()
       toast.success('Income added')
+      return true
     } catch (error) {
       console.error('Error adding income:', error)
       toast.error('Failed to add income')
+      return false
     } finally {
       setIsIncomeAdding(false)
     }
@@ -287,6 +394,8 @@ const ExpenseTracker: React.FC = () => {
 
   useEffect(() => {
     fetchCategories()
+    fetchRecurringRules()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -398,6 +507,14 @@ const ExpenseTracker: React.FC = () => {
                 {/* Desktop: full inline budget card, stretches to fill the column */}
                 <div className="hidden lg:flex lg:flex-col lg:min-h-0 lg:flex-1">
                   <BudgetCard {...budgetCardProps} />
+                  <div className="mt-3">
+                    <RecurringManager
+                      rules={recurringRules}
+                      monthlyExpenseTotal={recurringMonthlyTotal}
+                      onToggleActive={handleToggleRecurringRule}
+                      onDelete={handleDeleteRecurringRule}
+                    />
+                  </div>
                 </div>
 
                 {/* Mobile: compact strip → bottom sheet */}
@@ -413,6 +530,14 @@ const ExpenseTracker: React.FC = () => {
                     onOpen={() => setBudgetSheetOpen(true)}
                     historyMode={isHistoryMode}
                   />
+                  <div className="mt-3">
+                    <RecurringManager
+                      rules={recurringRules}
+                      monthlyExpenseTotal={recurringMonthlyTotal}
+                      onToggleActive={handleToggleRecurringRule}
+                      onDelete={handleDeleteRecurringRule}
+                    />
+                  </div>
                   <Sheet
                     open={budgetSheetOpen}
                     onOpenChange={setBudgetSheetOpen}
@@ -464,6 +589,7 @@ const ExpenseTracker: React.FC = () => {
         isIncomeLoading={isIncomeAdding}
         categories={categories}
         expenseRecords={expenseDetails.expenseRecords || []}
+        onCreateRecurringRule={handleCreateRecurringRule}
       />
       <RecordDetailSheet
         record={selectedRecord}

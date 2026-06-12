@@ -18,6 +18,7 @@ import type {
     ExpensePayload,
     IncomePayload,
     ExpenseRecord,
+    RecurringRulePayload,
 } from "@/types/expenseTracker";
 
 export type TransactionMode = "expense" | "income";
@@ -26,12 +27,13 @@ type TransactionAdderProps = {
     // null = closed; a mode = open on that tab
     openMode: TransactionMode | null;
     onClose: () => void;
-    addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean }) => Promise<ExpenseRecord | null>;
-    addIncome: (incomeData: IncomePayload) => void;
+    addExpense: (expenseData: ExpensePayload, opts?: { undoable?: boolean; skipRecurringPrompt?: boolean }) => Promise<ExpenseRecord | null>;
+    addIncome: (incomeData: IncomePayload) => Promise<boolean | void> | void;
     isExpenseLoading: boolean;
     isIncomeLoading: boolean;
     categories: { _id: string; name: string }[];
     expenseRecords?: ExpenseRecord[];
+    onCreateRecurringRule?: (payload: RecurringRulePayload) => Promise<void> | void;
 };
 
 const TransactionAdder: React.FC<TransactionAdderProps> = ({
@@ -43,6 +45,7 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
     isIncomeLoading,
     categories,
     expenseRecords = [],
+    onCreateRecurringRule,
 }) => {
     const [mode, setMode] = useState<TransactionMode>("expense");
     const isMobile = useIsMobile();
@@ -97,9 +100,14 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
                     isLoading={isExpenseLoading}
                     categories={categories}
                     expenseRecords={expenseRecords}
+                    onCreateRecurringRule={onCreateRecurringRule}
                 />
             ) : (
-                <IncomeForm addIncome={addIncome} isLoading={isIncomeLoading} />
+                <IncomeForm
+                    addIncome={addIncome}
+                    isLoading={isIncomeLoading}
+                    onCreateRecurringRule={onCreateRecurringRule}
+                />
             )}
         </>
     );
