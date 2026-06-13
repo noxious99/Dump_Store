@@ -516,6 +516,245 @@ const getDashboardSummary = async (userId, startOfMonth, endOfMonth) => {
 };
 
 
+// ── Analytics ────────────────────────────────────────────
+
+// Monetary amounts inside insight text use the ¤ token; the client swaps it
+// for the user's currency symbol. Keeps text composition portable while the
+// symbol stays correct per user.
+const CUR = '¤';
+const money = (n) => `${CUR}${Math.round(n).toLocaleString('en-US')}`;
+const pctChange = (cur, prev) => (prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null);
+
+const monthStartUTC = (y, m) => new Date(Date.UTC(y, m, 1, 0, 0, 0, 0));
+const monthEndUTC = (y, m) => new Date(Date.UTC(y, m + 1, 0, 23, 59, 59, 999));
+
+// Resolve a named range to current + previous-equal-length windows.
+// Date.UTC handles negative month indices (rolls the year back) for us.
+const resolveRange = (rangeKey) => {
+    const now = new Date();
+    const y = now.getUTCFullYear();
+    const m = now.getUTCMonth();
+
+    switch (rangeKey) {
+        case 'last-month':
+            return {
+                key: 'last-month', label: 'Last month', lower: 'last month',
+                granularity: 'day', monthsBack: 1,
+                start: monthStartUTC(y, m - 1), end: monthEndUTC(y, m - 1),
+                prevStart: monthStartUTC(y, m - 2), prevEnd: monthEndUTC(y, m - 2),
+            };
+        case '3-months':
+            return {
+                key: '3-months', label: 'Last 3 months', lower: 'over the last 3 months',
+                granularity: 'month', monthsBack: 3,
+                start: monthStartUTC(y, m - 2), end: monthEndUTC(y, m),
+                prevStart: monthStartUTC(y, m - 5), prevEnd: monthEndUTC(y, m - 3),
+            };
+        case '6-months':
+            return {
+                key: '6-months', label: 'Last 6 months', lower: 'over the last 6 months',
+                granularity: 'month', monthsBack: 6,
+                start: monthStartUTC(y, m - 5), end: monthEndUTC(y, m),
+                prevStart: monthStartUTC(y, m - 11), prevEnd: monthEndUTC(y, m - 6),
+            };
+        case 'this-month':
+        default:
+            return {
+                key: 'this-month', label: 'This month', lower: 'this month',
+                granularity: 'day', monthsBack: 1,
+                start: monthStartUTC(y, m), end: monthEndUTC(y, m),
+                prevStart: monthStartUTC(y, m - 1), prevEnd: monthEndUTC(y, m - 1),
+            };
+    }
+};
+
+const sumInRange = async (Model, field, userId, start, end) => {
+    const [r] = await Model.aggregate([
+        { $match: { userId, [field]: { $gte: start, $lte: end } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    return r ? r.total : 0;
+};
+
+const dailyTotals = async (Model, field, userId, start, end) => {
+    const rows = await Model.aggregate([
+        { $match: { userId, [field]: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dayOfMonth: { date: `$${field}`, timezone: 'UTC' } }, total: { $sum: '$amount' } } }
+    ]);
+    const map = {};
+    rows.forEach((r) => { map[r._id] = r.total; });
+    return map;
+};
+
+const monthlyTotals = async (Model, field, userId, start, end) => {
+    const rows = await Model.aggregate([
+        { $match: { userId, [field]: { $gte: start, $lte: end } } },
+        { $group: { _id: { y: { $year: { date: `$${field}`, timezone: 'UTC' } }, m: { $month: { date: `$${field}`, timezone: 'UTC' } } }, total: { $sum: '$amount' } } }
+    ]);
+    const map = {};
+    rows.forEach((r) => { map[`${r._id.y}-${r._id.m}`] = r.total; });
+    return map;
+};
+
+const buildDailySeries = (spendMap, incomeMap, start, end) => {
+    const days = end.getUTCDate();
+    const monthShort = start.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+    const pts = [];
+    for (let d = 1; d <= days; d++) {
+        pts.push({ label: String(d), fullLabel: `${monthShort} ${d}`, spend: spendMap[d] || 0, income: incomeMap[d] || 0 });
+    }
+    return pts;
+};
+
+const buildMonthlySeries = (spendMap, incomeMap, end, monthsBack) => {
+    const y = end.getUTCFullYear();
+    const mo = end.getUTCMonth();
+    const pts = [];
+    for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(Date.UTC(y, mo - i, 1));
+        const yy = d.getUTCFullYear();
+        const mm = d.getUTCMonth() + 1;
+        pts.push({
+            label: d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
+            fullLabel: d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }),
+            spend: spendMap[`${yy}-${mm}`] || 0,
+            income: incomeMap[`${yy}-${mm}`] || 0,
+        });
+    }
+    return pts;
+};
+
+// Aggregation-dressed-as-intelligence. Returns ranked, ready-to-render
+// insight strings (with the ¤ currency token). Top 4 by usefulness.
+const buildInsights = ({ range, totals, prevTotals, categories, prevCategoryMap, series, budget }) => {
+    const out = [];
+
+    // 1. Pace forecast — this month, with a budget set
+    if (range.key === 'this-month' && budget > 0 && totals.spend > 0) {
+        const now = new Date();
+        const daysInMonth = range.end.getUTCDate();
+        const today = Math.min(now.getUTCDate(), daysInMonth);
+        if (today >= 3) {
+            const projected = (totals.spend / today) * daysInMonth;
+            const diff = projected - budget;
+            out.push(diff > 0
+                ? { id: 'pace', tone: 'warn', text: `At this pace you'll spend about ${money(projected)} this month — ${money(diff)} over budget.` }
+                : { id: 'pace', tone: 'good', text: `At this pace you'll spend about ${money(projected)} this month — ${money(-diff)} under budget.` });
+        }
+    }
+
+    // 2. Net saved / overspent
+    if (totals.income > 0) {
+        const net = totals.income - totals.spend;
+        out.push(net >= 0
+            ? { id: 'net', tone: 'good', text: `You saved ${money(net)} ${range.lower}.` }
+            : { id: 'net', tone: 'warn', text: `You spent ${money(-net)} more than you earned ${range.lower}.` });
+    }
+
+    // 3. Biggest category jump vs the previous period
+    let jump = null;
+    for (const c of categories) {
+        const prev = prevCategoryMap[c.categoryId] || 0;
+        if (prev > 0 && c.total > prev) {
+            const change = pctChange(c.total, prev);
+            if (change !== null && change >= 20) {
+                const delta = c.total - prev;
+                if (!jump || delta > jump.delta) jump = { name: c.name, change, prev, cur: c.total, delta };
+            }
+        }
+    }
+    if (jump) {
+        out.push({ id: 'cat-jump', tone: 'warn', text: `${jump.name} is up ${jump.change}% vs the previous period (${money(jump.prev)} → ${money(jump.cur)}).` });
+    }
+
+    // 4. Overall spend trend vs the previous period
+    if (prevTotals.spend > 0) {
+        const change = pctChange(totals.spend, prevTotals.spend);
+        if (change !== null && Math.abs(change) >= 10) {
+            out.push(change > 0
+                ? { id: 'spend-trend', tone: 'warn', text: `Your spending is up ${change}% vs the previous period.` }
+                : { id: 'spend-trend', tone: 'good', text: `Your spending is down ${-change}% vs the previous period.` });
+        }
+    }
+
+    // 5. Top category share
+    if (categories.length && totals.spend > 0) {
+        const top = categories[0];
+        out.push({ id: 'top-cat', tone: 'neutral', text: `${top.name} is your biggest category at ${top.pct}% (${money(top.total)}).` });
+    }
+
+    // 6. Biggest single day (daily ranges only)
+    if (range.granularity === 'day') {
+        let peak = null;
+        for (const p of series) if (!peak || p.spend > peak.spend) peak = p;
+        if (peak && peak.spend > 0) {
+            out.push({ id: 'big-day', tone: 'neutral', text: `Your biggest day was ${money(peak.spend)} on ${peak.fullLabel}.` });
+        }
+    }
+
+    return out.slice(0, 4);
+};
+
+const getAnalytics = async (userId, rangeKey) => {
+    const range = resolveRange(rangeKey);
+
+    const [spend, income, prevSpend, prevIncome, catRows, prevCatRows] = await Promise.all([
+        sumInRange(Expense, 'date', userId, range.start, range.end),
+        sumInRange(Income, 'createdAt', userId, range.start, range.end),
+        sumInRange(Expense, 'date', userId, range.prevStart, range.prevEnd),
+        sumInRange(Income, 'createdAt', userId, range.prevStart, range.prevEnd),
+        getSpendingByCategory(userId, range.start, range.end),
+        getSpendingByCategory(userId, range.prevStart, range.prevEnd),
+    ]);
+
+    const totals = { spend, income, balance: income - spend };
+
+    const categories = catRows
+        .filter((c) => c.totalSpent > 0)
+        .map((c) => ({ categoryId: String(c.categoryId), name: c.name || 'Uncategorized', total: c.totalSpent }))
+        .sort((a, b) => b.total - a.total)
+        .map((c) => ({ ...c, pct: spend > 0 ? Math.round((c.total / spend) * 100) : 0 }));
+
+    const prevCategoryMap = {};
+    prevCatRows.forEach((c) => { prevCategoryMap[String(c.categoryId)] = c.totalSpent; });
+
+    let series;
+    if (range.granularity === 'day') {
+        const [sMap, iMap] = await Promise.all([
+            dailyTotals(Expense, 'date', userId, range.start, range.end),
+            dailyTotals(Income, 'createdAt', userId, range.start, range.end),
+        ]);
+        series = buildDailySeries(sMap, iMap, range.start, range.end);
+    } else {
+        const [sMap, iMap] = await Promise.all([
+            monthlyTotals(Expense, 'date', userId, range.start, range.end),
+            monthlyTotals(Income, 'createdAt', userId, range.start, range.end),
+        ]);
+        series = buildMonthlySeries(sMap, iMap, range.end, range.monthsBack);
+    }
+
+    let budget = 0;
+    if (range.key === 'this-month') {
+        const b = await getCurrentMonthBudget(userId, range.start);
+        budget = b.amount || 0;
+    }
+
+    const insights = buildInsights({
+        range, totals, prevTotals: { spend: prevSpend, income: prevIncome },
+        categories, prevCategoryMap, series, budget,
+    });
+
+    return {
+        range: { key: range.key, label: range.label, granularity: range.granularity },
+        totals,
+        budget,
+        categories,
+        series,
+        insights,
+    };
+};
+
+
 // ── Category ─────────────────────────────────────────────
 
 const getCategoryList = async () => {
@@ -538,6 +777,7 @@ module.exports = {
     updateAllocatedCategory,
     getExpenseDetailsOfMonth,
     getDashboardSummary,
+    getAnalytics,
     getCategoryList,
     createRecurringRule,
     getRecurringRules,

@@ -315,6 +315,22 @@ const getDashboardSummaryHandler = async (req, res) => {
 };
 
 
+/**
+ * @desc    Analytics for the insights sheet (totals, category breakdown,
+ *          time series, and ranked insights) for a named range
+ * @route   GET /api/v1/expenses/analytics?range=this-month|last-month|3-months|6-months
+ * @access  Private
+ */
+const getAnalyticsHandler = async (req, res) => {
+    try {
+        const data = await expenseService.getAnalytics(req.user.id, req.query.range);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+
 // ── Recurring Rules ──────────────────────────────────────
 
 /**
@@ -412,6 +428,7 @@ module.exports = {
     updateAllocatedCategoryHandler,
     getExpenseDetailsHandler,
     getDashboardSummaryHandler,
+    getAnalyticsHandler,
     getCategoryListHandler,
     createRecurringRuleHandler,
     getRecurringRulesHandler,

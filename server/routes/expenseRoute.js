@@ -31,6 +31,7 @@ router.delete('/recurring/:id', auth, expenseController.deleteRecurringRuleHandl
 
 // Summary & category
 router.get('/dashboard-summary', auth, expenseController.getDashboardSummaryHandler);
+router.get('/analytics', auth, expenseController.getAnalyticsHandler);
 router.get('/category', auth, expenseController.getCategoryListHandler);
 
 // Expense update — registered last so '/:id' can't shadow the

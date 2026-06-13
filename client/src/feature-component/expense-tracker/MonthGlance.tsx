@@ -29,7 +29,7 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Income</p>
           <p
-            className="text-2xl font-extrabold tracking-tight"
+            className="text-xl font-extrabold tracking-tight"
             style={{ color: income > 0 ? 'var(--success)' : 'var(--foreground)' }}
           >
             {symbol}{fmt(income)}
@@ -37,13 +37,13 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Spent</p>
-          <p className="text-2xl font-extrabold text-foreground tracking-tight">
+          <p className="text-xl font-extrabold text-foreground tracking-tight">
             {symbol}{fmt(spent)}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
-          <p className="text-2xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
+          <p className="text-xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
             {balance < 0 ? '-' : ''}{symbol}{fmt(Math.abs(balance))}
           </p>
         </div>
@@ -61,7 +61,7 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
                 className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2.5 py-1"
               >
                 <span className="text-sm">{getEmoji(c.name)}</span>
-                <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span>
+                {/* <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span> */}
                 <span className="text-xs text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
               </div>
             ))}

@@ -130,7 +130,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
             </p>
             <p className="flex items-baseline gap-1.5 flex-wrap">
               <span
-                className="text-3xl font-extrabold tracking-tight leading-tight"
+                className="text-xl font-extrabold tracking-tight leading-tight"
                 style={{
                   color: isAlert ? 'var(--error)' : 'var(--foreground)',
                 }}

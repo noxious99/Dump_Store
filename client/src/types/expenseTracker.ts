@@ -89,6 +89,37 @@ export interface CategoryOption {
     name: string;
 }
 
+export type AnalyticsRange = 'this-month' | 'last-month' | '3-months' | '6-months';
+
+export interface AnalyticsCategory {
+    categoryId: string;
+    name: string;
+    total: number;
+    pct: number;
+}
+
+export interface AnalyticsSeriesPoint {
+    label: string;
+    fullLabel: string;
+    spend: number;
+    income: number;
+}
+
+export interface AnalyticsInsight {
+    id: string;
+    tone: 'good' | 'warn' | 'neutral';
+    text: string;
+}
+
+export interface AnalyticsData {
+    range: { key: AnalyticsRange; label: string; granularity: 'day' | 'month' };
+    totals: { spend: number; income: number; balance: number };
+    budget: number;
+    categories: AnalyticsCategory[];
+    series: AnalyticsSeriesPoint[];
+    insights: AnalyticsInsight[];
+}
+
 // 'weekdays' is legacy — new daily rules narrow days via daysOfWeek instead
 export type RecurringFrequency = 'daily' | 'weekdays' | 'weekly' | 'monthly';
 

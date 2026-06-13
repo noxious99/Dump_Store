@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { FaCaretLeft, FaCaretRight } from 'react-icons/fa6'
-import { Loader2 } from 'lucide-react'
+import { Loader2, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
@@ -22,6 +22,7 @@ import TransactionAdder, {
   type TransactionMode,
 } from '@/feature-component/expense-tracker/TransactionAdder'
 import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
+import AnalyticsSheet from '@/feature-component/expense-tracker/AnalyticsSheet'
 import {
   promptKey,
   wasPromptShown,
@@ -94,6 +95,7 @@ const ExpenseTracker: React.FC = () => {
   const [incomeSheetOpen, setIncomeSheetOpen] = useState(false)
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
   const [recurringMonthlyTotal, setRecurringMonthlyTotal] = useState(0)
+  const [analyticsOpen, setAnalyticsOpen] = useState(false)
 
   const monthLabel = formatMonthLabel(currentDate)
   const { dayOfMonth, daysInMonth, daysLeft } = monthBoundaryInfo(currentDate)
@@ -466,10 +468,10 @@ const ExpenseTracker: React.FC = () => {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Expense Tracker
               </p>
-              <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5 font-heading">
+              {/* <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5 font-heading">
                 Manage your spending
                 <span className="text-primary">.</span>
-              </h1>
+              </h1> */}
             </div>
 
             <div className="flex items-center gap-2">
@@ -494,6 +496,15 @@ const ExpenseTracker: React.FC = () => {
                   <FaCaretRight className="text-sm" />
                 </button>
               </div>
+
+              {/* Insights — opens the analytics sheet with charts + filters */}
+              <button
+                onClick={() => setAnalyticsOpen(true)}
+                className="h-9 px-3 flex items-center gap-1.5 text-sm font-semibold text-foreground bg-card border border-border rounded-lg hover:bg-grey-x100 transition-colors"
+              >
+                <BarChart3 className="w-4 h-4 text-primary" />
+                <span>Insights</span>
+              </button>
 
               <div className="hidden lg:flex items-center gap-2">
                 <button
@@ -642,6 +653,7 @@ const ExpenseTracker: React.FC = () => {
         onSave={handleSaveIncome}
         onDelete={handleDeleteIncome}
       />
+      <AnalyticsSheet open={analyticsOpen} onOpenChange={setAnalyticsOpen} />
     </>
   )
 }
