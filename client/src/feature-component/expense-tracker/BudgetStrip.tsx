@@ -2,12 +2,16 @@ import React from 'react'
 import { FaWallet, FaArrowRight } from 'react-icons/fa6'
 import { Plus } from 'lucide-react'
 import { useCurrency } from '@/hooks/useCurrency'
+import { categoryEmojiMap } from '@/utils/constant'
+import type { TopCategoryItem } from '@/types/expenseTracker'
 
 interface BudgetStripProps {
   monthLabel: string
   hasBudget: boolean
   total: number
   spent: number
+  income: number
+  topCategories: TopCategoryItem[]
   daysLeft: number
   allocationCount: number
   unallocated: number
@@ -18,12 +22,15 @@ interface BudgetStripProps {
 const fmt = (n: number) => Math.round(n).toLocaleString()
 const fmtShort = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${Math.round(n)}`
+const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const BudgetStrip: React.FC<BudgetStripProps> = ({
   monthLabel,
   hasBudget,
   total,
   spent,
+  income,
+  topCategories,
   daysLeft,
   allocationCount,
   unallocated,
@@ -31,6 +38,43 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
   historyMode,
 }) => {
   const { symbol } = useCurrency()
+
+  const categoryPills = topCategories.length > 0 && (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {topCategories.slice(0, 3).map((c) => (
+        <span
+          key={c.categoryId}
+          className="flex items-center gap-1 bg-grey-x100 border border-border rounded-md px-2 py-0.5 text-[11px]"
+        >
+          <span>{getEmoji(c.name)}</span>
+          <span className="text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
+        </span>
+      ))}
+    </div>
+  )
+
+  // Secondary stats for the budgeted state (the budget hero leads, but Spent
+  // and Income still read as proper figures). Balance is omitted when income
+  // isn't tracked — it would just be a misleading -Spent.
+  const statLine = (
+    <div className="mt-3 flex items-center gap-6">
+      <div>
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Spent</p>
+        <p className="text-base font-bold text-foreground tracking-tight">
+          {symbol}{fmt(spent)}
+        </p>
+      </div>
+      <div>
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Income</p>
+        <p
+          className="text-base font-bold tracking-tight"
+          style={{ color: income > 0 ? 'var(--success)' : 'var(--foreground)' }}
+        >
+          {symbol}{fmt(income)}
+        </p>
+      </div>
+    </div>
+  )
   // ── Empty state ──────────────────────────────────────────────
   if (!hasBudget) {
     return (
@@ -52,11 +96,29 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
               </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {historyMode
-              ? 'No budget was set for this month.'
-              : 'No budget set for this month.'}
-          </p>
+          {/* No budget yet — Spent is the headline number here */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Spent
+              </p>
+              <p className="text-2xl font-extrabold text-foreground tracking-tight">
+                {symbol}{fmt(spent)}
+              </p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Income
+              </p>
+              <p
+                className="text-base font-semibold"
+                style={{ color: income > 0 ? 'var(--success)' : 'var(--foreground)' }}
+              >
+                {symbol}{fmt(income)}
+              </p>
+            </div>
+          </div>
+          {categoryPills}
         </div>
         {!historyMode && (
           <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-border bg-grey-x100">
@@ -125,8 +187,8 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
 
         <div className="flex items-end justify-between gap-3 mb-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              {isAlert ? 'Over by' : 'Left to spend'}
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              {isAlert ? 'Over budget by' : 'Left to spend'}
             </p>
             <p className="flex items-baseline gap-1.5 flex-wrap">
               <span
@@ -165,6 +227,9 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
             }}
           />
         </div>
+
+        {statLine}
+        {categoryPills}
       </div>
 
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-border bg-grey-x100">
@@ -184,7 +249,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
           )}
         </p>
         <span className="flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider whitespace-nowrap group-active:translate-x-0.5 transition-transform">
-          Manage
+          Manage budget
           <FaArrowRight className="text-[10px]" />
         </span>
       </div>

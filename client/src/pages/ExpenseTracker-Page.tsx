@@ -538,11 +538,15 @@ const ExpenseTracker: React.FC = () => {
                   the budget card shrinks to fit and its allocation list
                   scrolls internally) */}
               <div className="space-y-4 lg:space-y-3 lg:col-span-7 lg:min-h-0 lg:flex lg:flex-col">
-                <MonthGlance
-                  income={income}
-                  spent={spent}
-                  topCategories={expenseDetails.topCategory || []}
-                />
+                {/* Desktop only — on mobile the budget strip below carries
+                    the glance, so the two aren't shown stacked + redundant */}
+                <div className="hidden lg:block">
+                  <MonthGlance
+                    income={income}
+                    spent={spent}
+                    topCategories={expenseDetails.topCategory || []}
+                  />
+                </div>
 
                 {/* Desktop: full inline budget card, stretches to fill the column */}
                 <div className="hidden lg:flex lg:flex-col lg:min-h-0 lg:flex-1">
@@ -564,6 +568,8 @@ const ExpenseTracker: React.FC = () => {
                     hasBudget={Boolean(budgetId)}
                     total={budgetTotal}
                     spent={spent}
+                    income={income}
+                    topCategories={expenseDetails.topCategory || []}
                     daysLeft={daysLeft}
                     allocationCount={allocations.length}
                     unallocated={unallocated}

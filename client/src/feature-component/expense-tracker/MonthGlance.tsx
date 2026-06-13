@@ -25,7 +25,9 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
         Month at a glance
       </p>
 
-      <div className="grid grid-cols-3 gap-3 mb-4 lg:mb-3">
+      {/* Balance only shows when income is tracked — otherwise it's just
+          -Spent, a misleading wall of red for expense-only users */}
+      <div className={`grid ${income > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-4 lg:mb-3`}>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Income</p>
           <p
@@ -41,12 +43,14 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
             {symbol}{fmt(spent)}
           </p>
         </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
-          <p className="text-xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
-            {balance < 0 ? '-' : ''}{symbol}{fmt(Math.abs(balance))}
-          </p>
-        </div>
+        {income > 0 && (
+          <div>
+            <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
+            <p className="text-xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
+              {balance < 0 ? '-' : ''}{symbol}{fmt(Math.abs(balance))}
+            </p>
+          </div>
+        )}
       </div>
 
       {topCategories.length > 0 && (

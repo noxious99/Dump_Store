@@ -50,6 +50,12 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
   if (rules.length === 0) return null
 
   const activeCount = rules.filter((r) => r.isActive).length
+  const activeExpenseCount = rules.filter((r) => r.isActive && r.kind === 'expense').length
+  // Strip is about recurring spending (the ৳/mo is the expense total); fall
+  // back to the generic count if a user only has recurring income rules.
+  const recurringLabel = activeExpenseCount > 0
+    ? `${activeExpenseCount} recurring ${activeExpenseCount === 1 ? 'expense' : 'expenses'}`
+    : `${activeCount} recurring`
 
   const handleToggle = async (rule: RecurringRule) => {
     setBusyId(rule._id)
@@ -73,7 +79,7 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
           <Repeat className="w-3.5 h-3.5" />
           <span>
-            {activeCount} recurring
+            {recurringLabel}
             {monthlyExpenseTotal > 0 && (
               <> · {symbol}{monthlyExpenseTotal.toLocaleString()}/mo</>
             )}
