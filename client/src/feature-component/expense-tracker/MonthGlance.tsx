@@ -9,7 +9,7 @@ interface MonthGlanceProps {
   topCategories: TopCategoryItem[]
 }
 
-const fmt = (n: number) => n.toLocaleString()
+const fmt = (n: number) => Math.round(n).toLocaleString()
 const fmtShort = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
 const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'

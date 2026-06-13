@@ -168,7 +168,6 @@ const ExpenseTracker: React.FC = () => {
       await axiosInstance.post('/v1/expenses/recurring', payload)
       let phrase = 'every month'
       if (payload.frequency === 'weekly') phrase = 'every week'
-      if (payload.frequency === 'weekdays') phrase = 'every weekday'
       if (payload.frequency === 'daily') {
         const days = payload.daysOfWeek
         if (days && days.length < 7) {

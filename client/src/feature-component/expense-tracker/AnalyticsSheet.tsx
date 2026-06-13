@@ -101,6 +101,13 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
 
   const data = cache[range]
 
+  // Drop the cache when the sheet closes so reopening after an add/edit/delete
+  // shows fresh numbers (the cache otherwise persists stale totals for the
+  // session). Toggling ranges within one open session still caches.
+  useEffect(() => {
+    if (!open) setCache({})
+  }, [open])
+
   useEffect(() => {
     if (!open || cache[range]) return
     let cancelled = false

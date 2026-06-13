@@ -9,6 +9,7 @@ const expenseSchema = new Schema({
     amount: {
         type: Number,
         required: true,
+        min: 0,
     },
     categoryId: {
         type: Schema.Types.ObjectId,
@@ -39,6 +40,7 @@ const incomeSchema = new Schema({
     amount: {
         type: Number,
         required: true,
+        min: 0,
     },
     source: {
         type: String,

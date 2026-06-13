@@ -15,6 +15,9 @@ const addExpenseHandler = async (req, res) => {
         if (!amount || !categoryId) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ msg: 'Amount must be greater than 0' });
+        }
 
         // Validate date if provided (must not be in the future)
         let expenseDate;
@@ -97,6 +100,9 @@ const addIncomeHandler = async (req, res) => {
         const { amount, source, note } = req.body;
         if (!amount || !source) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
+        }
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ msg: 'Amount must be greater than 0' });
         }
 
         const result = await expenseService.addIncome(req.user.id, amount, source, note);

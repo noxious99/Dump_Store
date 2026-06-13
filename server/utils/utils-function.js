@@ -16,12 +16,15 @@ const getMonthBoundaries = (dateVal) => {
     return { startOfMonth, endOfMonth };
 }
 
+// UTC to stay consistent with getMonthBoundaries — otherwise a non-UTC
+// server labels budgets in local time on write but looks them up in UTC on
+// read, so budgets silently mismatch/duplicate near month boundaries.
 const getMonthName = (date) => {
-    return date.toLocaleDateString('en-US', { month: 'long' });
+    return date.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
 };
 
 const getYear = (date) => {
-    return date.getFullYear().toString();
+    return date.getUTCFullYear().toString();
 };
 
 module.exports = { getMonthBoundaries, getMonthName, getYear };

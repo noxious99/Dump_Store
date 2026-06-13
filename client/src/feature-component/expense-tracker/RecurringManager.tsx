@@ -32,7 +32,7 @@ type RecurringManagerProps = {
 const ruleLabel = (rule: RecurringRule): { emoji: string; name: string } => {
   if (rule.kind === 'expense') {
     const name = rule.categoryId?.name || 'Expense'
-    return { emoji: categoryEmojiMap[name] || '🔀', name }
+    return { emoji: categoryEmojiMap[name?.toLowerCase()] || '🔀', name }
   }
   return { emoji: '💼', name: rule.source || 'Income' }
 }

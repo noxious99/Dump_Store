@@ -203,7 +203,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                                     <Loader2Icon className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
                                 ) : (
                                     <span className="text-sm leading-none">
-                                        {categoryEmojiMap[chip.categoryName] || "🔀"}
+                                        {categoryEmojiMap[chip.categoryName?.toLowerCase()] || "🔀"}
                                     </span>
                                 )}
                                 <span className="text-sm font-semibold text-foreground">
@@ -239,7 +239,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                                 }`}
                             >
                                 <span className="text-lg leading-none">
-                                    {categoryEmojiMap[option.name] || "🔀"}
+                                    {categoryEmojiMap[option.name?.toLowerCase()] || "🔀"}
                                 </span>
                                 <span className="text-[10px] font-medium capitalize truncate w-full text-center text-foreground">
                                     {option.name}

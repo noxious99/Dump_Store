@@ -111,7 +111,10 @@ const nextOccurrence = (frequency, anchorDay, fromDate, daysOfWeek) => {
     return new Date(Date.UTC(y, m, Math.min(anchorDay, daysInTarget), 12, 0, 0));
 };
 
-const BACKFILL_CAP = 3;
+// Generous cap: fully materializes normal gaps (weekly/biweekly app opens of
+// a daily rule) so totals aren't chronically understated. It only truncates
+// pathological absences, and the dropped count is surfaced to the client.
+const BACKFILL_CAP = 60;
 
 /**
  * Materialize due recurring records. Runs lazily on every month/dashboard
