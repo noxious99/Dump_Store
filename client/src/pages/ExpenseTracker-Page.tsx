@@ -653,7 +653,16 @@ const ExpenseTracker: React.FC = () => {
         onSave={handleSaveIncome}
         onDelete={handleDeleteIncome}
       />
-      <AnalyticsSheet open={analyticsOpen} onOpenChange={setAnalyticsOpen} />
+      <AnalyticsSheet
+        open={analyticsOpen}
+        onOpenChange={setAnalyticsOpen}
+        onOpenBudget={() => {
+          setAnalyticsOpen(false)
+          // Mobile reveals the budget sheet; on desktop the budget card is
+          // already inline, so closing the analytics sheet is enough.
+          setBudgetSheetOpen(true)
+        }}
+      />
     </>
   )
 }

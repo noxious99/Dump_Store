@@ -624,34 +624,96 @@ const buildMonthlySeries = (spendMap, incomeMap, end, monthsBack) => {
     return pts;
 };
 
-// Aggregation-dressed-as-intelligence. Returns ranked, ready-to-render
-// insight strings (with the ¤ currency token). Top 4 by usefulness.
-const buildInsights = ({ range, totals, prevTotals, categories, prevCategoryMap, series, budget }) => {
-    const out = [];
+// Sum of upcoming recurring EXPENSE occurrences from each rule's next run
+// through the end of the month. Due records are materialized before this
+// runs, so nextRunDate is already in the future.
+const recurringDueThroughEndOfMonth = (rules, end) => {
+    let total = 0;
+    for (const rule of rules) {
+        let cursor = rule.nextRunDate;
+        let guard = 0;
+        while (cursor <= end && guard < 62) {
+            total += rule.amount;
+            cursor = nextOccurrence(rule.frequency, rule.anchorDay, cursor, rule.daysOfWeek);
+            guard += 1;
+        }
+    }
+    return total;
+};
 
-    // 1. Pace forecast — this month, with a budget set
-    if (range.key === 'this-month' && budget > 0 && totals.spend > 0) {
-        const now = new Date();
-        const daysInMonth = range.end.getUTCDate();
-        const today = Math.min(now.getUTCDate(), daysInMonth);
-        if (today >= 3) {
-            const projected = (totals.spend / today) * daysInMonth;
-            const diff = projected - budget;
-            out.push(diff > 0
-                ? { id: 'pace', tone: 'warn', text: `At this pace you'll spend about ${money(projected)} this month — ${money(diff)} over budget.` }
-                : { id: 'pace', tone: 'good', text: `At this pace you'll spend about ${money(projected)} this month — ${money(-diff)} under budget.` });
+// Aggregation-dressed-as-intelligence. Returns ranked insight objects
+// (id, tone, icon, text, optional action) — ranked by salience, top 5.
+// Money amounts use the ¤ token the client swaps for the currency symbol.
+const buildInsights = (ctx) => {
+    const {
+        range, totals, prevTotals, categories, prevCategoryMap, series, budget,
+        allocations, recurringSoFar, recurringStillDue, recurringMonthly,
+        daysInMonth, today, daysLeft,
+    } = ctx;
+    const out = [];
+    const isThisMonth = range.key === 'this-month';
+
+    // 1. Recurring-aware forecast + safe-to-spend (this month, budget set).
+    // projected = spent so far + recurring still due + projected discretionary.
+    // This avoids the lumpiness that breaks a naive spend/day × days estimate.
+    if (isThisMonth && budget > 0 && totals.spend > 0 && today >= 3) {
+        const discretionarySoFar = Math.max(totals.spend - recurringSoFar, 0);
+        const dailyDiscretionary = discretionarySoFar / today;
+        const projected = totals.spend + recurringStillDue + dailyDiscretionary * daysLeft;
+        const diff = projected - budget;
+        const remaining = budget - totals.spend - recurringStillDue;
+        const safePerDay = daysLeft > 0 ? remaining / daysLeft : remaining;
+
+        if (diff > 0) {
+            let text = `Careful, you're on track to spend about ${money(projected)} this month, ${money(diff)} over budget.`;
+            text += safePerDay > 0
+                ? ` Try to keep the rest under ${money(safePerDay)} a day.`
+                : ` Your upcoming bills already use up what's left, so go easy on extras.`;
+            out.push({ id: 'forecast', tone: 'warn', icon: 'gauge', score: 100, text });
+        } else {
+            let text = `Nice pace. You're on track for about ${money(projected)} this month, ${money(-diff)} under budget.`;
+            if (safePerDay > 0 && daysLeft > 0) text += ` That's about ${money(safePerDay)} a day left to spend.`;
+            out.push({ id: 'forecast', tone: 'good', icon: 'gauge', score: 70, text });
         }
     }
 
-    // 2. Net saved / overspent
+    // 2. Per-category budget burn — the worst category at/over its allocation
+    if (isThisMonth && allocations.length) {
+        let worst = null;
+        for (const a of allocations) {
+            if (a.allocated <= 0) continue;
+            const usedPct = Math.round((a.spent / a.allocated) * 100);
+            if (usedPct >= 80 && (!worst || usedPct > worst.usedPct)) worst = { ...a, usedPct };
+        }
+        if (worst) {
+            out.push(worst.usedPct >= 100
+                ? { id: 'cat-burn', tone: 'warn', icon: 'target', score: 95, action: 'budget', text: `You've gone over on ${worst.name}, ${money(worst.spent)} spent against your ${money(worst.allocated)} budget.` }
+                : { id: 'cat-burn', tone: 'warn', icon: 'target', score: 80, action: 'budget', text: `You're at ${worst.usedPct}% of your ${worst.name} budget${daysLeft > 0 ? ` with ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} to go` : ''} (${money(worst.spent)} of ${money(worst.allocated)}).` });
+        }
+    }
+
+    // 3. No budget yet — nudge to set one (unlocks the forecast)
+    if (isThisMonth && budget === 0 && totals.spend > 0) {
+        out.push({ id: 'set-budget', tone: 'neutral', icon: 'target', score: 60, action: 'budget', text: `Set a monthly budget to see if you're on track and get a daily safe-to-spend number.` });
+    }
+
+    // 4. Net saved / overspent
     if (totals.income > 0) {
         const net = totals.income - totals.spend;
         out.push(net >= 0
-            ? { id: 'net', tone: 'good', text: `You saved ${money(net)} ${range.lower}.` }
-            : { id: 'net', tone: 'warn', text: `You spent ${money(-net)} more than you earned ${range.lower}.` });
+            ? { id: 'net', tone: 'good', icon: 'piggy', score: 40, text: `You came out ahead by ${money(net)} ${range.lower}. Nice work.` }
+            : { id: 'net', tone: 'warn', icon: 'alert', score: 55, text: `Heads up, you spent ${money(-net)} more than you earned ${range.lower}.` });
     }
 
-    // 3. Biggest category jump vs the previous period
+    // 5. Recurring commitment vs income
+    if (isThisMonth && recurringMonthly > 0 && totals.income > 0) {
+        const ratio = Math.round((recurringMonthly / totals.income) * 100);
+        if (ratio >= 25) {
+            out.push({ id: 'commitment', tone: ratio >= 50 ? 'warn' : 'neutral', icon: 'repeat', score: 50, text: `Your recurring bills run about ${money(recurringMonthly)} a month, ${ratio}% of what you earn.` });
+        }
+    }
+
+    // 6. Biggest category jump vs the previous period
     let jump = null;
     for (const c of categories) {
         const prev = prevCategoryMap[c.categoryId] || 0;
@@ -664,39 +726,45 @@ const buildInsights = ({ range, totals, prevTotals, categories, prevCategoryMap,
         }
     }
     if (jump) {
-        out.push({ id: 'cat-jump', tone: 'warn', text: `${jump.name} is up ${jump.change}% vs the previous period (${money(jump.prev)} → ${money(jump.cur)}).` });
+        out.push({ id: 'cat-jump', tone: 'warn', icon: 'trend-up', score: 45, text: `You're spending more on ${jump.name} lately, up ${jump.change}% from ${money(jump.prev)} to ${money(jump.cur)}.` });
     }
 
-    // 4. Overall spend trend vs the previous period
+    // 7. Overall spend trend vs the previous period
     if (prevTotals.spend > 0) {
         const change = pctChange(totals.spend, prevTotals.spend);
         if (change !== null && Math.abs(change) >= 10) {
             out.push(change > 0
-                ? { id: 'spend-trend', tone: 'warn', text: `Your spending is up ${change}% vs the previous period.` }
-                : { id: 'spend-trend', tone: 'good', text: `Your spending is down ${-change}% vs the previous period.` });
+                ? { id: 'spend-trend', tone: 'warn', icon: 'trend-up', score: 35, text: `You're spending ${change}% more than the period before. Worth keeping an eye on.` }
+                : { id: 'spend-trend', tone: 'good', icon: 'trend-down', score: 35, text: `Your spending is down ${-change}% from the period before. Keep it up.` });
         }
     }
 
-    // 5. Top category share
+    // 8. Top category share
     if (categories.length && totals.spend > 0) {
         const top = categories[0];
-        out.push({ id: 'top-cat', tone: 'neutral', text: `${top.name} is your biggest category at ${top.pct}% (${money(top.total)}).` });
+        out.push({ id: 'top-cat', tone: 'neutral', icon: 'pie', score: 20, text: `Most of your money went to ${top.name} this time, ${top.pct}% of it (${money(top.total)}).` });
     }
 
-    // 6. Biggest single day (daily ranges only)
+    // 9. Biggest single day (daily ranges only)
     if (range.granularity === 'day') {
         let peak = null;
         for (const p of series) if (!peak || p.spend > peak.spend) peak = p;
         if (peak && peak.spend > 0) {
-            out.push({ id: 'big-day', tone: 'neutral', text: `Your biggest day was ${money(peak.spend)} on ${peak.fullLabel}.` });
+            out.push({ id: 'big-day', tone: 'neutral', icon: 'calendar', score: 15, text: `${peak.fullLabel} was your biggest spending day at ${money(peak.spend)}.` });
         }
     }
 
-    return out.slice(0, 4);
+    return out
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map(({ score, ...rest }) => rest);
 };
 
 const getAnalytics = async (userId, rangeKey) => {
     const range = resolveRange(rangeKey);
+
+    // Materialize due recurring records first so every total below counts them
+    await materializeDueRecurring(userId);
 
     const [spend, income, prevSpend, prevIncome, catRows, prevCatRows] = await Promise.all([
         sumInRange(Expense, 'date', userId, range.start, range.end),
@@ -733,15 +801,50 @@ const getAnalytics = async (userId, rangeKey) => {
         series = buildMonthlySeries(sMap, iMap, range.end, range.monthsBack);
     }
 
+    // Budget- and recurring-aware extras only make sense for the live month
     let budget = 0;
+    let allocations = [];
+    let recurringSoFar = 0;
+    let recurringStillDue = 0;
+    let recurringMonthly = 0;
     if (range.key === 'this-month') {
         const b = await getCurrentMonthBudget(userId, range.start);
         budget = b.amount || 0;
+
+        const spentByCat = {};
+        catRows.forEach((c) => { spentByCat[String(c.categoryId)] = c.totalSpent; });
+
+        const [rules, recRows, allocs] = await Promise.all([
+            expenseRepository.findRecurringRulesByUser(userId),
+            Expense.aggregate([
+                { $match: { userId, date: { $gte: range.start, $lte: range.end }, recurringRuleId: { $exists: true, $ne: null } } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]),
+            b._id ? expenseRepository.findBudgetAllocationsByBudgetId(b._id) : Promise.resolve([]),
+        ]);
+
+        recurringSoFar = recRows[0]?.total || 0;
+        const activeExpenseRules = rules.filter((r) => r.kind === 'expense' && r.isActive);
+        recurringStillDue = recurringDueThroughEndOfMonth(activeExpenseRules, range.end);
+        recurringMonthly = activeExpenseRules.reduce((s, r) => s + r.amount * runsPerMonth(r), 0);
+        allocations = allocs.map((a) => ({
+            categoryId: String(a.categoryId._id),
+            name: a.categoryId.name,
+            allocated: a.allocatedAmount,
+            spent: spentByCat[String(a.categoryId._id)] || 0,
+        }));
     }
+
+    const now = new Date();
+    const daysInMonth = range.end.getUTCDate();
+    const today = Math.min(now.getUTCDate(), daysInMonth);
+    const daysLeft = Math.max(daysInMonth - today, 0);
 
     const insights = buildInsights({
         range, totals, prevTotals: { spend: prevSpend, income: prevIncome },
         categories, prevCategoryMap, series, budget,
+        allocations, recurringSoFar, recurringStillDue, recurringMonthly,
+        daysInMonth, today, daysLeft,
     });
 
     return {

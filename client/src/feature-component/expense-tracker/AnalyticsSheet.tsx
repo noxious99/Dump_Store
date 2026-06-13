@@ -8,8 +8,23 @@ import {
   PieChart,
   ReferenceLine,
   XAxis,
+  YAxis,
 } from 'recharts'
-import { Loader2, Sparkles } from 'lucide-react'
+import {
+  Loader2,
+  Sparkles,
+  Gauge,
+  Target,
+  Repeat,
+  PiggyBank,
+  TriangleAlert,
+  TrendingUp,
+  TrendingDown,
+  PieChart as PieIcon,
+  Calendar,
+  ChevronRight,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -27,11 +42,31 @@ import axiosInstance from '@/utils/axiosInstance'
 import { categoryEmojiMap } from '@/utils/constant'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import type { AnalyticsData, AnalyticsRange } from '@/types/expenseTracker'
+import type { AnalyticsData, AnalyticsRange, AnalyticsInsight } from '@/types/expenseTracker'
 
 interface AnalyticsSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  // Lets an actionable insight (e.g. a category over budget) jump to the budget
+  onOpenBudget?: () => void
+}
+
+const INSIGHT_ICONS: Record<string, LucideIcon> = {
+  gauge: Gauge,
+  target: Target,
+  repeat: Repeat,
+  piggy: PiggyBank,
+  alert: TriangleAlert,
+  'trend-up': TrendingUp,
+  'trend-down': TrendingDown,
+  pie: PieIcon,
+  calendar: Calendar,
+}
+
+const TONE_STYLE: Record<string, { color: string; bg: string }> = {
+  good: { color: 'var(--success)', bg: 'var(--success-x100)' },
+  warn: { color: 'var(--warning)', bg: 'var(--warning-x100)' },
+  neutral: { color: 'var(--muted-foreground)', bg: 'var(--grey-x200)' },
 }
 
 const RANGES: { value: AnalyticsRange; label: string }[] = [
@@ -57,7 +92,7 @@ const fmtShort = (n: number) =>
 // so an empty config is fine here.
 const EMPTY_CONFIG = {}
 
-const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange }) => {
+const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onOpenBudget }) => {
   const { symbol } = useCurrency()
   const isMobile = useIsMobile()
   const [range, setRange] = useState<AnalyticsRange>('this-month')
@@ -122,10 +157,35 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange }) =
       ? data.budget / data.series.length
       : 0
 
-  const toneDot: Record<string, string> = {
-    good: 'var(--success)',
-    warn: 'var(--warning)',
-    neutral: 'var(--muted-foreground)',
+  const handleInsightAction = (action?: 'budget') => {
+    if (action === 'budget' && onOpenBudget) onOpenBudget()
+  }
+
+  const renderInsight = (ins: AnalyticsInsight, hero: boolean) => {
+    const Icon = INSIGHT_ICONS[ins.icon] || Sparkles
+    const tone = TONE_STYLE[ins.tone] || TONE_STYLE.neutral
+    const tappable = ins.action === 'budget' && !!onOpenBudget
+    const Wrapper: any = tappable ? 'button' : 'div'
+    return (
+      <Wrapper
+        key={ins.id}
+        onClick={tappable ? () => handleInsightAction(ins.action) : undefined}
+        className={`w-full text-left flex items-start gap-3 rounded-xl ${
+          hero ? 'p-3.5 bg-card border border-border' : 'px-3 py-2.5 bg-grey-x100'
+        } ${tappable ? 'hover:bg-grey-x100/70 transition-colors' : ''}`}
+      >
+        <span
+          className="flex items-center justify-center rounded-lg shrink-0"
+          style={{ background: tone.bg, width: hero ? 38 : 30, height: hero ? 38 : 30 }}
+        >
+          <Icon className={hero ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: tone.color }} />
+        </span>
+        <p className={`flex-1 text-foreground leading-snug ${hero ? 'text-[15px] font-medium' : 'text-sm'}`}>
+          {renderInsightText(ins.text)}
+        </p>
+        {tappable && <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />}
+      </Wrapper>
+    )
   }
 
   const body = (
@@ -175,15 +235,11 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange }) =
             </div>
           </div>
 
-          {/* Insights */}
+          {/* Insights — hero first, the rest as a compact ranked list */}
           {data.insights.length > 0 && (
             <div className="space-y-2">
-              {data.insights.map((ins) => (
-                <div key={ins.id} className="flex items-start gap-2.5 bg-grey-x100 rounded-xl px-3 py-2.5">
-                  <span className="mt-1.5 w-2 h-2 rounded-full shrink-0" style={{ background: toneDot[ins.tone] }} />
-                  <p className="text-sm text-foreground leading-snug">{renderInsightText(ins.text)}</p>
-                </div>
-              ))}
+              {renderInsight(data.insights[0], true)}
+              {data.insights.slice(1).map((ins) => renderInsight(ins, false))}
             </div>
           )}
 
@@ -203,6 +259,13 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange }) =
                   fontSize={10}
                   interval={isMonthly ? 0 : Math.max(Math.floor(data.series.length / 6), 0)}
                 />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={42}
+                  fontSize={10}
+                  tickFormatter={(v) => `${symbol}${fmtShort(Number(v))}`}
+                />
                 <ChartTooltip cursor={{ fill: 'var(--grey-x100)' }} content={<MoneyTooltip />} />
                 {dailyBudget > 0 && (
                   <ReferenceLine
@@ -219,8 +282,9 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange }) =
               </BarChart>
             </ChartContainer>
             {dailyBudget > 0 && (
-              <p className="text-[10px] text-muted-foreground text-right mt-1">
-                – – – daily budget {money(dailyBudget)}
+              <p className="flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground mt-1">
+                <span className="inline-block w-4 border-t border-dashed border-muted-foreground/60" />
+                daily budget {money(dailyBudget)}
               </p>
             )}
           </div>

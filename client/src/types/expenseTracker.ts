@@ -108,7 +108,9 @@ export interface AnalyticsSeriesPoint {
 export interface AnalyticsInsight {
     id: string;
     tone: 'good' | 'warn' | 'neutral';
+    icon: string;
     text: string;
+    action?: 'budget';
 }
 
 export interface AnalyticsData {
