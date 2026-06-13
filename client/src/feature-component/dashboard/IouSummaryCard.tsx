@@ -1,11 +1,13 @@
 import React from 'react'
 import type { IouData } from '@/types/dashboard'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface IouSummaryCardProps {
   iouData: IouData
 }
 
 const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
+  const { symbol } = useCurrency()
   const netPositive = iouData.net >= 0
 
   return (
@@ -28,7 +30,7 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
             backgroundColor: netPositive ? 'var(--success-x100)' : 'var(--error-x100)',
           }}
         >
-          {netPositive ? '+' : '-'}${Math.abs(iouData.net)} net
+          {netPositive ? '+' : '-'}{symbol}{Math.abs(iouData.net)} net
         </span>
       </div>
 
@@ -38,13 +40,13 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
           <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
             You owe
           </p>
-          <p className="text-lg font-extrabold text-error">${iouData.youOwe}</p>
+          <p className="text-lg font-extrabold text-error">{symbol}{iouData.youOwe}</p>
         </div>
         <div className="bg-grey-x100 rounded-xl p-2.5 text-center border border-border">
           <p className="text-[8px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
             Owed to you
           </p>
-          <p className="text-lg font-extrabold text-success">${iouData.owedToYou}</p>
+          <p className="text-lg font-extrabold text-success">{symbol}{iouData.owedToYou}</p>
         </div>
       </div>
 

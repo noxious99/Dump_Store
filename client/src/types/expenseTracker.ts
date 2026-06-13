@@ -10,6 +10,10 @@ export interface ExpenseRecord {
     createdAt: string;
     updatedAt: string;
     note: string;
+    // Present when the record was materialized from a recurring rule
+    recurringRuleId?: string;
+    // Server sets this on create when a similar expense existed last month
+    recurringSuggestion?: boolean;
 }
 
 export interface ExpenseDetails {
@@ -25,12 +29,18 @@ export interface ExpenseDetails {
         amount: number;
     }>;
     expenseRecords?: ExpenseRecord[];
+    incomeRecords?: IncomeRecord[];
     monthlyBudget: {
         _id: string,
         amount: number,
         alertThreshold: number,
         allocationCount: number
-    }
+    };
+    // Lazy-materialization result for this fetch (skipped = beyond backfill cap)
+    recurring?: {
+        materialized: number;
+        skipped: number;
+    };
 }
 
 export interface ExpensePayload {
@@ -44,6 +54,15 @@ export interface IncomePayload {
     amount: number;
     source: string;
     note: string;
+}
+
+export interface IncomeRecord {
+    _id: string;
+    amount: number;
+    source: string;
+    note?: string;
+    createdAt: string;
+    recurringRuleId?: string;
 }
 
 export interface BudgetAllocation {
@@ -68,4 +87,83 @@ export interface TopCategoryItem {
 export interface CategoryOption {
     _id: string;
     name: string;
+}
+
+export type AnalyticsRange = 'this-month' | 'last-month' | '3-months' | '6-months';
+
+export interface AnalyticsCategory {
+    categoryId: string;
+    name: string;
+    total: number;
+    pct: number;
+}
+
+export interface AnalyticsSeriesPoint {
+    label: string;
+    fullLabel: string;
+    spend: number;
+    income: number;
+}
+
+export interface AnalyticsInsight {
+    id: string;
+    tone: 'good' | 'warn' | 'neutral';
+    icon: string;
+    text: string;
+    action?: 'budget';
+}
+
+export interface AnalyticsData {
+    range: { key: AnalyticsRange; label: string; granularity: 'day' | 'month' };
+    totals: { spend: number; income: number; balance: number };
+    budget: number;
+    categories: AnalyticsCategory[];
+    series: AnalyticsSeriesPoint[];
+    insights: AnalyticsInsight[];
+}
+
+// 'weekdays' is legacy — new daily rules narrow days via daysOfWeek instead
+export type RecurringFrequency = 'daily' | 'weekdays' | 'weekly' | 'monthly';
+
+export const RECURRING_FREQUENCY_LABELS: Record<RecurringFrequency, string> = {
+    monthly: 'Monthly',
+    weekly: 'Weekly',
+    weekdays: 'Mon–Fri',
+    daily: 'Daily',
+};
+
+// Mon-first display order; values are JS weekday numbers (0=Sun..6=Sat)
+export const WEEKDAY_ORDER: { value: number; label: string }[] = [
+    { value: 1, label: 'M' },
+    { value: 2, label: 'T' },
+    { value: 3, label: 'W' },
+    { value: 4, label: 'T' },
+    { value: 5, label: 'F' },
+    { value: 6, label: 'S' },
+    { value: 0, label: 'S' },
+];
+
+export interface RecurringRulePayload {
+    kind: 'expense' | 'income';
+    amount: number;
+    categoryId?: string;
+    source?: string;
+    note?: string;
+    frequency: RecurringFrequency;
+    anchorDate?: string; // YYYY-MM-DD; defaults to today on the server
+    daysOfWeek?: number[]; // daily only; 0=Sun..6=Sat; omit = every day
+}
+
+export interface RecurringRule {
+    _id: string;
+    kind: 'expense' | 'income';
+    amount: number;
+    categoryId?: { _id: string; name: string } | null;
+    source?: string;
+    note?: string;
+    frequency: RecurringFrequency;
+    anchorDay: number;
+    daysOfWeek?: number[];
+    nextRunDate: string;
+    isActive: boolean;
 }

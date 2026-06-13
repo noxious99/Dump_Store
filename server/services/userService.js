@@ -7,6 +7,15 @@ const cloudinary = require("../utils/cloudinaryV2");
 
 
 /**
+ * Currency codes the app supports. Keep in sync with
+ * client/src/utils/currency.ts (SUPPORTED_CURRENCIES).
+ */
+const SUPPORTED_CURRENCIES = [
+    "USD", "EUR", "GBP", "BDT", "INR", "JPY", "CNY",
+    "CAD", "AUD", "PKR", "SAR", "AED", "MYR", "NGN", "BRL",
+];
+
+/**
  * Public projection of a user document — never exposes the password hash.
  */
 const sanitizeUser = (user) => ({
@@ -16,6 +25,9 @@ const sanitizeUser = (user) => ({
     name: user.name ?? "",
     avatar: user.avatar ?? "",
     created_at: user.createdAt,
+    preferences: {
+        currency: user.preferences?.currency ?? "USD",
+    },
 });
 
 
@@ -40,6 +52,7 @@ const loginUser = async (identifier, password) => {
             email: user.email,
             name: user.name ?? "",
             avatar: user.avatar ?? "",
+            currency: user.preferences?.currency ?? "USD",
         },
     };
 
@@ -53,7 +66,7 @@ const loginUser = async (identifier, password) => {
 /**
  * Register a new user
  */
-const registerUser = async (username, email, password) => {
+const registerUser = async (username, email, password, currency) => {
     const userNameExist = await userRepository.findUserByUsername(username);
     if (userNameExist) {
         throw new Error("username already exist, try a different one");
@@ -79,8 +92,11 @@ const registerUser = async (username, email, password) => {
         true
     );
 
+    // Locale-detected on the client; fall back to USD on anything unexpected
+    const safeCurrency = SUPPORTED_CURRENCIES.includes(currency) ? currency : "USD";
+
     const hashedPassword = await hashPassword(password);
-    const newUser = await userRepository.insertUser(username, email, avatar, hashedPassword);
+    const newUser = await userRepository.insertUser(username, email, avatar, hashedPassword, safeCurrency);
 
     const payload = {
         user: {
@@ -89,6 +105,7 @@ const registerUser = async (username, email, password) => {
             email: newUser.email,
             name: newUser.name ?? "",
             avatar: newUser.avatar ?? "",
+            currency: newUser.preferences?.currency ?? "USD",
         },
     };
 
@@ -163,6 +180,57 @@ const updateUserProfile = async (userId, { name, username, email }) => {
 
 
 /**
+ * Get user preferences
+ */
+const getUserPreferences = async (userId) => {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+        throw new Error("Profile not found");
+    }
+
+    return {
+        success: true,
+        preferences: {
+            currency: user.preferences?.currency ?? "USD",
+        },
+    };
+};
+
+
+/**
+ * Update user preferences (currently: currency)
+ */
+const updateUserPreferences = async (userId, { currency }) => {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+        throw new Error("Profile not found");
+    }
+
+    const updateData = {};
+
+    if (currency !== undefined) {
+        if (!SUPPORTED_CURRENCIES.includes(currency)) {
+            throw new Error("Unsupported currency code");
+        }
+        updateData["preferences.currency"] = currency;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+        throw new Error("Nothing to update");
+    }
+
+    const updatedUser = await userRepository.updateUserById(userId, updateData);
+
+    return {
+        success: true,
+        preferences: {
+            currency: updatedUser.preferences?.currency ?? "USD",
+        },
+    };
+};
+
+
+/**
  * Change password after verifying the current one
  */
 const changeUserPassword = async (userId, currentPassword, newPassword) => {
@@ -213,6 +281,8 @@ module.exports = {
     registerUser,
     getUserInfo,
     updateUserProfile,
+    getUserPreferences,
+    updateUserPreferences,
     changeUserPassword,
     updateUserAvatar
 };

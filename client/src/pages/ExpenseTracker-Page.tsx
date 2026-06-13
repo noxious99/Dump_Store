@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { FaCaretLeft, FaCaretRight } from 'react-icons/fa6'
-import { Loader2 } from 'lucide-react'
+import { Loader2, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
@@ -17,8 +17,17 @@ import BudgetStrip from '@/feature-component/expense-tracker/BudgetStrip'
 import MobileFab from '@/feature-component/expense-tracker/MobileFab'
 import ExpenseRecordsList from '@/feature-component/expense-tracker/ExpenseRecordsList'
 import RecordDetailSheet from '@/feature-component/expense-tracker/RecordDetailSheet'
-import ExpenseAdder from '@/feature-component/expense-tracker/ExpenseAdder'
-import IncomeAdder from '@/feature-component/expense-tracker/IncomeAdder'
+import IncomeDetailSheet from '@/feature-component/expense-tracker/IncomeDetailSheet'
+import TransactionAdder, {
+  type TransactionMode,
+} from '@/feature-component/expense-tracker/TransactionAdder'
+import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
+import AnalyticsSheet from '@/feature-component/expense-tracker/AnalyticsSheet'
+import {
+  promptKey,
+  wasPromptShown,
+  markPromptShown,
+} from '@/utils/recurringPrompt'
 
 import type {
   ExpenseDetails,
@@ -27,7 +36,11 @@ import type {
   BudgetAllocation,
   CategoryOption,
   ExpenseRecord,
+  IncomeRecord,
+  RecurringRule,
+  RecurringRulePayload,
 } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 const formatMonthLabel = (d: Date) =>
   d.toLocaleString('default', { month: 'short', year: 'numeric' })
@@ -52,6 +65,7 @@ const monthBoundaryInfo = (selected: Date) => {
 }
 
 const ExpenseTracker: React.FC = () => {
+  const { symbol } = useCurrency()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [expenseDetails, setExpenseDetails] = useState<ExpenseDetails>({
     expenseRecords: [],
@@ -68,8 +82,7 @@ const ExpenseTracker: React.FC = () => {
   const [allocations, setAllocations] = useState<BudgetAllocation[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false)
-  const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false)
+  const [adderMode, setAdderMode] = useState<TransactionMode | null>(null)
   const [isExpenseAdding, setIsExpenseAdding] = useState(false)
   const [isIncomeAdding, setIsIncomeAdding] = useState(false)
   const [isHistoryMode, setIsHistoryMode] = useState(false)
@@ -78,6 +91,11 @@ const ExpenseTracker: React.FC = () => {
     null
   )
   const [recordSheetOpen, setRecordSheetOpen] = useState(false)
+  const [selectedIncome, setSelectedIncome] = useState<IncomeRecord | null>(null)
+  const [incomeSheetOpen, setIncomeSheetOpen] = useState(false)
+  const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
+  const [recurringMonthlyTotal, setRecurringMonthlyTotal] = useState(0)
+  const [analyticsOpen, setAnalyticsOpen] = useState(false)
 
   const monthLabel = formatMonthLabel(currentDate)
   const { dayOfMonth, daysInMonth, daysLeft } = monthBoundaryInfo(currentDate)
@@ -116,12 +134,79 @@ const ExpenseTracker: React.FC = () => {
         params: { date: formatDateParam(currentDate) },
       })
       setExpenseDetails(res.data)
+      // Lazy materialization may have just created due recurring records
+      const recurring = res.data?.recurring
+      if (recurring?.materialized > 0) {
+        toast.info(
+          recurring.materialized === 1
+            ? 'Added 1 recurring record for you'
+            : `Added ${recurring.materialized} recurring records for you` +
+              (recurring.skipped > 0 ? ` (skipped ${recurring.skipped} older)` : '')
+        )
+      }
       const id = res.data?.monthlyBudget?._id || ''
       await fetchAllocations(id)
     } catch (error) {
       console.error('Error fetching expenses:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchRecurringRules = async () => {
+    try {
+      const res = await axiosInstance.get('/v1/expenses/recurring')
+      setRecurringRules(res.data?.rules || [])
+      setRecurringMonthlyTotal(res.data?.monthlyExpenseTotal || 0)
+    } catch (error) {
+      console.error('Error fetching recurring rules:', error)
+    }
+  }
+
+  const handleCreateRecurringRule = async (payload: RecurringRulePayload) => {
+    try {
+      await axiosInstance.post('/v1/expenses/recurring', payload)
+      let phrase = 'every month'
+      if (payload.frequency === 'weekly') phrase = 'every week'
+      if (payload.frequency === 'daily') {
+        const days = payload.daysOfWeek
+        if (days && days.length < 7) {
+          const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+          const monFirst = [1, 2, 3, 4, 5, 6, 0].filter((d) => days.includes(d))
+          phrase = `every ${monFirst.map((d) => names[d]).join(', ')}`
+        } else {
+          phrase = 'every day'
+        }
+      }
+      toast.success(`Done, this will repeat ${phrase}`)
+      await fetchRecurringRules()
+    } catch (error: any) {
+      console.error('Error creating recurring rule:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to set up recurring')
+    }
+  }
+
+  const handleToggleRecurringRule = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/recurring/${rule._id}`, {
+        isActive: !rule.isActive,
+      })
+      toast.success(rule.isActive ? 'Paused' : 'Back on, starting next due date')
+      await fetchRecurringRules()
+    } catch (error) {
+      console.error('Error updating recurring rule:', error)
+      toast.error('Failed to update rule')
+    }
+  }
+
+  const handleDeleteRecurringRule = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/recurring/${rule._id}`)
+      toast.success('Rule deleted. Your past records are safe')
+      await fetchRecurringRules()
+    } catch (error) {
+      console.error('Error deleting recurring rule:', error)
+      toast.error('Failed to delete rule')
     }
   }
 
@@ -141,31 +226,86 @@ const ExpenseTracker: React.FC = () => {
     })
   }
 
-  const handleAddExpense = async (val: ExpensePayload) => {
+  const handleUndoExpense = async (expenseId: string) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/${expenseId}`)
+      await fetchExpenseDetails()
+      toast.success('Expense removed')
+    } catch (error) {
+      console.error('Error undoing expense:', error)
+      toast.error('Failed to undo')
+    }
+  }
+
+  const handleAddExpense = async (
+    val: ExpensePayload,
+    opts?: { undoable?: boolean; skipRecurringPrompt?: boolean }
+  ): Promise<ExpenseRecord | null> => {
     setIsExpenseAdding(true)
     try {
-      await axiosInstance.post('/v1/expenses', val)
-      setIsAddExpenseOpen(false)
+      const res = await axiosInstance.post('/v1/expenses', val)
+      const created: ExpenseRecord | null = res.data?._id ? res.data : null
+      setAdderMode(null)
       await fetchExpenseDetails()
-      toast.success('Expense added')
+      if (opts?.undoable && created) {
+        toast.success(`Logged ${symbol}${created.amount.toLocaleString()}`, {
+          action: {
+            label: 'Undo',
+            onClick: () => void handleUndoExpense(created._id),
+          },
+        })
+      } else {
+        toast.success('Expense added')
+      }
+      // Server saw a similar expense last month. Each (category, amount)
+      // pair prompts at most once per month, and never when the user just
+      // created a rule themselves via the repeat toggle.
+      if (
+        created?.recurringSuggestion &&
+        created.category?._id &&
+        !opts?.skipRecurringPrompt
+      ) {
+        const key = promptKey(created.category._id, created.amount)
+        if (!wasPromptShown(key)) {
+          markPromptShown(key)
+          toast(`You logged this last month too. Want it added automatically every month?`, {
+            duration: 8000,
+            action: {
+              label: 'Yes',
+              onClick: () =>
+                void handleCreateRecurringRule({
+                  kind: 'expense',
+                  amount: created.amount,
+                  categoryId: created.category._id,
+                  note: created.note,
+                  frequency: 'monthly',
+                }),
+            },
+          })
+        }
+      }
+      return created
     } catch (error) {
       console.error('Error adding expense:', error)
       toast.error('Failed to add expense')
+      return null
     } finally {
       setIsExpenseAdding(false)
     }
   }
 
-  const handleAddIncome = async (val: IncomePayload) => {
+  const handleAddIncome = async (val: IncomePayload): Promise<boolean> => {
     setIsIncomeAdding(true)
     try {
       await axiosInstance.post('/v1/expenses/add-income', val)
-      setIsAddIncomeOpen(false)
+      setAdderMode(null)
       await fetchExpenseDetails()
       toast.success('Income added')
+      return true
     } catch (error) {
       console.error('Error adding income:', error)
       toast.error('Failed to add income')
+      return false
     } finally {
       setIsIncomeAdding(false)
     }
@@ -182,6 +322,31 @@ const ExpenseTracker: React.FC = () => {
     } catch (error: any) {
       console.error('Error updating expense:', error)
       toast.error(error?.msg || 'Failed to update record')
+    }
+  }
+
+  const handleSaveIncome = async (
+    incomeId: string,
+    payload: { amount: number; source: string; note: string }
+  ) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/income/${incomeId}`, payload)
+      await fetchExpenseDetails()
+      toast.success('Income updated')
+    } catch (error: any) {
+      console.error('Error updating income:', error)
+      toast.error(error?.response?.data?.msg || 'Failed to update income')
+    }
+  }
+
+  const handleDeleteIncome = async (incomeId: string) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/income/${incomeId}`)
+      await fetchExpenseDetails()
+      toast.success('Income record deleted')
+    } catch (error) {
+      console.error('Error deleting income:', error)
+      toast.error('Failed to delete income record')
     }
   }
 
@@ -259,6 +424,8 @@ const ExpenseTracker: React.FC = () => {
 
   useEffect(() => {
     fetchCategories()
+    fetchRecurringRules()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -300,10 +467,10 @@ const ExpenseTracker: React.FC = () => {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Expense Tracker
               </p>
-              <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5 font-heading">
+              {/* <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5 font-heading">
                 Manage your spending
                 <span className="text-primary">.</span>
-              </h1>
+              </h1> */}
             </div>
 
             <div className="flex items-center gap-2">
@@ -329,16 +496,25 @@ const ExpenseTracker: React.FC = () => {
                 </button>
               </div>
 
+              {/* Insights — opens the analytics sheet with charts + filters */}
+              <button
+                onClick={() => setAnalyticsOpen(true)}
+                className="h-9 px-3 flex items-center gap-1.5 text-sm font-semibold text-foreground bg-card border border-border rounded-lg hover:bg-grey-x100 transition-colors"
+              >
+                <BarChart3 className="w-4 h-4 text-primary" />
+                <span>Insights</span>
+              </button>
+
               <div className="hidden lg:flex items-center gap-2">
                 <button
-                  onClick={() => setIsAddExpenseOpen(true)}
+                  onClick={() => setAdderMode('expense')}
                   disabled={isLoading || isHistoryMode}
                   className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + Expense
                 </button>
                 <button
-                  onClick={() => setIsAddIncomeOpen(true)}
+                  onClick={() => setAdderMode('income')}
                   disabled={isLoading || isHistoryMode}
                   className="h-8 px-3 text-sm font-semibold text-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -361,15 +537,27 @@ const ExpenseTracker: React.FC = () => {
                   the budget card shrinks to fit and its allocation list
                   scrolls internally) */}
               <div className="space-y-4 lg:space-y-3 lg:col-span-7 lg:min-h-0 lg:flex lg:flex-col">
-                <MonthGlance
-                  income={income}
-                  spent={spent}
-                  topCategories={expenseDetails.topCategory || []}
-                />
+                {/* Desktop only — on mobile the budget strip below carries
+                    the glance, so the two aren't shown stacked + redundant */}
+                <div className="hidden lg:block">
+                  <MonthGlance
+                    income={income}
+                    spent={spent}
+                    topCategories={expenseDetails.topCategory || []}
+                  />
+                </div>
 
                 {/* Desktop: full inline budget card, stretches to fill the column */}
                 <div className="hidden lg:flex lg:flex-col lg:min-h-0 lg:flex-1">
                   <BudgetCard {...budgetCardProps} />
+                  <div className="mt-3">
+                    <RecurringManager
+                      rules={recurringRules}
+                      monthlyExpenseTotal={recurringMonthlyTotal}
+                      onToggleActive={handleToggleRecurringRule}
+                      onDelete={handleDeleteRecurringRule}
+                    />
+                  </div>
                 </div>
 
                 {/* Mobile: compact strip → bottom sheet */}
@@ -379,12 +567,22 @@ const ExpenseTracker: React.FC = () => {
                     hasBudget={Boolean(budgetId)}
                     total={budgetTotal}
                     spent={spent}
+                    income={income}
+                    topCategories={expenseDetails.topCategory || []}
                     daysLeft={daysLeft}
                     allocationCount={allocations.length}
                     unallocated={unallocated}
                     onOpen={() => setBudgetSheetOpen(true)}
                     historyMode={isHistoryMode}
                   />
+                  <div className="mt-3">
+                    <RecurringManager
+                      rules={recurringRules}
+                      monthlyExpenseTotal={recurringMonthlyTotal}
+                      onToggleActive={handleToggleRecurringRule}
+                      onDelete={handleDeleteRecurringRule}
+                    />
+                  </div>
                   <Sheet
                     open={budgetSheetOpen}
                     onOpenChange={setBudgetSheetOpen}
@@ -411,9 +609,14 @@ const ExpenseTracker: React.FC = () => {
               <div className="lg:col-span-5 lg:min-h-0 lg:flex lg:flex-col">
                 <ExpenseRecordsList
                   expenseRecords={expenseDetails.expenseRecords}
+                  incomeRecords={expenseDetails.incomeRecords}
                   onSelectRecord={(record) => {
                     setSelectedRecord(record)
                     setRecordSheetOpen(true)
+                  }}
+                  onSelectIncome={(record) => {
+                    setSelectedIncome(record)
+                    setIncomeSheetOpen(true)
                   }}
                 />
               </div>
@@ -422,24 +625,21 @@ const ExpenseTracker: React.FC = () => {
         </div>
 
         <MobileFab
-          onAddExpense={() => setIsAddExpenseOpen(true)}
-          onAddIncome={() => setIsAddIncomeOpen(true)}
+          onAdd={() => setAdderMode('expense')}
           disabled={isHistoryMode}
         />
       </div>
 
-      <ExpenseAdder
+      <TransactionAdder
+        openMode={adderMode}
+        onClose={() => setAdderMode(null)}
         addExpense={handleAddExpense}
-        handlePopupExpenseDialog={setIsAddExpenseOpen}
-        isOpen={isAddExpenseOpen}
-        isLoading={isExpenseAdding}
-        categories={categories}
-      />
-      <IncomeAdder
         addIncome={handleAddIncome}
-        handlePopupIncomeDialog={setIsAddIncomeOpen}
-        isOpen={isAddIncomeOpen}
-        isLoading={isIncomeAdding}
+        isExpenseLoading={isExpenseAdding}
+        isIncomeLoading={isIncomeAdding}
+        categories={categories}
+        expenseRecords={expenseDetails.expenseRecords || []}
+        onCreateRecurringRule={handleCreateRecurringRule}
       />
       <RecordDetailSheet
         record={selectedRecord}
@@ -449,6 +649,24 @@ const ExpenseTracker: React.FC = () => {
         readOnly={isHistoryMode}
         onSave={handleSaveRecord}
         onDelete={handleDeleteRecord}
+      />
+      <IncomeDetailSheet
+        record={selectedIncome}
+        open={incomeSheetOpen}
+        onOpenChange={setIncomeSheetOpen}
+        readOnly={isHistoryMode}
+        onSave={handleSaveIncome}
+        onDelete={handleDeleteIncome}
+      />
+      <AnalyticsSheet
+        open={analyticsOpen}
+        onOpenChange={setAnalyticsOpen}
+        onOpenBudget={() => {
+          setAnalyticsOpen(false)
+          // Mobile reveals the budget sheet; on desktop the budget card is
+          // already inline, so closing the analytics sheet is enough.
+          setBudgetSheetOpen(true)
+        }}
       />
     </>
   )

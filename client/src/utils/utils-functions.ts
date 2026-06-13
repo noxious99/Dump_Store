@@ -6,7 +6,8 @@ interface User {
     username: string,
     email: string,
     name: string,
-    avatar: string
+    avatar: string,
+    currency?: string
 }
 interface MyJwtPayload {
     user: User;

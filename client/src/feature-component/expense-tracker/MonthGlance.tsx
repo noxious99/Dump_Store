@@ -1,6 +1,7 @@
 import React from 'react'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { TopCategoryItem } from '@/types/expenseTracker'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface MonthGlanceProps {
   income: number
@@ -8,12 +9,13 @@ interface MonthGlanceProps {
   topCategories: TopCategoryItem[]
 }
 
-const fmt = (n: number) => n.toLocaleString()
+const fmt = (n: number) => Math.round(n).toLocaleString()
 const fmtShort = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
 const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories }) => {
+  const { symbol } = useCurrency()
   const balance = income - spent
   const balanceColor = balance >= 0 ? 'var(--success)' : 'var(--error)'
 
@@ -23,28 +25,32 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
         Month at a glance
       </p>
 
-      <div className="grid grid-cols-3 gap-3 mb-4 lg:mb-3">
+      {/* Balance only shows when income is tracked — otherwise it's just
+          -Spent, a misleading wall of red for expense-only users */}
+      <div className={`grid ${income > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-4 lg:mb-3`}>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Income</p>
           <p
-            className="text-2xl font-extrabold tracking-tight"
+            className="text-xl font-extrabold tracking-tight"
             style={{ color: income > 0 ? 'var(--success)' : 'var(--foreground)' }}
           >
-            ${fmt(income)}
+            {symbol}{fmt(income)}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground mb-1">Spent</p>
-          <p className="text-2xl font-extrabold text-foreground tracking-tight">
-            ${fmt(spent)}
+          <p className="text-xl font-extrabold text-foreground tracking-tight">
+            {symbol}{fmt(spent)}
           </p>
         </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
-          <p className="text-2xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
-            {balance < 0 ? '-' : ''}${fmt(Math.abs(balance))}
-          </p>
-        </div>
+        {income > 0 && (
+          <div>
+            <p className="text-[10px] text-muted-foreground mb-1">Balance</p>
+            <p className="text-xl font-extrabold tracking-tight" style={{ color: balanceColor }}>
+              {balance < 0 ? '-' : ''}{symbol}{fmt(Math.abs(balance))}
+            </p>
+          </div>
+        )}
       </div>
 
       {topCategories.length > 0 && (
@@ -59,8 +65,8 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
                 className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2.5 py-1"
               >
                 <span className="text-sm">{getEmoji(c.name)}</span>
-                <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span>
-                <span className="text-xs text-muted-foreground">${fmtShort(c.amount)}</span>
+                {/* <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span> */}
+                <span className="text-xs text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
               </div>
             ))}
           </div>

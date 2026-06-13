@@ -10,6 +10,8 @@ router.get('/details', auth, expenseController.getExpenseDetailsHandler);
 
 // Income
 router.post('/add-income', auth, expenseController.addIncomeHandler);
+router.patch('/income/:id', auth, expenseController.updateIncomeHandler);
+router.delete('/income/:id', auth, expenseController.deleteIncomeHandler);
 
 // Budget
 router.post('/monthly-budget', auth, expenseController.addMonthlyBudgetHandler);
@@ -21,8 +23,15 @@ router.post('/budget-allocate', auth, expenseController.allocateBudgetHandler);
 router.get('/budget-allocate', auth, expenseController.getBudgetBreakdownHandler);
 router.patch('/budget-allocate', auth, expenseController.updateAllocatedCategoryHandler);
 
+// Recurring rules
+router.post('/recurring', auth, expenseController.createRecurringRuleHandler);
+router.get('/recurring', auth, expenseController.getRecurringRulesHandler);
+router.patch('/recurring/:id', auth, expenseController.updateRecurringRuleHandler);
+router.delete('/recurring/:id', auth, expenseController.deleteRecurringRuleHandler);
+
 // Summary & category
 router.get('/dashboard-summary', auth, expenseController.getDashboardSummaryHandler);
+router.get('/analytics', auth, expenseController.getAnalyticsHandler);
 router.get('/category', auth, expenseController.getCategoryListHandler);
 
 // Expense update — registered last so '/:id' can't shadow the

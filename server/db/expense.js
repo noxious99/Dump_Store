@@ -1,11 +1,12 @@
-const { Expense, Income, MonthlyBudget, BudgetAllocation, Category } = require('../Schemas/expenseSchema');
+const { Expense, Income, MonthlyBudget, BudgetAllocation, Category, RecurringRule } = require('../Schemas/expenseSchema');
 
 
 // ── Expense ──────────────────────────────────────────────
 
-const insertExpense = async (userId, amount, categoryId, note, date) => {
+const insertExpense = async (userId, amount, categoryId, note, date, recurringRuleId) => {
     const data = { userId, amount, categoryId, note };
     if (date) data.date = date;
+    if (recurringRuleId) data.recurringRuleId = recurringRuleId;
     return Expense.create(data);
 };
 
@@ -24,8 +25,90 @@ const updateExpenseById = async (userId, expenseId, updateData) => {
 
 // ── Income ───────────────────────────────────────────────
 
-const insertIncome = async (userId, amount, source, note) => {
-    return Income.create({ userId, amount, source, note });
+const insertIncome = async (userId, amount, source, note, extra = {}) => {
+    // extra may carry createdAt + recurringRuleId for materialized records —
+    // income has no date field, so month totals key off createdAt
+    return Income.create({ userId, amount, source, note, ...extra });
+};
+
+const findIncomeRecordsInRange = async (userId, start, end) => {
+    return Income.find({ userId, createdAt: { $gte: start, $lte: end } })
+        .sort({ createdAt: -1 })
+        .select('_id amount source note createdAt recurringRuleId');
+};
+
+const updateIncomeById = async (userId, incomeId, updateData) => {
+    return Income.findOneAndUpdate(
+        { userId, _id: incomeId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+    );
+};
+
+const deleteIncomeById = async (userId, incomeId) => {
+    return Income.findOneAndDelete({ userId, _id: incomeId });
+};
+
+
+// ── Recurring Rules ──────────────────────────────────────
+
+const insertRecurringRule = async (ruleData) => {
+    return RecurringRule.create(ruleData);
+};
+
+const findRecurringRulesByUser = async (userId) => {
+    return RecurringRule.find({ userId }).populate('categoryId', 'name').sort({ createdAt: -1 });
+};
+
+const findRecurringRuleById = async (userId, ruleId) => {
+    return RecurringRule.findOne({ _id: ruleId, userId });
+};
+
+const findDueRecurringRules = async (userId, now) => {
+    return RecurringRule.find({ userId, isActive: true, nextRunDate: { $lte: now } });
+};
+
+// Atomically advance nextRunDate — only succeeds if no parallel request
+// already claimed this run, so concurrent reads can't double-materialize.
+const claimRecurringRun = async (ruleId, expectedNextRunDate, newNextRunDate) => {
+    return RecurringRule.findOneAndUpdate(
+        { _id: ruleId, nextRunDate: expectedNextRunDate },
+        { $set: { nextRunDate: newNextRunDate } },
+        { new: false }
+    );
+};
+
+const updateRecurringRuleById = async (userId, ruleId, updateData) => {
+    return RecurringRule.findOneAndUpdate(
+        { _id: ruleId, userId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+    ).populate('categoryId', 'name');
+};
+
+const deleteRecurringRuleById = async (userId, ruleId) => {
+    return RecurringRule.findOneAndDelete({ _id: ruleId, userId });
+};
+
+const findActiveRecurringRuleMatch = async (userId, categoryId, minAmount, maxAmount) => {
+    return RecurringRule.findOne({
+        userId,
+        kind: 'expense',
+        isActive: true,
+        categoryId,
+        amount: { $gte: minAmount, $lte: maxAmount },
+    });
+};
+
+// Used by the "make it automatic?" detection: was there a similar expense
+// in the given (previous-month) window?
+const findSimilarExpenseInRange = async (userId, categoryId, minAmount, maxAmount, start, end) => {
+    return Expense.findOne({
+        userId,
+        categoryId,
+        amount: { $gte: minAmount, $lte: maxAmount },
+        date: { $gte: start, $lte: end },
+    });
 };
 
 
@@ -92,6 +175,18 @@ module.exports = {
     deleteExpenseById,
     updateExpenseById,
     insertIncome,
+    findIncomeRecordsInRange,
+    updateIncomeById,
+    deleteIncomeById,
+    insertRecurringRule,
+    findRecurringRulesByUser,
+    findRecurringRuleById,
+    findDueRecurringRules,
+    claimRecurringRun,
+    updateRecurringRuleById,
+    deleteRecurringRuleById,
+    findActiveRecurringRuleMatch,
+    findSimilarExpenseInRange,
     insertMonthlyBudget,
     findMonthlyBudget,
     findBudgetById,

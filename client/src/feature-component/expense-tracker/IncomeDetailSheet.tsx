@@ -7,41 +7,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { categoryEmojiMap } from '@/utils/constant'
-import type { ExpenseRecord, CategoryOption } from '@/types/expenseTracker'
+import { incomeSourceOptions, incomeSourceEmojiMap } from '@/utils/constant'
+import type { IncomeRecord } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
-interface RecordDetailSheetProps {
-  record: ExpenseRecord | null
+interface IncomeDetailSheetProps {
+  record: IncomeRecord | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  categories: CategoryOption[]
   readOnly?: boolean
   onSave: (
-    expenseId: string,
-    payload: { amount: number; note: string; categoryId: string }
+    incomeId: string,
+    payload: { amount: number; source: string; note: string }
   ) => Promise<void> | void
-  onDelete: (expenseId: string) => Promise<void> | void
+  onDelete: (incomeId: string) => Promise<void> | void
 }
 
 type Mode = 'view' | 'edit' | 'confirm-delete'
 
 const fmt = (n: number) => Math.round(n).toLocaleString()
-const getEmoji = (name: string) =>
-  categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
+const sourceLabel = (source: string) =>
+  incomeSourceOptions.find((o) => o.value === source)?.label || source
 
-const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
+const IncomeDetailSheet: React.FC<IncomeDetailSheetProps> = ({
   record,
   open,
   onOpenChange,
-  categories,
   readOnly = false,
   onSave,
   onDelete,
@@ -49,7 +40,7 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   const { symbol } = useCurrency()
   const [mode, setMode] = useState<Mode>('view')
   const [isBusy, setIsBusy] = useState(false)
-  const [draft, setDraft] = useState({ amount: '', note: '', categoryId: '' })
+  const [draft, setDraft] = useState({ amount: '', source: '', note: '' })
 
   // Reset to a clean view whenever a (new) record is shown
   useEffect(() => {
@@ -58,18 +49,17 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
       setIsBusy(false)
       setDraft({
         amount: String(record.amount),
+        source: record.source,
         note: record.note || '',
-        categoryId: record.category?._id || '',
       })
     }
   }, [open, record])
 
   if (!record) return null
 
-  const when = moment(record.date || record.createdAt)
+  const when = moment(record.createdAt)
   const draftAmount = Number(draft.amount)
-  const canSave =
-    !Number.isNaN(draftAmount) && draftAmount > 0 && draft.categoryId
+  const canSave = !Number.isNaN(draftAmount) && draftAmount > 0 && draft.source
 
   const handleSave = async () => {
     if (!canSave) return
@@ -77,8 +67,8 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
     try {
       await onSave(record._id, {
         amount: draftAmount,
+        source: draft.source,
         note: draft.note.trim(),
-        categoryId: draft.categoryId,
       })
       onOpenChange(false)
     } finally {
@@ -104,7 +94,7 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
       >
         <SheetHeader className="px-5 pt-5 pb-0 text-left">
           <SheetTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            Expense record
+            Income record
           </SheetTitle>
         </SheetHeader>
 
@@ -112,18 +102,21 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
           {/* ── Identity ──────────────────────────────────────── */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-11 h-11 rounded-xl bg-grey-x100 flex items-center justify-center text-xl flex-shrink-0">
-              {getEmoji(record.category?.name)}
+              {incomeSourceEmojiMap[record.source] || '💼'}
             </div>
             <div className="min-w-0">
               <p className="text-base font-semibold text-foreground capitalize truncate">
-                {record.category?.name}
+                {sourceLabel(record.source)}
+                {record.recurringRuleId && (
+                  <span className="ml-1.5 text-[10px] text-muted-foreground font-normal" title="Recurring">↻</span>
+                )}
               </p>
               <p className="text-xs text-muted-foreground">
                 {when.format('MMM D, YYYY')} · {when.format('h:mm A')}
               </p>
             </div>
-            <p className="ml-auto text-2xl font-extrabold text-error tracking-tight whitespace-nowrap">
-              -{symbol}{fmt(record.amount)}
+            <p className="ml-auto text-2xl font-extrabold text-success tracking-tight whitespace-nowrap">
+              +{symbol}{fmt(record.amount)}
             </p>
           </div>
 
@@ -163,29 +156,33 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                  Category
+                  Source
                 </label>
-                <Select
-                  value={draft.categoryId}
-                  onValueChange={(v) =>
-                    setDraft((prev) => ({ ...prev, categoryId: v }))
-                  }
-                >
-                  <SelectTrigger className="h-10 text-sm w-full">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem
-                        key={c._id}
-                        value={c._id}
-                        className="capitalize"
+                <div className="grid grid-cols-5 gap-1.5">
+                  {incomeSourceOptions.map((option) => {
+                    const selected = draft.source === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setDraft((prev) => ({ ...prev, source: option.value }))
+                        }
+                        aria-pressed={selected}
+                        className={`flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg transition-colors ${
+                          selected
+                            ? 'bg-primary/5 ring-2 ring-primary'
+                            : 'bg-grey-x100 hover:bg-grey-x200'
+                        }`}
                       >
-                        {getEmoji(c.name)} {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        <span className="text-lg leading-none">{option.emoji}</span>
+                        <span className="text-[10px] font-medium truncate w-full text-center text-foreground">
+                          {option.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
               <div>
@@ -245,7 +242,7 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
                 Delete this record?
               </p>
               <p className="text-xs text-muted-foreground mb-3">
-                This can't be undone.
+                This can't be undone, and your month's income total will change.
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -272,4 +269,4 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   )
 }
 
-export default RecordDetailSheet
+export default IncomeDetailSheet

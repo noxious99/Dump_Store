@@ -15,6 +15,9 @@ const addExpenseHandler = async (req, res) => {
         if (!amount || !categoryId) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ msg: 'Amount must be greater than 0' });
+        }
 
         // Validate date if provided (must not be in the future)
         let expenseDate;
@@ -98,11 +101,44 @@ const addIncomeHandler = async (req, res) => {
         if (!amount || !source) {
             return res.status(400).json({ msg: 'Please fill in all fields' });
         }
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ msg: 'Amount must be greater than 0' });
+        }
 
         const result = await expenseService.addIncome(req.user.id, amount, source, note);
         return res.status(201).json(result);
     } catch (error) {
         return res.status(500).json({ msg: error.message });
+    }
+};
+
+
+/**
+ * @desc    Update an income record (amount, source, note)
+ * @route   PATCH /api/v1/expenses/income/:id
+ * @access  Private
+ */
+const updateIncomeHandler = async (req, res) => {
+    try {
+        const { amount, source, note } = req.body;
+        const result = await expenseService.updateIncome(req.user.id, req.params.id, { amount, source, note });
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Delete an income record
+ * @route   DELETE /api/v1/expenses/income/:id
+ * @access  Private
+ */
+const deleteIncomeHandler = async (req, res) => {
+    try {
+        const result = await expenseService.deleteIncome(req.user.id, req.params.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 500).json({ msg: error.message });
     }
 };
 
@@ -285,6 +321,87 @@ const getDashboardSummaryHandler = async (req, res) => {
 };
 
 
+/**
+ * @desc    Analytics for the insights sheet (totals, category breakdown,
+ *          time series, and ranked insights) for a named range
+ * @route   GET /api/v1/expenses/analytics?range=this-month|last-month|3-months|6-months
+ * @access  Private
+ */
+const getAnalyticsHandler = async (req, res) => {
+    try {
+        const data = await expenseService.getAnalytics(req.user.id, req.query.range);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+
+// ── Recurring Rules ──────────────────────────────────────
+
+/**
+ * @desc    Create a recurring rule
+ * @route   POST /api/v1/expenses/recurring
+ * @access  Private
+ */
+const createRecurringRuleHandler = async (req, res) => {
+    try {
+        const { kind, amount, categoryId, source, note, frequency, anchorDate, daysOfWeek } = req.body;
+        const result = await expenseService.createRecurringRule(req.user.id, {
+            kind, amount, categoryId, source, note, frequency, anchorDate, daysOfWeek
+        });
+        return res.status(201).json(result);
+    } catch (error) {
+        return res.status(400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    List recurring rules (+ derived monthly expense total)
+ * @route   GET /api/v1/expenses/recurring
+ * @access  Private
+ */
+const getRecurringRulesHandler = async (req, res) => {
+    try {
+        const result = await expenseService.getRecurringRules(req.user.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Update a recurring rule (amount, note, anchorDay, isActive — pause/resume)
+ * @route   PATCH /api/v1/expenses/recurring/:id
+ * @access  Private
+ */
+const updateRecurringRuleHandler = async (req, res) => {
+    try {
+        const { amount, note, isActive, anchorDay } = req.body;
+        const result = await expenseService.updateRecurringRule(req.user.id, req.params.id, {
+            amount, note, isActive, anchorDay
+        });
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 400).json({ msg: error.message });
+    }
+};
+
+/**
+ * @desc    Delete a recurring rule (already-materialized records are untouched)
+ * @route   DELETE /api/v1/expenses/recurring/:id
+ * @access  Private
+ */
+const deleteRecurringRuleHandler = async (req, res) => {
+    try {
+        const result = await expenseService.deleteRecurringRule(req.user.id, req.params.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(error.message.includes('not found') ? 404 : 500).json({ msg: error.message });
+    }
+};
+
+
 // ── Category ─────────────────────────────────────────────
 
 /**
@@ -307,6 +424,8 @@ module.exports = {
     updateExpenseHandler,
     deleteExpenseHandler,
     addIncomeHandler,
+    updateIncomeHandler,
+    deleteIncomeHandler,
     addMonthlyBudgetHandler,
     updateMonthlyBudgetHandler,
     getMonthlyBudgetHandler,
@@ -315,5 +434,10 @@ module.exports = {
     updateAllocatedCategoryHandler,
     getExpenseDetailsHandler,
     getDashboardSummaryHandler,
+    getAnalyticsHandler,
     getCategoryListHandler,
+    createRecurringRuleHandler,
+    getRecurringRulesHandler,
+    updateRecurringRuleHandler,
+    deleteRecurringRuleHandler,
 };

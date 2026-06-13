@@ -9,6 +9,7 @@ import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
 import type { Goal, ExpenseSummary, RecentExpense, IouData } from '@/types/dashboard'
 import { categoryEmojiMap } from '@/utils/constant'
 import { getGreeting } from '@/utils/utils-functions'
+import { useCurrency } from '@/hooks/useCurrency'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -63,7 +64,9 @@ interface RecentExpensesProps {
 
 const RecentExpenses: React.FC<RecentExpensesProps> = ({
   expenses, isLoading, onViewAll, skeletonRows = 3,
-}) => (
+}) => {
+  const { symbol } = useCurrency()
+  return (
   <div>
     <div className="flex items-center justify-between mb-2">
       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -121,14 +124,15 @@ const RecentExpenses: React.FC<RecentExpensesProps> = ({
               </p>
             </div>
             <span className="text-sm font-bold text-error flex-shrink-0">
-              -${tx.amount.toLocaleString()}
+              -{symbol}{tx.amount.toLocaleString()}
             </span>
           </div>
         ))}
       </div>
     )}
   </div>
-)
+  )
+}
 
 const SmartInsights: React.FC = () => (
   <div>
@@ -156,6 +160,7 @@ const SmartInsights: React.FC = () => (
 
 const Dashboard_Page: React.FC = () => {
   const navigate = useNavigate()
+  const { symbol } = useCurrency()
 
   const [expenseSummary, setExpenseSummary] = useState<ExpenseSummary>({
     totalSpend: 0, budget: 0, totalIncome: 0, topCategories: [],
@@ -307,13 +312,13 @@ const Dashboard_Page: React.FC = () => {
                 <div>
                   <p className="text-[10px] text-muted-foreground mb-0.5">Income</p>
                   <p className="text-xl font-extrabold text-success tracking-tight">
-                    ${expenseSummary.totalIncome.toLocaleString()}
+                    {symbol}{expenseSummary.totalIncome.toLocaleString()}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground mb-0.5">Spent</p>
                   <p className="text-xl font-extrabold text-foreground tracking-tight">
-                    ${expenseSummary.totalSpend.toLocaleString()}
+                    {symbol}{expenseSummary.totalSpend.toLocaleString()}
                   </p>
                 </div>
                 {expenseSummary.totalIncome > 0 && (
@@ -327,7 +332,7 @@ const Dashboard_Page: React.FC = () => {
                           : 'var(--error)',
                       }}
                     >
-                      ${Math.abs(expenseSummary.totalIncome - expenseSummary.totalSpend).toLocaleString()}
+                      {symbol}{Math.abs(expenseSummary.totalIncome - expenseSummary.totalSpend).toLocaleString()}
                     </p>
                   </div>
                 )}

@@ -3,6 +3,7 @@ import type { RootState } from "../../store/store";
 import { loginApi, signupApi } from "./userApi";
 import type { LoginPayload, SignupPayload } from "@/types/user";
 import { getUserFromToken } from "@/utils/utils-functions";
+import { getCachedCurrency, getCachedCurrencyOrNull, setCachedCurrency, clearCachedCurrency, isSupportedCurrency } from "@/utils/currency";
 
 interface userState {
   loading: boolean,
@@ -11,6 +12,7 @@ interface userState {
   name: string,
   avatar: string,
   email: string,
+  currency: string,
   token: string,
   error: any,
 }
@@ -22,8 +24,27 @@ const initialState: userState = {
   name: "",
   avatar: "",
   email: "",
+  currency: getCachedCurrency(),
   token: "",
   error: ""
+}
+
+// Fresh login/signup: the token was just issued by the server, so it wins.
+// Tokens issued before the currency feature don't carry it — keep the cached value then.
+const currencyFromFreshToken = (tokenCurrency: string | undefined): string => {
+  if (isSupportedCurrency(tokenCurrency)) {
+    setCachedCurrency(tokenCurrency as string)
+    return tokenCurrency as string
+  }
+  return getCachedCurrency()
+}
+
+// Rehydrate (page reload, no server contact): the cache wins — it reflects
+// preference changes made after the token was issued. Token is only a fallback.
+const currencyFromRehydrate = (tokenCurrency: string | undefined): string => {
+  const cached = getCachedCurrencyOrNull()
+  if (cached) return cached
+  return currencyFromFreshToken(tokenCurrency)
 }
 
 export const loginUser = createAsyncThunk("user/login", async (payload: LoginPayload, { rejectWithValue }) => {
@@ -75,13 +96,21 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    setCurrency: (state, action: { payload: string }) => {
+      if (isSupportedCurrency(action.payload)) {
+        state.currency = action.payload
+        setCachedCurrency(action.payload)
+      }
+    },
     logout: (state) => {
       state.token = ""
       state.name = ""
       state.email = ""
       state.username = ""
       state.avatar = ""
+      state.currency = "USD"
       localStorage.removeItem("ACCESS_TOKEN");
+      clearCachedCurrency();
     }
   },
   extraReducers: (builder) => {
@@ -101,6 +130,7 @@ export const userSlice = createSlice({
           state.username = info?.user.username ?? ""
           state.avatar = info?.user.avatar ?? ""
           state.email = info?.user.email ?? ""
+          state.currency = currencyFromFreshToken(info?.user.currency)
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -121,6 +151,7 @@ export const userSlice = createSlice({
           state.username = info?.user.username ?? ""
           state.avatar = info?.user.avatar ?? ""
           state.email = info?.user.email ?? ""
+          state.currency = currencyFromFreshToken(info?.user.currency)
         }
       })
       .addCase(signupUser.rejected, (state, action) => {
@@ -137,6 +168,7 @@ export const userSlice = createSlice({
         state.name = action.payload.user.name;
         state.avatar = action.payload.user.avatar;
         state.email = action.payload.user.email;
+        state.currency = currencyFromRehydrate(action.payload.user.currency);
         state.token = action.payload.token;
       })
       .addCase(rehydrateUser.rejected, (state, action) => {
@@ -149,7 +181,7 @@ export const userSlice = createSlice({
 
 
 
-export const { logout } = userSlice.actions;
+export const { logout, setCurrency } = userSlice.actions;
 export const selectUser = (state: RootState) => state.user
 
 export default userSlice.reducer

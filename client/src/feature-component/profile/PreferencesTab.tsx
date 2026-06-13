@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Sun, Moon, Monitor, Bell, DollarSign, Download, Trash2 } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Sun, Moon, Monitor, Bell, Coins, Download, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -24,13 +24,49 @@ import {
 import axiosInstance from '@/utils/axiosInstance'
 import { toast } from 'sonner'
 import { useTheme } from '@/hooks/useTheme'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch, RootState } from '@/store/store'
+import { setCurrency } from '@/feature-component/auth/userSlice'
+import { SUPPORTED_CURRENCIES, isSupportedCurrency } from '@/utils/currency'
 
 const PreferencesTab: React.FC = () => {
     const { theme, setTheme } = useTheme()
+    const dispatch = useDispatch<AppDispatch>()
+    const currency = useSelector((state: RootState) => state.user.currency)
+    const [isSavingCurrency, setIsSavingCurrency] = useState(false)
     const [preferences, setPreferences] = useState({
-        currency: 'USD',
         notifications: true
     })
+
+    // Server value wins over local cache (e.g. preference changed on another device)
+    useEffect(() => {
+        let cancelled = false
+        axiosInstance.get('/v1/user/preferences')
+            .then(res => {
+                const serverCurrency = res.data?.preferences?.currency
+                if (!cancelled && isSupportedCurrency(serverCurrency) && serverCurrency !== currency) {
+                    dispatch(setCurrency(serverCurrency))
+                }
+            })
+            .catch(() => { /* keep cached value */ })
+        return () => { cancelled = true }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const handleCurrencyChange = async (value: string) => {
+        const previous = currency
+        dispatch(setCurrency(value))
+        setIsSavingCurrency(true)
+        try {
+            await axiosInstance.put('/v1/user/preferences', { currency: value })
+            toast.success(`Currency set to ${value}`)
+        } catch {
+            dispatch(setCurrency(previous))
+            toast.error('Failed to update currency')
+        } finally {
+            setIsSavingCurrency(false)
+        }
+    }
 
     const handleDeleteAccount = async () => {
         try {
@@ -91,7 +127,7 @@ const PreferencesTab: React.FC = () => {
                         <div className="flex items-center justify-between py-4">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-success/10 rounded-lg">
-                                    <DollarSign className="w-5 h-5 text-success" />
+                                    <Coins className="w-5 h-5 text-success" />
                                 </div>
                                 <div>
                                     <p className="font-medium text-foreground">Currency</p>
@@ -99,17 +135,19 @@ const PreferencesTab: React.FC = () => {
                                 </div>
                             </div>
                             <Select
-                                value={preferences.currency}
-                                onValueChange={(value) => setPreferences(p => ({ ...p, currency: value }))}
+                                value={currency}
+                                onValueChange={handleCurrencyChange}
+                                disabled={isSavingCurrency}
                             >
-                                <SelectTrigger className="w-32 bg-muted border-border">
+                                <SelectTrigger className="w-36 bg-muted border-border">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="USD">USD ($)</SelectItem>
-                                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                                    <SelectItem value="INR">INR (₹)</SelectItem>
+                                    {SUPPORTED_CURRENCIES.map((c) => (
+                                        <SelectItem key={c.code} value={c.code}>
+                                            {c.code} ({c.symbol})
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>

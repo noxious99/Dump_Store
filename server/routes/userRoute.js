@@ -16,6 +16,10 @@ router.get("/profile", auth, userController.getProfileHandler);
 router.put("/profile", auth, userController.updateProfileHandler);
 router.post("/avatar", auth, upload.single("avatar"), userController.updateAvatarHandler);
 
+// Preferences routes
+router.get("/preferences", auth, userController.getPreferencesHandler);
+router.put("/preferences", auth, userController.updatePreferencesHandler);
+
 // Password routes
 router.put("/password", auth, userController.updatePasswordHandler);
 router.post("/password/forgot", authController.forgotPassword);

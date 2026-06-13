@@ -21,8 +21,8 @@ const loginHandler = async (req, res) => {
 // @access  Public
 const registerHandler = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        const result = await userService.registerUser(username, email, password);
+        const { username, email, password, currency } = req.body;
+        const result = await userService.registerUser(username, email, password, currency);
         return res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
@@ -54,6 +54,33 @@ const updateProfileHandler = async (req, res) => {
             return res.status(400).json({ msg: "Nothing to update" });
         }
         const result = await userService.updateUserProfile(req.user.id, { name, username, email });
+        return res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ msg: error.message });
+    }
+};
+
+
+// @desc    Get user preferences
+// @route   GET /api/v1/user/preferences
+// @access  Private
+const getPreferencesHandler = async (req, res) => {
+    try {
+        const result = await userService.getUserPreferences(req.user.id);
+        return res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};
+
+
+// @desc    Update user preferences (currency)
+// @route   PUT /api/v1/user/preferences
+// @access  Private
+const updatePreferencesHandler = async (req, res) => {
+    try {
+        const { currency } = req.body;
+        const result = await userService.updateUserPreferences(req.user.id, { currency });
         return res.status(200).json(result);
     } catch (error) {
         res.status(400).json({ msg: error.message });
@@ -106,6 +133,8 @@ module.exports = {
     registerHandler,
     getProfileHandler,
     updateProfileHandler,
+    getPreferencesHandler,
+    updatePreferencesHandler,
     updatePasswordHandler,
     updateAvatarHandler
 };

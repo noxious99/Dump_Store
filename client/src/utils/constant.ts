@@ -24,6 +24,22 @@ export const categoryOptions = [
     { value: "miscellaneous", label: "Miscellaneous", emoji: "🔀" },
 ];
 
+export const incomeSourceOptions = [
+    { value: "salary", label: "Salary", emoji: "💼" },
+    { value: "freelance", label: "Freelance", emoji: "💻" },
+    { value: "investment", label: "Investment", emoji: "📈" },
+    { value: "rental", label: "Rental", emoji: "🏠" },
+    { value: "gift", label: "Gift", emoji: "🎁" },
+    { value: "bonus", label: "Bonus", emoji: "💰" },
+    { value: "refund", label: "Refund", emoji: "↩️" },
+    { value: "interest", label: "Interest", emoji: "🏦" },
+    { value: "miscellaneous", label: "Misc", emoji: "🔀" },
+];
+
+export const incomeSourceEmojiMap: Record<string, string> = Object.fromEntries(
+    incomeSourceOptions.map((o) => [o.value, o.emoji])
+);
+
 export const categoryMap = {
   travel: { label: "Travel", emoji: "🚗" },
   food: { label: "Food", emoji: "🍔" },

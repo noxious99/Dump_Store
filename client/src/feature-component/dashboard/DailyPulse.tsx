@@ -1,5 +1,6 @@
 import React from 'react'
 import Ring from './Ring'
+import { useCurrency } from '@/hooks/useCurrency'
 
 interface DailyPulseProps {
   // Budget — shows daily allowance (different from the monthly card below)
@@ -31,6 +32,7 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
   iouPending,
   isLoading,
 }) => {
+  const { symbol } = useCurrency()
   // Color rule: primary always, error ONLY when over budget
   const budgetRingColor = budgetPct >= 100 ? 'var(--error)' : 'var(--primary)'
   const isOverBudget = budgetPct >= 100
@@ -75,7 +77,7 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
           <Ring pct={budgetPct} size={52} sw={4} strokeColor={budgetRingColor}>
             <span className="text-[10px] font-extrabold text-foreground leading-none">
               {budgetTotal > 0
-                ? isOverBudget ? '—' : `$${dailyBudget}`
+                ? isOverBudget ? '—' : `${symbol}${dailyBudget}`
                 : '—'}
             </span>
           </Ring>
@@ -85,7 +87,7 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
               {budgetTotal > 0
                 ? isOverBudget
                   ? 'Over budget'
-                  : `$${Math.max(0, budgetLeft).toLocaleString()} left · ${daysLeft}d`
+                  : `${symbol}${Math.max(0, budgetLeft).toLocaleString()} left · ${daysLeft}d`
                 : 'Budget not set'}
             </p>
           </div>
@@ -124,7 +126,7 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
               className="text-sm font-extrabold leading-none"
               style={{ color: iouNet >= 0 ? 'var(--success)' : 'var(--error)' }}
             >
-              {iouNet >= 0 ? '+' : '-'}${Math.abs(iouNet)}
+              {iouNet >= 0 ? '+' : '-'}{symbol}{Math.abs(iouNet)}
             </span>
           </div>
           <div>
