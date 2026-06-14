@@ -24,7 +24,10 @@ const sanitizeUser = (user) => ({
     email: user.email,
     name: user.name ?? "",
     avatar: user.avatar ?? "",
-    created_at: user.createdAt,
+    // `timestamps: true` populates `createdAt`. Accounts created before that
+    // schema change only carry the legacy snake_case `created_at` field, which
+    // isn't in the schema — read it loosely so old users keep their join date.
+    created_at: user.createdAt ?? user.get("created_at", null, { strict: false }),
     preferences: {
         currency: user.preferences?.currency ?? "USD",
     },

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import moment from 'moment'
-import { Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2, CalendarIcon } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 import { categoryEmojiMap } from '@/utils/constant'
 import type { ExpenseRecord, CategoryOption } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -26,7 +32,7 @@ interface RecordDetailSheetProps {
   readOnly?: boolean
   onSave: (
     expenseId: string,
-    payload: { amount: number; note: string; categoryId: string }
+    payload: { amount: number; note: string; categoryId: string; date: string }
   ) => Promise<void> | void
   onDelete: (expenseId: string) => Promise<void> | void
 }
@@ -50,17 +56,21 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   const [mode, setMode] = useState<Mode>('view')
   const [isBusy, setIsBusy] = useState(false)
   const [draft, setDraft] = useState({ amount: '', note: '', categoryId: '' })
+  const [editDate, setEditDate] = useState<Date | undefined>(undefined)
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false)
 
   // Reset to a clean view whenever a (new) record is shown
   useEffect(() => {
     if (open && record) {
       setMode('view')
       setIsBusy(false)
+      setDatePopoverOpen(false)
       setDraft({
         amount: String(record.amount),
         note: record.note || '',
         categoryId: record.category?._id || '',
       })
+      setEditDate(new Date(record.date || record.createdAt))
     }
   }, [open, record])
 
@@ -69,16 +79,25 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   const when = moment(record.date || record.createdAt)
   const draftAmount = Number(draft.amount)
   const canSave =
-    !Number.isNaN(draftAmount) && draftAmount > 0 && draft.categoryId
+    !Number.isNaN(draftAmount) && draftAmount > 0 && draft.categoryId && Boolean(editDate)
 
   const handleSave = async () => {
-    if (!canSave) return
+    if (!canSave || !editDate) return
     setIsBusy(true)
     try {
+      // Keep the original time-of-day and only move the calendar date — the
+      // picker gives a local Date, so the day the user taps stays correct
+      // across timezones.
+      const nextDate = new Date(record.date || record.createdAt)
+      nextDate.setFullYear(editDate.getFullYear(), editDate.getMonth(), editDate.getDate())
+      const now = new Date()
+      if (nextDate > now) nextDate.setTime(now.getTime()) // never land in the future
+
       await onSave(record._id, {
         amount: draftAmount,
         note: draft.note.trim(),
         categoryId: draft.categoryId,
+        date: nextDate.toISOString(),
       })
       onOpenChange(false)
     } finally {
@@ -202,6 +221,44 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
                   }
                   className="w-full h-10 px-3 text-sm rounded-lg bg-card border border-border focus:outline-none focus:border-primary text-foreground"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                  Date
+                </label>
+                <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full h-10 px-3 text-sm rounded-lg bg-card border border-border hover:border-primary focus:outline-none focus:border-primary text-foreground flex items-center gap-2"
+                    >
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                      <span>
+                        {editDate
+                          ? editDate.toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : 'Pick a date'}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
+                    <Calendar
+                      mode="single"
+                      selected={editDate}
+                      onSelect={(date) => {
+                        if (date) setEditDate(date)
+                        setDatePopoverOpen(false)
+                      }}
+                      disabled={{ after: new Date() }}
+                      defaultMonth={editDate || new Date()}
+                      classNames={{ root: 'w-[300px]' }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div>

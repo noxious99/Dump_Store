@@ -118,7 +118,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
           to="/goals-tracker"
           className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
         >
-          View all →
+          Open tracker →
         </Link>
       </div>
     </div>

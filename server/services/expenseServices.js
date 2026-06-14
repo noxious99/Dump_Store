@@ -124,16 +124,24 @@ const BACKFILL_CAP = 60;
  */
 const materializeDueRecurring = async (userId) => {
     const now = new Date();
+    // Occurrences are stamped at 12:00 UTC for calendar-day stability, so an
+    // occurrence is "due" for the whole of its UTC calendar day — not only once
+    // the clock passes 12:00 UTC. Without this, a rule due today wouldn't
+    // materialize for users east of UTC until the afternoon/evening (noon UTC
+    // is 6pm in UTC+6), so today's record would be missing all morning.
+    const dueThrough = new Date(Date.UTC(
+        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999
+    ));
     let materialized = 0;
     let skipped = 0;
 
-    const dueRules = await expenseRepository.findDueRecurringRules(userId, now);
+    const dueRules = await expenseRepository.findDueRecurringRules(userId, dueThrough);
     for (const rule of dueRules) {
         try {
             const occurrences = [];
             let next = rule.nextRunDate;
             let guard = 0;
-            while (next <= now && guard < 120) {
+            while (next <= dueThrough && guard < 120) {
                 occurrences.push(next);
                 next = nextOccurrence(rule.frequency, rule.anchorDay, next, rule.daysOfWeek);
                 guard += 1;
