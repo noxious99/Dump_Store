@@ -4,6 +4,9 @@ import FeatureCard from "@/feature-component/home/Feature-Card.tsx";
 import { IoCheckmarkDone } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiUserPlus, FiSettings, FiTrendingUp } from "react-icons/fi";
+import { RiDashboardFill } from "react-icons/ri";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/feature-component/auth/userSlice";
 
 type FeatureType = "spend" | "goal" | "loan"
 
@@ -14,6 +17,10 @@ interface FeatureCardAttributes {
 }
 
 const Home: React.FC = () => {
+    const user = useSelector(selectUser)
+    const isLoggedIn = Boolean(user.token)
+    const firstName = (user.name?.trim() || user.username || '').split(' ')[0]
+
     const featureCardAttributes: Record<FeatureType, FeatureCardAttributes> = {
         spend: {
             lite: 'bg-primary-lite',
@@ -59,7 +66,9 @@ const Home: React.FC = () => {
                         {/* Hero Content */}
                         <div className="w-full lg:w-1/2 flex flex-col gap-6 text-center lg:text-left">
                             <span className="inline-flex items-center self-center lg:self-start px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                                Your Life Management Companion
+                                {isLoggedIn
+                                    ? `Welcome back${firstName ? `, ${firstName}` : ''} 👋`
+                                    : 'Your Life Management Companion'}
                             </span>
                             <h1
                                 id="hero-heading"
@@ -69,30 +78,46 @@ const Home: React.FC = () => {
                                 <span className="text-primary">Manage Your Life</span>
                             </h1>
                             <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-xl">
-                                Tracero helps you stay on top of your finances, crush your goals with daily tasks and streaks,
-                                and keep track of money you've lent or borrowed — all in one place.
+                                {isLoggedIn
+                                    ? "Pick up where you left off — check your finances, push your goals forward, and stay on top of your IOUs."
+                                    : "Tracero helps you stay on top of your finances, crush your goals with daily tasks and streaks, and keep track of money you've lent or borrowed — all in one place."}
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Button
-                                    asChild
-                                    size="lg"
-                                    className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                                >
-                                    <Link to="/auth?mode=signup">
-                                        Get Started Free
-                                        <FiArrowRight className="ml-2" />
-                                    </Link>
-                                </Button>
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    size="lg"
-                                    className="h-12 px-8 rounded-xl text-base font-semibold border-2 hover:bg-primary/5 transition-all duration-300"
-                                >
-                                    <Link to="/auth?mode=signin">
-                                        Sign In
-                                    </Link>
-                                </Button>
+                                {isLoggedIn ? (
+                                    <Button
+                                        asChild
+                                        size="lg"
+                                        className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                                    >
+                                        <Link to="/dashboard">
+                                            <RiDashboardFill className="mr-2" />
+                                            Go to Dashboard
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            asChild
+                                            size="lg"
+                                            className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                                        >
+                                            <Link to="/auth?mode=signup">
+                                                Get Started Free
+                                                <FiArrowRight className="ml-2" />
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="lg"
+                                            className="h-12 px-8 rounded-xl text-base font-semibold border-2 hover:bg-primary/5 transition-all duration-300"
+                                        >
+                                            <Link to="/auth?mode=signin">
+                                                Sign In
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -272,34 +297,51 @@ const Home: React.FC = () => {
                         id="cta-heading"
                         className="text-3xl lg:text-4xl font-bold text-primary-foreground mb-4"
                     >
-                        Ready to Take Control?
+                        {isLoggedIn ? 'Ready to Keep Going?' : 'Ready to Take Control?'}
                     </h2>
                     <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto">
-                        Join users who are tracking their finances, crushing their goals, and staying on top of IOUs.
-                        Start your journey today.
+                        {isLoggedIn
+                            ? 'Your trackers are waiting. Jump back into your dashboard and keep the momentum going.'
+                            : "Join users who are tracking their finances, crushing their goals, and staying on top of IOUs. Start your journey today."}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button
-                            asChild
-                            size="lg"
-                            variant="secondary"
-                            className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                        >
-                            <Link to="/auth?mode=signup">
-                                Create Free Account
-                                <FiArrowRight className="ml-2" />
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            size="lg"
-                            variant="outline"
-                            className="h-12 px-8 rounded-xl text-base font-semibold bg-transparent border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300"
-                        >
-                            <Link to="#features-heading">
-                                Learn More
-                            </Link>
-                        </Button>
+                        {isLoggedIn ? (
+                            <Button
+                                asChild
+                                size="lg"
+                                variant="secondary"
+                                className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                            >
+                                <Link to="/dashboard">
+                                    <RiDashboardFill className="mr-2" />
+                                    Go to Dashboard
+                                </Link>
+                            </Button>
+                        ) : (
+                            <>
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    variant="secondary"
+                                    className="h-12 px-8 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                                >
+                                    <Link to="/auth?mode=signup">
+                                        Create Free Account
+                                        <FiArrowRight className="ml-2" />
+                                    </Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    variant="outline"
+                                    className="h-12 px-8 rounded-xl text-base font-semibold bg-transparent border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300"
+                                >
+                                    <Link to="#features-heading">
+                                        Learn More
+                                    </Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </section>

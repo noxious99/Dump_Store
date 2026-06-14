@@ -13,6 +13,7 @@ type TabId = 'personal' | 'security' | 'preferences'
 const Profile: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabId>('personal')
     const [isLoading, setIsLoading] = useState(true)
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
     const [userData, setUserData] = useState({
         username: '',
         email: '',
@@ -51,12 +52,16 @@ const Profile: React.FC = () => {
         const formData = new FormData()
         formData.append('avatar', file)
 
+        setIsUploadingAvatar(true)
         try {
             await axiosInstance.post('/v1/user/avatar', formData)
             toast.success('Avatar updated')
-            fetchProfileInfo()
+            await fetchProfileInfo()
         } catch (error) {
             toast.error('Failed to upload avatar')
+        } finally {
+            setIsUploadingAvatar(false)
+            e.target.value = ''
         }
     }
 
@@ -86,6 +91,7 @@ const Profile: React.FC = () => {
                 <ProfileHeader
                     userData={userData}
                     onAvatarChange={handleAvatarChange}
+                    isUploadingAvatar={isUploadingAvatar}
                 />
 
                 {/* Tab Navigation */}

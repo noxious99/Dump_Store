@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Camera } from 'lucide-react'
+import { User, Camera, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 interface ProfileHeaderProps {
@@ -10,9 +10,10 @@ interface ProfileHeaderProps {
         created_at: string
     }
     onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    isUploadingAvatar?: boolean
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData, onAvatarChange }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData, onAvatarChange, isUploadingAvatar = false }) => {
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A'
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -42,10 +43,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData, onAvatarChange 
                             ) : (
                                 <User className="w-10 h-10 sm:w-14 sm:h-14 text-muted-foreground" />
                             )}
+
+                            {/* Uploading overlay */}
+                            {isUploadingAvatar && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[1px]">
+                                    <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 text-white animate-spin" />
+                                </div>
+                            )}
                         </div>
                         <label
                             htmlFor="avatar-upload"
-                            className="absolute bottom-1 right-1 p-2 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:bg-accent transition-colors"
+                            className={`absolute bottom-1 right-1 p-2 bg-primary text-primary-foreground rounded-full shadow-lg transition-colors ${
+                                isUploadingAvatar
+                                    ? 'opacity-60 cursor-not-allowed pointer-events-none'
+                                    : 'cursor-pointer hover:bg-accent'
+                            }`}
                         >
                             <Camera className="w-4 h-4" />
                             <input
@@ -54,6 +66,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData, onAvatarChange 
                                 accept="image/*"
                                 className="hidden"
                                 onChange={onAvatarChange}
+                                disabled={isUploadingAvatar}
                             />
                         </label>
                     </div>

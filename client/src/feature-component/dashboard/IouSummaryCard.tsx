@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import type { IouData } from '@/types/dashboard'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -11,8 +12,6 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
   const netPositive = iouData.net >= 0
 
   return (
-    // No onClick — IOU tracker page not built yet.
-    // TODO: Add cursor-pointer + navigate('/iou-tracker') once the page exists
     <div className="bg-card border border-border rounded-2xl p-4">
       {/* Header — neutral icon, financial value badge only */}
       <div className="flex items-center justify-between mb-3">
@@ -70,6 +69,16 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
             </span>
           </div>
         ))}
+      </div>
+
+      {/* Action row — keeps navigation consistent with the other summary cards */}
+      <div className="flex items-center justify-end pt-3 mt-3 border-t border-border">
+        <Link
+          to="/iou-tracker"
+          className="text-xs font-semibold text-primary hover:underline px-1 whitespace-nowrap"
+        >
+          Open tracker →
+        </Link>
       </div>
     </div>
   )

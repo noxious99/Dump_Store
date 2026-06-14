@@ -485,6 +485,18 @@ main {
     animation: pulse-soft 2s ease-in-out infinite;
 }
 
+/* One-shot glowing-border pulse — draws the eye to a section after jumping
+   to it (e.g. Smart Insights on the dashboard) */
+@keyframes glow-pulse {
+    0%   { box-shadow: 0 0 0 0 transparent; }
+    35%  { box-shadow: 0 0 10px 0 color-mix(in srgb, var(--primary) 14%, transparent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.animate-glow {
+    animation: glow-pulse 1.8s ease-in-out;
+}
+
 /* Staggered fade-up for dashboard cards */
 @keyframes stagger-fade-up {
     from {

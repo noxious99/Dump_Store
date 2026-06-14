@@ -313,7 +313,7 @@ const ExpenseTracker: React.FC = () => {
 
   const handleSaveRecord = async (
     expenseId: string,
-    payload: { amount: number; note: string; categoryId: string }
+    payload: { amount: number; note: string; categoryId: string; date: string }
   ) => {
     try {
       await axiosInstance.patch(`/v1/expenses/${expenseId}`, payload)

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { User, AtSign, Mail, Save, Calendar, Target, Wallet, HandCoins, Loader2 } from 'lucide-react'
+import { User, AtSign, Mail, Save, Calendar, Target, Wallet, HandCoins, Loader2, Lock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,10 +19,9 @@ interface PersonalInfoTabProps {
 const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    // Only the name is editable — username and email are locked identity fields.
     const [formData, setFormData] = useState({
-        name: initialData.name,
-        username: initialData.username,
-        email: initialData.email
+        name: initialData.name
     })
 
     // Placeholder stats - replace with actual API data
@@ -40,7 +39,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData
     const handleSave = async () => {
         setIsSaving(true)
         try {
-            await axiosInstance.put('/v1/user/profile', formData)
+            await axiosInstance.put('/v1/user/profile', { name: formData.name })
             toast.success('Profile updated successfully')
             setIsEditing(false)
             onUpdate()
@@ -52,11 +51,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData
     }
 
     const handleCancel = () => {
-        setFormData({
-            name: initialData.name,
-            username: initialData.username,
-            email: initialData.email
-        })
+        setFormData({ name: initialData.name })
         setIsEditing(false)
     }
 
@@ -132,7 +127,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData
                             </div>
                         </div>
 
-                        {/* Username */}
+                        {/* Username — locked identity field */}
                         <div>
                             <label className="block text-sm font-medium text-foreground mb-2">
                                 Username
@@ -141,17 +136,18 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData
                                 <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <Input
                                     type="text"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
+                                    value={initialData.username}
+                                    readOnly
+                                    disabled
                                     placeholder="your_username"
-                                    className="h-12 pl-10 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-grey-x100 disabled:cursor-not-allowed disabled:opacity-70"
+                                    className="h-12 pl-10 pr-10 bg-grey-x100 border-border cursor-not-allowed opacity-80"
                                 />
+                                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">Username can't be changed</p>
                         </div>
 
-                        {/* Email */}
+                        {/* Email — locked identity field */}
                         <div>
                             <label className="block text-sm font-medium text-foreground mb-2">
                                 Email Address
@@ -160,15 +156,15 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ userData: initialData
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <Input
                                     type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
+                                    value={initialData.email}
+                                    readOnly
+                                    disabled
                                     placeholder="your@email.com"
-                                    className="h-12 pl-10 bg-muted border-border focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-grey-x100 disabled:cursor-not-allowed disabled:opacity-70"
+                                    className="h-12 pl-10 pr-10 bg-grey-x100 border-border cursor-not-allowed opacity-80"
                                 />
+                                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">We'll never share your email</p>
+                            <p className="text-xs text-muted-foreground mt-1">Email can't be changed</p>
                         </div>
                     </div>
                 </CardContent>
