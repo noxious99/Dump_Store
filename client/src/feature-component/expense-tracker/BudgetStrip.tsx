@@ -83,18 +83,23 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
         className="group w-full text-left bg-card border border-border rounded-2xl overflow-hidden active:scale-[0.99] transition-transform"
       >
         <div className="p-4">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-primary-lite flex items-center justify-center flex-shrink-0">
-              <FaWallet className="text-primary text-base" />
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-primary-lite flex items-center justify-center flex-shrink-0">
+                <FaWallet className="text-primary text-base" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground leading-tight truncate">
+                  Monthly Budget
+                </p>
+                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                  {monthLabel}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground leading-tight truncate">
-                Monthly Budget
-              </p>
-              <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-                {monthLabel}
-              </p>
-            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap bg-grey-x100 text-muted-foreground">
+              Not set
+            </span>
           </div>
           {/* No budget yet — Spent is the headline number here */}
           <div className="flex items-end justify-between gap-3">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Pencil, Check, X, Plus } from 'lucide-react'
+import { Pencil, Check, X, Plus, Wallet } from 'lucide-react'
 import { categoryEmojiMap } from '@/utils/constant'
 import {
   Select,
@@ -78,59 +78,78 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           </span>
         </div>
 
-        {historyMode ? (
-          <p className="text-sm text-muted-foreground">
-            No budget was set for this month.
-          </p>
-        ) : !showCreateForm ? (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              No budget set for this month.
-            </p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="h-8 px-3 text-sm font-semibold text-primary hover:bg-primary/5 rounded-md whitespace-nowrap"
-            >
-              + Set budget
-            </button>
+        <div className="flex flex-col items-center text-center px-2 py-8 lg:flex-1 lg:justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <Wallet className="w-7 h-7 text-primary" />
           </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              autoFocus
-              placeholder="Amount"
-              value={budgetDraft}
-              onChange={(e) => setBudgetDraft(e.target.value)}
-              className="flex-1 h-8 px-3 text-sm rounded-md bg-card border border-border focus:outline-none focus:border-primary text-foreground"
-            />
-            <button
-              onClick={async () => {
-                const n = Number(budgetDraft)
-                if (!Number.isNaN(n) && n > 0) {
-                  await onCreateBudget(n)
-                  setBudgetDraft('')
-                  setShowCreateForm(false)
-                }
-              }}
-              className="w-7 h-7 rounded-md hover:bg-primary/10 text-primary flex items-center justify-center"
-              aria-label="Save budget"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                setBudgetDraft('')
-                setShowCreateForm(false)
-              }}
-              className="w-7 h-7 rounded-md hover:bg-grey-x200 text-muted-foreground flex items-center justify-center"
-              aria-label="Cancel"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+
+          {historyMode ? (
+            <>
+              <h3 className="text-base font-bold text-foreground">No budget this month</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                You didn't set a monthly budget for this period.
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-bold text-foreground">No budget set yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
+                Set a monthly limit to track your spending, see a daily pace, and split it across categories.
+              </p>
+
+              {showCreateForm ? (
+                <div className="w-full max-w-xs space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      {symbol}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      autoFocus
+                      placeholder="Amount"
+                      value={budgetDraft}
+                      onChange={(e) => setBudgetDraft(e.target.value)}
+                      className="w-full h-11 pl-7 pr-3 text-sm rounded-lg bg-card border border-border focus:outline-none focus:border-primary text-foreground"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setBudgetDraft('')
+                        setShowCreateForm(false)
+                      }}
+                      className="flex-1 h-10 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-grey-x100"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const n = Number(budgetDraft)
+                        if (!Number.isNaN(n) && n > 0) {
+                          await onCreateBudget(n)
+                          setBudgetDraft('')
+                          setShowCreateForm(false)
+                        }
+                      }}
+                      className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-accent"
+                    >
+                      Set budget
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-accent inline-flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  Set a budget
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
     )
   }
