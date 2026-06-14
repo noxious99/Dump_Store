@@ -57,7 +57,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
   // and Income still read as proper figures). Balance is omitted when income
   // isn't tracked — it would just be a misleading -Spent.
   const statLine = (
-    <div className="mt-3 flex items-center gap-6">
+    <div className="mt-3 flex items-center gap-10">
       <div>
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Spent</p>
         <p className="text-base font-bold text-foreground tracking-tight">
