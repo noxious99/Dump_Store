@@ -52,3 +52,18 @@ export interface IouData {
   pendingCount: number
   people: Person[]
 }
+
+export interface DashboardInsight {
+  id: string
+  /** May contain the ¤ currency token — swap for the user's symbol before display. */
+  text: string
+  emoji: string
+  tone: 'good' | 'warn' | 'neutral'
+  domain: 'expense' | 'goals' | 'iou' | 'general'
+}
+
+export interface DashboardInsightsResponse {
+  insights: DashboardInsight[]
+  source: 'ai' | 'fallback'
+  cached: boolean
+}

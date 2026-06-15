@@ -489,7 +489,7 @@ main {
    to it (e.g. Smart Insights on the dashboard) */
 @keyframes glow-pulse {
     0%   { box-shadow: 0 0 0 0 transparent; }
-    35%  { box-shadow: 0 0 10px 0 color-mix(in srgb, var(--primary) 14%, transparent); }
+    35%  { box-shadow: 0 0 12px 2px color-mix(in srgb, var(--primary) 30%, transparent); }
     100% { box-shadow: 0 0 0 0 transparent; }
 }
 

@@ -28,6 +28,11 @@ const IouCard: React.FC<IouCardProps> = ({ iou, onClick }) => {
 
   const initial = iou.counterpartyName?.charAt(0).toUpperCase() || '?'
 
+  // Fall back to a local computation if the server omits the virtual, so a
+  // missing field can never crash the list render.
+  const amountRemaining =
+    iou.amountRemaining ?? Math.max(iou.amount - (iou.amountPaid || 0), 0)
+
   return (
     <button
       onClick={onClick}
@@ -68,7 +73,7 @@ const IouCard: React.FC<IouCardProps> = ({ iou, onClick }) => {
           <p className={`text-base font-extrabold tracking-tight ${amountColor}`}>
             {closed ? '' : lent ? '+' : '-'}
             {symbol}
-            {(closed ? iou.amount : iou.amountRemaining).toLocaleString()}
+            {(closed ? iou.amount : amountRemaining).toLocaleString()}
           </p>
           {iou.status === 'partial' && (
             <p className="text-[10px] text-muted-foreground">
