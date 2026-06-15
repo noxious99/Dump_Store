@@ -1,34 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, RefreshCw } from 'lucide-react'
 import moment from 'moment'
 import axiosInstance from '@/utils/axiosInstance'
 import DailyPulse from '@/feature-component/dashboard/DailyPulse'
 import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard'
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
-import type { Goal, ExpenseSummary, RecentExpense, IouData } from '@/types/dashboard'
+import type { Goal, ExpenseSummary, RecentExpense, IouData, DashboardInsight } from '@/types/dashboard'
 import { categoryEmojiMap } from '@/utils/constant'
 import { getGreeting } from '@/utils/utils-functions'
 import { useCurrency } from '@/hooks/useCurrency'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-// TODO: Replace with real behavioral insights from backend API
-const INSIGHTS = [
-  {
-    text: 'Weekend spending is 2.8× higher than weekdays — consider a weekend budget cap.',
-    icon: '⚡',
-  },
-  {
-    text: "You've been logging expenses consistently. That's the habit that matters most.",
-    icon: '🔥',
-  },
-  {
-    text: 'Some friends owe you money — a friendly nudge usually works.',
-    icon: '🤝',
-  },
-]
 
 const EMPTY_IOU: IouData = {
   youOwe: 0,
@@ -135,31 +119,85 @@ const RecentExpenses: React.FC<RecentExpensesProps> = ({
   )
 }
 
-const SmartInsights: React.FC<{ highlight?: boolean }> = ({ highlight = false }) => (
-  <div>
-    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-      Smart Insights
-    </p>
-    <div
-      className={`bg-card border rounded-2xl overflow-hidden transition-colors duration-500 ${
-        highlight ? 'border-primary/60 animate-glow' : 'border-border'
-      }`}
-    >
-      {INSIGHTS.map((insight, i) => (
-        <div
-          key={i}
-          className="flex items-start gap-3 px-4 py-3.5"
-          style={{
-            borderBottom: i < INSIGHTS.length - 1 ? '1px solid var(--border)' : 'none',
-          }}
+interface SmartInsightsProps {
+  insights: DashboardInsight[]
+  isLoading: boolean
+  isRefreshing: boolean
+  onRefresh: () => void
+  /** Currency symbol swapped in for the ¤ token used in insight text. */
+  symbol: string
+  /** 'ai' shows a subtle AI badge; 'fallback' stays unmarked. */
+  source?: 'ai' | 'fallback' | null
+  highlight?: boolean
+}
+
+const SmartInsights: React.FC<SmartInsightsProps> = ({
+  insights, isLoading, isRefreshing, onRefresh, symbol, source = null, highlight = false,
+}) => {
+  const render = (text: string) => text.split('¤').join(symbol)
+  const skeletonRows = 3
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          Smart Insights
+          {source === 'ai' && !isLoading && (
+            <span className="text-[9px] font-bold text-primary bg-primary/10 rounded-full px-1.5 py-0.5 tracking-normal normal-case">
+              AI
+            </span>
+          )}
+        </p>
+        <button
+          onClick={onRefresh}
+          disabled={isLoading || isRefreshing}
+          aria-label="Refresh insights"
+          className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 p-1 -m-1"
         >
-          <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
-          <p className="text-xs text-muted-foreground leading-relaxed">{insight.text}</p>
-        </div>
-      ))}
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      <div
+        className={`bg-card border rounded-2xl overflow-hidden transition-colors duration-500 ${
+          highlight ? 'border-primary/60 animate-glow' : 'border-border'
+        }`}
+      >
+        {isLoading ? (
+          Array.from({ length: skeletonRows }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-3 px-4 py-3.5"
+              style={{ borderBottom: i < skeletonRows - 1 ? '1px solid var(--border)' : 'none' }}
+            >
+              <div className="skeleton w-5 h-5 rounded-md flex-shrink-0" />
+              <div className="flex-1 space-y-1.5 pt-0.5">
+                <div className="skeleton h-2.5 w-full rounded" />
+                <div className="skeleton h-2.5 w-2/3 rounded" />
+              </div>
+            </div>
+          ))
+        ) : insights.length === 0 ? (
+          <div className="text-center py-6 px-4">
+            <p className="text-sm text-muted-foreground">No insights yet — log some activity to get started.</p>
+          </div>
+        ) : (
+          insights.map((insight, i) => (
+            <div
+              key={insight.id}
+              className="flex items-start gap-3 px-4 py-3.5"
+              style={{ borderBottom: i < insights.length - 1 ? '1px solid var(--border)' : 'none' }}
+            >
+              <span className="text-base flex-shrink-0 mt-0.5">{insight.emoji}</span>
+              <p className="text-xs text-muted-foreground leading-relaxed">{render(insight.text)}</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -177,6 +215,11 @@ const Dashboard_Page: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0)
   const [highlightInsights, setHighlightInsights] = useState(false)
 
+  const [insights, setInsights] = useState<DashboardInsight[]>([])
+  const [insightsSource, setInsightsSource] = useState<'ai' | 'fallback' | null>(null)
+  const [insightsLoading, setInsightsLoading] = useState(true)
+  const [insightsRefreshing, setInsightsRefreshing] = useState(false)
+
   // Scroll to Smart Insights and briefly pulse a ring so the eye lands on it.
   const goToInsights = () => {
     const el = document.getElementById('smart-insights')
@@ -185,6 +228,31 @@ const Dashboard_Page: React.FC = () => {
     setHighlightInsights(true)
     window.setTimeout(() => setHighlightInsights(false), 1400)
   }
+
+  // Insights come from the AI endpoint (Gemini-generated, server-cached). They
+  // load independently so a slower AI call never blocks the summary cards.
+  // `refresh` forces a server-side regeneration instead of serving the cache.
+  const fetchInsights = async (refresh = false) => {
+    if (refresh) setInsightsRefreshing(true)
+    else setInsightsLoading(true)
+    try {
+      const res = await axiosInstance.get('/v1/insights/dashboard', {
+        params: refresh ? { refresh: true } : {},
+      })
+      setInsights(res.data?.insights ?? [])
+      setInsightsSource(res.data?.source ?? null)
+    } catch (err) {
+      console.error('Insights fetch error:', err)
+      setInsights([])
+    } finally {
+      setInsightsLoading(false)
+      setInsightsRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchInsights()
+  }, [])
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -307,9 +375,16 @@ const Dashboard_Page: React.FC = () => {
               onBudgetSaved={() => setRefreshKey((p) => p + 1)}
             />
 
-            <GoalsSummaryCard goals={goals} isLoading={isLoading} />
+            <GoalsSummaryCard
+              goals={goals}
+              isLoading={isLoading}
+              onChanged={() => setRefreshKey((p) => p + 1)}
+            />
 
-            <IouSummaryCard iouData={iouData} />
+            <IouSummaryCard
+              iouData={iouData}
+              onChanged={() => setRefreshKey((p) => p + 1)}
+            />
 
             {/*
               Mobile only: Insights + Recent Expenses appear here, below the cards,
@@ -317,7 +392,15 @@ const Dashboard_Page: React.FC = () => {
             */}
             <div className="space-y-5 lg:hidden pt-2">
               <div id="smart-insights" className="scroll-mt-20">
-                <SmartInsights highlight={highlightInsights} />
+                <SmartInsights
+                  insights={insights}
+                  isLoading={insightsLoading}
+                  isRefreshing={insightsRefreshing}
+                  onRefresh={() => fetchInsights(true)}
+                  symbol={symbol}
+                  source={insightsSource}
+                  highlight={highlightInsights}
+                />
               </div>
               <RecentExpenses
                 expenses={recentExpenses.slice(0, 4)}
@@ -372,7 +455,14 @@ const Dashboard_Page: React.FC = () => {
               </div>
             </div>
 
-            <SmartInsights />
+            <SmartInsights
+              insights={insights}
+              isLoading={insightsLoading}
+              isRefreshing={insightsRefreshing}
+              onRefresh={() => fetchInsights(true)}
+              symbol={symbol}
+              source={insightsSource}
+            />
 
             <RecentExpenses
               expenses={recentExpenses}

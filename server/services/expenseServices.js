@@ -869,6 +869,103 @@ const getAnalytics = async (userId, rangeKey) => {
 };
 
 
+// Extra signals for the AI insight engine that the analytics payload doesn't
+// already carry: weekday/weekend spending rhythm, per-category movement vs
+// last month, and recurring bills landing in the next 7 days. Kept here so it
+// can reuse the internal recurring/category helpers.
+const getInsightExtras = async (userId) => {
+    const now = new Date();
+    const y = now.getUTCFullYear();
+    const m = now.getUTCMonth();
+    const today = now.getUTCDate();
+    const start = monthStartUTC(y, m);
+    const end = monthEndUTC(y, m);
+    const prevStart = monthStartUTC(y, m - 1);
+    const prevEnd = monthEndUTC(y, m - 1);
+
+    const [dowRows, thisCats, prevCats, rules] = await Promise.all([
+        Expense.aggregate([
+            { $match: { userId, date: { $gte: start, $lte: end } } },
+            { $group: { _id: { $dayOfWeek: { date: '$date', timezone: 'UTC' } }, total: { $sum: '$amount' } } },
+        ]),
+        getSpendingByCategory(userId, start, end),
+        getSpendingByCategory(userId, prevStart, prevEnd),
+        expenseRepository.findRecurringRulesByUser(userId),
+    ]);
+
+    // ── 1. Weekday vs weekend rhythm (Mongo $dayOfWeek: 1=Sun … 7=Sat) ──
+    const DOW = ['', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const byDow = {};
+    dowRows.forEach((r) => { byDow[r._id] = r.total; });
+    let weekendTotal = 0;
+    let weekdayTotal = 0;
+    let topDay = null;
+    for (let d = 1; d <= 7; d++) {
+        const t = byDow[d] || 0;
+        if (d === 1 || d === 7) weekendTotal += t; else weekdayTotal += t;
+        if (t > 0 && (!topDay || t > topDay.total)) topDay = { name: DOW[d], total: Math.round(t) };
+    }
+    // Elapsed weekend/weekday days this month, so the averages compare fairly
+    let weekendDays = 0;
+    let weekdayDays = 0;
+    for (let d = 1; d <= today; d++) {
+        const dow = new Date(Date.UTC(y, m, d)).getUTCDay(); // 0=Sun…6=Sat
+        if (dow === 0 || dow === 6) weekendDays += 1; else weekdayDays += 1;
+    }
+    const spendingPattern = weekdayTotal + weekendTotal > 0 ? {
+        topDay,
+        weekdayAvgPerDay: weekdayDays ? Math.round(weekdayTotal / weekdayDays) : 0,
+        weekendAvgPerDay: weekendDays ? Math.round(weekendTotal / weekendDays) : 0,
+    } : null;
+
+    // ── 2. Category movement vs last month (anomaly/trend material) ──
+    const prevMap = {};
+    prevCats.forEach((c) => { prevMap[String(c.categoryId)] = c.totalSpent; });
+    const categoryTrends = thisCats
+        .filter((c) => c.totalSpent > 0)
+        .map((c) => {
+            const prev = prevMap[String(c.categoryId)] || 0;
+            return {
+                name: c.name || 'Uncategorized',
+                thisMonth: Math.round(c.totalSpent),
+                lastMonth: Math.round(prev),
+                changePct: prev > 0 ? Math.round(((c.totalSpent - prev) / prev) * 100) : null,
+            };
+        })
+        .sort((a, b) => Math.abs(b.thisMonth - b.lastMonth) - Math.abs(a.thisMonth - a.lastMonth))
+        .slice(0, 3);
+
+    // ── 3. Recurring expense bills due in the next 7 days ──
+    const windowEnd = new Date(now.getTime() + 7 * DAY_MS);
+    const todayStart = new Date(Date.UTC(y, m, today, 0, 0, 0, 0));
+    const billItems = [];
+    let billTotal = 0;
+    for (const rule of rules.filter((r) => r.kind === 'expense' && r.isActive)) {
+        let cursor = rule.nextRunDate;
+        let guard = 0;
+        while (cursor <= windowEnd && guard < 62) {
+            if (cursor >= todayStart) {
+                billTotal += rule.amount;
+                billItems.push({
+                    name: rule.categoryId?.name || rule.note || 'Recurring',
+                    amount: Math.round(rule.amount),
+                    inDays: Math.max(0, Math.round((cursor - now) / DAY_MS)),
+                });
+            }
+            cursor = nextOccurrence(rule.frequency, rule.anchorDay, cursor, rule.daysOfWeek);
+            guard += 1;
+        }
+    }
+    const upcomingBills = billItems.length ? {
+        total: Math.round(billTotal),
+        count: billItems.length,
+        items: billItems.sort((a, b) => a.inDays - b.inDays).slice(0, 3),
+    } : null;
+
+    return { spendingPattern, categoryTrends, upcomingBills };
+};
+
+
 // ── Category ─────────────────────────────────────────────
 
 const getCategoryList = async () => {
@@ -892,6 +989,7 @@ module.exports = {
     getExpenseDetailsOfMonth,
     getDashboardSummary,
     getAnalytics,
+    getInsightExtras,
     getCategoryList,
     createRecurringRule,
     getRecurringRules,
