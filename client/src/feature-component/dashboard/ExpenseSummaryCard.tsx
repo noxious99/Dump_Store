@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -122,9 +123,8 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         </div>
         <div className="skeleton h-px w-full mb-3" />
         <div className="flex gap-2">
-          <div className="skeleton h-8 flex-1 rounded-lg" />
-          <div className="skeleton h-8 flex-1 rounded-lg" />
-          <div className="skeleton h-8 w-20 rounded-lg" />
+          <div className="skeleton h-9 flex-1 rounded-lg" />
+          <div className="skeleton h-9 w-24 rounded-lg" />
         </div>
       </div>
     )
@@ -197,19 +197,16 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
           </div>
         )}
 
-        {/* Action row — contextual actions live here, not floating above */}
+        {/* Action row — one entry button (the dashboard is built for quick
+            logging). Expense vs income is a single tab-tap away inside the
+            adder, so two separate buttons just split one action in two. */}
         <div className="flex items-center gap-2 pt-3 border-t border-border">
           <button
             onClick={() => setAdderMode('expense')}
-            className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
           >
-            + Expense
-          </button>
-          <button
-            onClick={() => setAdderMode('income')}
-            className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
-          >
-            + Income
+            <Plus className="w-3.5 h-3.5" />
+            Add transaction
           </button>
           <Link
             to="/expense-tracker"

@@ -1,16 +1,38 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import Ring from './Ring'
+import axiosInstance from '@/utils/axiosInstance'
+import GoalFormSheet from '@/feature-component/goal-tracker/GoalFormSheet'
 import type { Goal } from '@/types/dashboard'
+import type { GoalPayload } from '@/types/goal'
 
 interface GoalsSummaryCardProps {
   goals: Goal[]
   isLoading: boolean
+  /** Called after a goal is created so the dashboard can refresh. */
+  onChanged?: () => void
 }
 
-const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading }) => {
+const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, onChanged }) => {
   const activeGoals = goals.filter((g) => !g.isCompleted)
   const displayGoals = activeGoals.slice(0, 2)
+  const [formOpen, setFormOpen] = useState(false)
+
+  // Quick-create from the dashboard. Rethrow keeps the form open on failure,
+  // matching the tracker page's behaviour.
+  const handleCreateGoal = async (payload: GoalPayload) => {
+    try {
+      await axiosInstance.post('/v1/goals', payload)
+      toast.success('Goal created')
+      onChanged?.()
+    } catch (error) {
+      console.error('Error creating goal:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to create goal')
+      throw error
+    }
+  }
 
   if (isLoading) {
     return (
@@ -29,8 +51,8 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
         </div>
         <div className="skeleton h-px w-full mb-3" />
         <div className="flex gap-2">
-          <div className="skeleton h-8 flex-1 rounded-lg" />
-          <div className="skeleton h-8 w-20 rounded-lg" />
+          <div className="skeleton h-9 flex-1 rounded-lg" />
+          <div className="skeleton h-9 w-24 rounded-lg" />
         </div>
       </div>
     )
@@ -106,14 +128,15 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
         </div>
       )}
 
-      {/* Action row — contextual actions live here */}
+      {/* Action row — uniform add button + tracker link, matching the other cards */}
       <div className="flex items-center gap-2 pt-3 border-t border-border">
-        <Link
-          to="/goals-tracker"
-          className="flex-1 text-center text-xs font-semibold text-muted-foreground bg-grey-x100 hover:bg-grey-x200 rounded-lg py-2 transition-colors"
+        <button
+          onClick={() => setFormOpen(true)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
         >
-          + New Goal
-        </Link>
+          <Plus className="w-3.5 h-3.5" />
+          Add goal
+        </button>
         <Link
           to="/goals-tracker"
           className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
@@ -121,6 +144,8 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading })
           Open tracker →
         </Link>
       </div>
+
+      <GoalFormSheet open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreateGoal} />
     </div>
   )
 }
