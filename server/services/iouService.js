@@ -9,6 +9,22 @@ const computeStatus = (amount, amountPaid) => {
     return 'partial';
 };
 
+// The repository reads with .lean(), and there's no mongoose-lean-virtuals
+// plugin, so the schema's `amountRemaining` / `isOverdue` virtuals are dropped.
+// The client treats both as guaranteed, so recompute them here to match the
+// schema definitions exactly. (Full-document paths via toJSON already carry them.)
+const withVirtuals = (iou) => {
+    if (!iou) return iou;
+    const closed = iou.status === 'settled' || iou.status === 'cancelled';
+    return {
+        ...iou,
+        amountRemaining: Math.max(iou.amount - (iou.amountPaid || 0), 0),
+        isOverdue: !closed && iou.expectedPaybackDate
+            ? new Date(iou.expectedPaybackDate) < new Date()
+            : false,
+    };
+};
+
 
 // ── CRUD ─────────────────────────────────────────────────
 
@@ -38,7 +54,7 @@ const createIou = async (userId, payload) => {
 
 const getUserIous = async (userId, filters) => {
     const ious = await iouRepository.findIousByUser(userId, filters);
-    return { ious };
+    return { ious: ious.map(withVirtuals) };
 };
 
 const getIou = async (userId, iouId) => {
@@ -73,7 +89,7 @@ const updateIou = async (userId, iouId, updates) => {
 
     const iou = await iouRepository.updateIouForUser(iouId, userId, payload);
     if (!iou) throw new Error("IOU not found");
-    return iou;
+    return withVirtuals(iou);
 };
 
 const deleteIou = async (userId, iouId) => {
@@ -110,7 +126,7 @@ const settleIou = async (userId, iouId, { paidAmount, paidOn } = {}) => {
     }
 
     const iou = await iouRepository.updateIouForUser(iouId, userId, update);
-    return iou;
+    return withVirtuals(iou);
 };
 
 const cancelIou = async (userId, iouId) => {
@@ -118,7 +134,8 @@ const cancelIou = async (userId, iouId) => {
     if (!existing) throw new Error("IOU not found");
     if (existing.status === 'settled') throw new Error("Cannot cancel a settled IOU");
 
-    return iouRepository.updateIouForUser(iouId, userId, { status: 'cancelled' });
+    const iou = await iouRepository.updateIouForUser(iouId, userId, { status: 'cancelled' });
+    return withVirtuals(iou);
 };
 
 
