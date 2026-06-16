@@ -80,6 +80,7 @@ CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 SMTP_USERNAME=your_smtp_username
 SMTP_PASSWORD=your_smtp_password
+GEMINI_API_KEY=your_gemini_api_key   # optional — enables AI insights (falls back to rule-based without it)
 ```
 
 ```bash
