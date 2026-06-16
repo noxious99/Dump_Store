@@ -8,12 +8,6 @@ interface IouCardProps {
   onClick: () => void
 }
 
-const statusLabel: Record<string, string> = {
-  partial: 'Partial',
-  settled: 'Settled',
-  cancelled: 'Cancelled',
-}
-
 const IouCard: React.FC<IouCardProps> = ({ iou, onClick }) => {
   const { symbol } = useCurrency()
   const lent = iou.type === 'lent'
@@ -46,19 +40,29 @@ const IouCard: React.FC<IouCardProps> = ({ iou, onClick }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-bold text-foreground truncate">{iou.counterpartyName}</p>
-            <span
-              className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
-              style={{
-                color: lent ? 'var(--success)' : 'var(--error)',
-                backgroundColor: lent ? 'var(--success-x100)' : 'var(--error-x100)',
-              }}
-            >
-              {lent ? 'Lent' : 'Borrowed'}
-            </span>
+            {iou.status === 'settled' ? (
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap bg-primary/10 text-primary">
+                Settled
+              </span>
+            ) : iou.status === 'cancelled' ? (
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap bg-grey-x200 text-muted-foreground">
+                Cancelled
+              </span>
+            ) : (
+              <span
+                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                style={{
+                  color: lent ? 'var(--success)' : 'var(--error)',
+                  backgroundColor: lent ? 'var(--success-x100)' : 'var(--error-x100)',
+                }}
+              >
+                {lent ? 'Lent' : 'Borrowed'}
+              </span>
+            )}
           </div>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {statusLabel[iou.status] && (
-              <span className="font-semibold">{statusLabel[iou.status]} · </span>
+            {iou.status === 'partial' && (
+              <span className="font-semibold">Partial · </span>
             )}
             {iou.isOverdue && !closed && (
               <span className="text-error font-semibold">Overdue · </span>
