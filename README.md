@@ -10,9 +10,10 @@ Track expenses, hit goals, settle IOUs — all in one place.
 
 Tracero is a full-stack web app for managing personal finances and goals. Instead of switching between multiple apps, everything lives under one roof.
 
-- **Goal Tracker** — Set short or long term goals, break them into milestones, and track progress over time.
-- **Expense Tracker** — Log expenses and income, set monthly budgets, allocate by category, and view breakdowns.
-- **IOU Tracker** — Keep track of who owes who.
+- **Expense Tracker** — Log income and expenses, set monthly budgets with per-category allocations, automate recurring entries, and break down your spending with charts and insights.
+- **IOU Tracker** — Track money you've lent or borrowed, record partial payments, settle up, and see at a glance who owes who.
+- **Goal Tracker** — Set short or long term goals, break them into tasks, and track progress over time.
+- **Smart Insights** — AI-generated takeaways across your finances, with a rule-based fallback when AI is unavailable.
 
 ---
 
@@ -68,6 +69,7 @@ CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 SMTP_USERNAME=your_smtp_username
 SMTP_PASSWORD=your_smtp_password
+GEMINI_API_KEY=your_gemini_api_key   # optional — enables AI insights (falls back to rule-based without it)
 ```
 
 ```bash
@@ -102,15 +104,33 @@ App runs on `http://localhost:5173`
 
 ## Features
 
-- Expense logging with categories and monthly summaries
-- Monthly budget allocation across categories
-- Income tracking by source
-- Goal creation with milestones and deadlines
-- IOU management — track debts both ways
+### Expense Tracker
+- Fast expense and income logging with a calculator-style amount pad
+- Categories with one-tap quick-add for entries you make often
+- Monthly budgets with per-category allocation and spending-pace tracking
+- Recurring rules — rent, subscriptions and bills log themselves automatically
+- Analytics: category breakdowns, spending trends, and time-range comparisons
+- Records grouped by day and category, with full edit/delete
+
+### IOU Tracker
+- Track money lent and borrowed in both directions
+- Partial payments, settle, and cancel
+- Overdue detection and a running net-balance summary
+- Filter by lent or borrowed
+
+### Goal Tracker
+- Short or long term goals with target dates
+- Break goals into tasks and track progress over time
+
+### Insights
+- AI-generated insights across your expenses, goals, and IOUs (rule-based fallback when AI is off)
+
+### Account & app
 - User profiles with avatar upload
+- Multi-currency support
 - Password reset via email
-- Dashboard with summary overview
-- Responsive (mobile friendly)
+- Dashboard with quick-add and a summary overview
+- Responsive, mobile-first design
 - Dark mode
 
 ---
