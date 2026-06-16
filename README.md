@@ -1,39 +1,51 @@
 # Tracero
 
-Track expenses, hit goals, settle IOUs — all in one place.
+Track expenses, hit goals, and settle IOUs — all in one place.
 
 [![Live](https://img.shields.io/badge/Live-tracero.me-6366F1?style=for-the-badge)](https://tracero.me)
 
----
-
 ## About
 
-Tracero is a full-stack web app for managing personal finances and goals. Instead of switching between multiple apps, everything lives under one roof.
+Tracero is a Ai powered web app for managing your personal finances and goals, so you don't have to juggle a separate app for each one.
 
-- **Goal Tracker** — Set short or long term goals, break them into milestones, and track progress over time.
-- **Expense Tracker** — Log expenses and income, set monthly budgets, allocate by category, and view breakdowns.
-- **IOU Tracker** — Keep track of who owes who.
+- **Expense Tracker** — Log income and expenses, set monthly budgets, allocate by category, automate recurring entries, and see where your money goes.
+- **IOU Tracker** — Keep track of money you've lent or borrowed, record payments, and settle up.
+- **Goal Tracker** — Set short or long term goals, break them into tasks, and track your progress.
 
----
+## Features
+
+### Expense Tracker
+- Fast expense and income logging with a calculator-style entry pad
+- One-tap quick add for the things you log often
+- Monthly budgets with per-category allocations and daily pacing
+- Recurring entries that log themselves — rent, bills, subscriptions
+- Spending breakdowns by category and over time
+- Records grouped by day and category, with full edit and delete
+
+### IOU Tracker
+- Track money lent and borrowed, in both directions
+- Partial payments, settle, and cancel
+- Overdue detection and a running net balance
+- Active and settled views, with search and filters
+
+### Goals
+- Short or long term goals with target dates
+- Break goals into tasks and track progress
+
+### Across the app
+- Smart insights to help you stay on top of your money
+- Dashboard with quick add and an at-a-glance overview
+- Multi-currency support
+- User profiles with avatar upload
+- Password reset via email
+- Responsive, mobile-first design
+- Dark mode
 
 ## Tech Stack
 
-### Frontend
-- React 19 + TypeScript
-- Vite
-- Tailwind CSS v4
-- shadcn/ui (Radix UI)
-- Redux Toolkit + React Query
-- React Hook Form + Zod
+**Frontend** — React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui (Radix UI), Redux Toolkit, React Query, React Hook Form + Zod
 
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT Authentication
-- Cloudinary (image storage)
-- Nodemailer / Resend (transactional emails)
-
----
+**Backend** — Node.js, Express, MongoDB (Mongoose), JWT auth, Cloudinary, Nodemailer / Resend
 
 ## Getting Started
 
@@ -97,24 +109,6 @@ npm run dev
 
 App runs on `http://localhost:5173`
 
-
----
-
-## Features
-
-- Expense logging with categories and monthly summaries
-- Monthly budget allocation across categories
-- Income tracking by source
-- Goal creation with milestones and deadlines
-- IOU management — track debts both ways
-- User profiles with avatar upload
-- Password reset via email
-- Dashboard with summary overview
-- Responsive (mobile friendly)
-- Dark mode
-
----
-
 ## License
 
-Personal use.
+Non commercial use.
