@@ -115,7 +115,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
       <div className="bg-card border border-border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="skeleton w-7 h-7 rounded-lg" />
+            <div className="skeleton w-9 h-9 rounded-xl" />
             <div className="skeleton h-4 w-20" />
           </div>
           <div className="skeleton h-5 w-16 rounded-full" />
@@ -142,7 +142,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Header — no click, no chevron */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-base">
               💳
             </div>
             <span className="text-sm font-bold text-foreground">Expenses</span>

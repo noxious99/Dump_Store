@@ -39,7 +39,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
       <div className="bg-card border border-border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
-            <div className="skeleton w-7 h-7 rounded-lg" />
+            <div className="skeleton w-9 h-9 rounded-xl" />
             <div className="skeleton h-4 w-14" />
           </div>
           <div className="skeleton h-4 w-14 rounded-full" />
@@ -63,7 +63,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
       {/* Header — no click, no chevron */}
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center text-base">
             🎯
           </div>
           <span className="text-sm font-bold text-foreground">Goals</span>
@@ -86,8 +86,8 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
             const tasksTotal = goal.progress?.tasksTotal ?? 0
             const tasksStarted = goal.progress?.tasksStarted ?? 0
             const allDone = pct >= 100
-            // Ring: primary always, success only on full completion (semantic)
-            const ringColor = allDone ? 'var(--success)' : 'var(--primary)'
+            // Ring: accent (Goals' identity color), success only on full completion
+            const ringColor = allDone ? 'var(--success)' : 'var(--accent)'
 
             return (
               <div
@@ -132,14 +132,14 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
       <div className="flex items-center gap-2 pt-3 border-t border-border">
         <button
           onClick={() => setFormOpen(true)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/15 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add goal
         </button>
         <Link
           to="/goals-tracker"
-          className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
+          className="text-xs font-semibold text-accent hover:underline px-3 py-2 whitespace-nowrap"
         >
           Open tracker →
         </Link>
