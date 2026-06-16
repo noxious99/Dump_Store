@@ -19,6 +19,7 @@ import {
     getCategoryRanking,
     getLastUsedCategory,
 } from "@/utils/categoryUsage";
+import { computeQuickChips, type QuickChip } from "@/utils/quickChips";
 
 type Category = {
     _id: string;
@@ -33,17 +34,6 @@ type ExpenseFormProps = {
     expenseRecords?: ExpenseRecord[];
     // When provided, the "repeats" toggle appears in More options
     onCreateRecurringRule?: (payload: RecurringRulePayload) => Promise<void> | void;
-}
-
-// A repeated (category, amount, note) combo offered as a one-tap log
-type QuickChip = {
-    key: string;
-    categoryId: string;
-    categoryName: string;
-    amount: number;
-    note: string;
-    count: number;
-    lastDate: string;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({
@@ -89,33 +79,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
     // Quick-add chips: combos logged ≥2 times this month, most frequent first.
     // History months never reach here — the adder only opens for the current month.
-    const quickChips = useMemo<QuickChip[]>(() => {
-        const map = new Map<string, QuickChip>();
-        for (const r of expenseRecords) {
-            if (!r.category?._id) continue;
-            const note = (r.note || "").trim();
-            const key = `${r.category._id}|${r.amount}|${note.toLowerCase()}`;
-            const existing = map.get(key);
-            if (existing) {
-                existing.count += 1;
-                if (r.date > existing.lastDate) existing.lastDate = r.date;
-            } else {
-                map.set(key, {
-                    key,
-                    categoryId: r.category._id,
-                    categoryName: r.category.name,
-                    amount: r.amount,
-                    note,
-                    count: 1,
-                    lastDate: r.date,
-                });
-            }
-        }
-        return [...map.values()]
-            .filter((c) => c.count >= 2)
-            .sort((a, b) => b.count - a.count || b.lastDate.localeCompare(a.lastDate))
-            .slice(0, 3);
-    }, [expenseRecords]);
+    const quickChips = useMemo<QuickChip[]>(
+        () => computeQuickChips(expenseRecords),
+        [expenseRecords]
+    );
 
     const handleChipSave = async (chip: QuickChip) => {
         if (savingChipKey || isLoading) return;
