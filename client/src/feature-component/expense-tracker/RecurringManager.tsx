@@ -27,6 +27,10 @@ type RecurringManagerProps = {
   monthlyExpenseTotal: number
   onToggleActive: (rule: RecurringRule) => Promise<void>
   onDelete: (rule: RecurringRule) => Promise<void>
+  // Controlled open. When provided, the built-in trigger row is hidden and the
+  // sheet is driven by the parent (e.g. opened from the dashboard expense card).
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const ruleLabel = (rule: RecurringRule): { emoji: string; name: string } => {
@@ -42,12 +46,19 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
   monthlyExpenseTotal,
   onToggleActive,
   onDelete,
+  open: controlledOpen,
+  onOpenChange,
 }) => {
   const { symbol } = useCurrency()
-  const [open, setOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? (onOpenChange ?? (() => {})) : setInternalOpen
   const [busyId, setBusyId] = useState<string | null>(null)
 
-  if (rules.length === 0) return null
+  // Uncontrolled (the tracker strip) hides itself when there's nothing to show.
+  // Controlled (dashboard) still renders so its sheet can show an empty state.
+  if (rules.length === 0 && !isControlled) return null
 
   const activeCount = rules.filter((r) => r.isActive).length
   const activeExpenseCount = rules.filter((r) => r.isActive && r.kind === 'expense').length
@@ -71,22 +82,25 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
 
   return (
     <>
-      {/* Quiet trigger row — information first, action at the end */}
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-between bg-card border border-border rounded-xl px-4 py-2.5 hover:bg-grey-x100 transition-colors"
-      >
-        <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Repeat className="w-3.5 h-3.5" />
-          <span>
-            {recurringLabel}
-            {monthlyExpenseTotal > 0 && (
-              <> · {symbol}{monthlyExpenseTotal.toLocaleString()}/mo</>
-            )}
+      {/* Quiet trigger row — information first, action at the end. Hidden when
+          the sheet is opened from somewhere else (e.g. the dashboard). */}
+      {!isControlled && (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center justify-between bg-card border border-border rounded-xl px-4 py-2.5 hover:bg-grey-x100 transition-colors"
+        >
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Repeat className="w-3.5 h-3.5" />
+            <span>
+              {recurringLabel}
+              {monthlyExpenseTotal > 0 && (
+                <> · {symbol}{monthlyExpenseTotal.toLocaleString()}/mo</>
+              )}
+            </span>
           </span>
-        </span>
-        <span className="text-xs font-semibold text-primary">Manage →</span>
-      </button>
+          <span className="text-xs font-semibold text-primary">Manage →</span>
+        </button>
+      )}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
@@ -98,6 +112,12 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
               Recurring
             </SheetTitle>
           </SheetHeader>
+
+          {rules.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No recurring rules yet. Set one up from the expense form's “Repeats” option.
+            </p>
+          )}
 
           <div className="divide-y divide-border">
             {rules.map((rule) => {
@@ -144,10 +164,12 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
             })}
           </div>
 
-          <p className="text-[11px] text-muted-foreground mt-3">
-            Deleting a rule won't touch the records it already added. A paused
-            rule simply picks up again from its next due date.
-          </p>
+          {rules.length > 0 && (
+            <p className="text-[11px] text-muted-foreground mt-3">
+              Deleting a rule won't touch the records it already added. A paused
+              rule simply picks up again from its next due date.
+            </p>
+          )}
         </SheetContent>
       </Sheet>
     </>

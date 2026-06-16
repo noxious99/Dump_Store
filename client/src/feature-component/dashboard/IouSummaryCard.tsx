@@ -38,7 +38,7 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
       {/* Header — neutral icon, financial value badge only */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+          <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-base">
             🤝
           </div>
           <span className="text-sm font-bold text-foreground">IOUs</span>
@@ -97,14 +97,14 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
       <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border">
         <button
           onClick={() => setFormOpen(true)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-secondary/10 text-secondary text-xs font-semibold hover:bg-secondary/15 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add IOU
         </button>
         <Link
           to="/iou-tracker"
-          className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
+          className="text-xs font-semibold text-secondary hover:underline px-3 py-2 whitespace-nowrap"
         >
           Open tracker →
         </Link>

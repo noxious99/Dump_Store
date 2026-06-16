@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Loader2, Plus, Handshake } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Loader2, Plus, Handshake, Search, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
@@ -9,7 +9,7 @@ import IouFormSheet from '@/feature-component/iou-tracker/IouFormSheet'
 import IouDetailSheet from '@/feature-component/iou-tracker/IouDetailSheet'
 import type { Iou, IouPayload, IouSummary } from '@/types/iou'
 
-type Filter = 'all' | 'lent' | 'borrowed'
+type Filter = 'all' | 'lent' | 'borrowed' | 'settled'
 
 const EMPTY_SUMMARY: IouSummary = {
   youOwe: 0,
@@ -23,10 +23,25 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'lent', label: 'Lent' },
   { value: 'borrowed', label: 'Borrowed' },
+  { value: 'settled', label: 'Settled' },
 ]
 
-// Open items first (pending/partial), then settled/cancelled.
+// Open = still owed (pending/partial); closed = settled/cancelled.
 const isOpen = (i: Iou) => i.status === 'pending' || i.status === 'partial'
+
+// Show the search field only once the list is long enough to need it.
+const SEARCH_THRESHOLD = 6
+
+const time = (d?: string) => (d ? new Date(d).getTime() : 0)
+
+// Active items: overdue first, then soonest payback date, then most recent.
+const sortActive = (a: Iou, b: Iou) => {
+  if (Boolean(a.isOverdue) !== Boolean(b.isOverdue)) return a.isOverdue ? -1 : 1
+  const ad = a.expectedPaybackDate ? time(a.expectedPaybackDate) : Infinity
+  const bd = b.expectedPaybackDate ? time(b.expectedPaybackDate) : Infinity
+  if (ad !== bd) return ad - bd
+  return time(b.transactionDate) - time(a.transactionDate)
+}
 
 const IouTracker: React.FC = () => {
   const { symbol } = useCurrency()
@@ -34,6 +49,7 @@ const IouTracker: React.FC = () => {
   const [summary, setSummary] = useState<IouSummary>(EMPTY_SUMMARY)
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [query, setQuery] = useState('')
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingIou, setEditingIou] = useState<Iou | null>(null)
@@ -71,9 +87,9 @@ const IouTracker: React.FC = () => {
         toast.success('IOU added')
       }
       await fetchData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving IOU:', error)
-      toast.error(error?.message || 'Failed to save IOU')
+      toast.error(error instanceof Error ? error.message : 'Failed to save IOU')
       throw error
     }
   }
@@ -84,9 +100,9 @@ const IouTracker: React.FC = () => {
       await axiosInstance.post(`/v1/iou/${selectedIou._id}/settle`, { paidAmount, paidOn })
       await fetchData()
       toast.success('Payment recorded')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error settling IOU:', error)
-      toast.error(error?.message || 'Failed to record payment')
+      toast.error(error instanceof Error ? error.message : 'Failed to record payment')
     }
   }
 
@@ -97,9 +113,9 @@ const IouTracker: React.FC = () => {
       setSelectedIouId(null)
       await fetchData()
       toast.success('IOU cancelled')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error cancelling IOU:', error)
-      toast.error(error?.message || 'Failed to cancel IOU')
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel IOU')
     }
   }
 
@@ -128,15 +144,33 @@ const IouTracker: React.FC = () => {
     setFormOpen(true)
   }
 
-  const filtered = ious
-    .filter((i) => (filter === 'all' ? true : i.type === filter))
-    .sort((a, b) => Number(isOpen(b)) - Number(isOpen(a)))
+  const overdueCount = useMemo(() => ious.filter((i) => i.isOverdue).length, [ious])
+
+  // Direction + search filter, then split into Active / Settled sections.
+  const { active, settled, matchCount } = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const matched = ious.filter((i) => {
+      if ((filter === 'lent' || filter === 'borrowed') && i.type !== filter) return false
+      if (filter === 'settled' && isOpen(i)) return false
+      if (q && !i.counterpartyName?.toLowerCase().includes(q)) return false
+      return true
+    })
+    return {
+      active: matched.filter(isOpen).sort(sortActive),
+      settled: matched
+        .filter((i) => !isOpen(i))
+        .sort((a, b) => time(b.transactionDate) - time(a.transactionDate)),
+      matchCount: matched.length,
+    }
+  }, [ious, filter, query])
+
+  const net = summary.owedToYou - summary.youOwe
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8">
         {/* ── Header ─────────────────────────────────── */}
-        <header className="flex items-center justify-between mb-5">
+        <header className="flex items-end justify-between gap-4 mb-6">
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               IOU Tracker
@@ -145,17 +179,18 @@ const IouTracker: React.FC = () => {
               Who owes who<span className="text-primary">.</span>
             </h1>
           </div>
+          {/* Desktop: inline button. Mobile: the FAB below. */}
           <button
             onClick={openCreate}
-            className="h-10 px-4 flex items-center gap-1.5 text-sm font-semibold text-primary-foreground bg-primary hover:bg-accent rounded-lg transition-colors"
+            className="hidden lg:flex h-10 px-4 items-center gap-1.5 text-sm font-semibold text-primary-foreground bg-primary hover:bg-accent rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             New IOU
           </button>
         </header>
 
-        {/* ── Summary strip ──────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        {/* ── Overview ───────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-card border border-border rounded-2xl px-4 py-3">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
               Owed to you
@@ -174,22 +209,61 @@ const IouTracker: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Filter tabs ────────────────────────────── */}
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1 mb-4 w-fit">
-          {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`px-3.5 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                filter === f.value
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {/* Net + counts — quiet summary line under the two stat cards. */}
+        {ious.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-5 text-xs text-muted-foreground">
+            <span>
+              Net{' '}
+              <span
+                className="font-bold"
+                style={{ color: net >= 0 ? 'var(--success)' : 'var(--error)' }}
+              >
+                {net >= 0 ? '+' : '-'}{symbol}{Math.abs(net).toLocaleString()}
+              </span>
+            </span>
+            <span>·</span>
+            <span>{summary.pendingCount} pending</span>
+            {overdueCount > 0 && (
+              <>
+                <span>·</span>
+                <span className="font-semibold text-error">{overdueCount} overdue</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── Controls: filter + search ──────────────── */}
+        {ious.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <div className="flex bg-grey-x100 rounded-lg p-1 w-full sm:w-auto">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className={`flex-1 sm:flex-none sm:px-4 h-8 rounded-md text-sm font-semibold transition-colors ${
+                    filter === f.value
+                      ? 'bg-card shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {ious.length > SEARCH_THRESHOLD && (
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by name"
+                  className="w-full h-9 pl-9 pr-3 rounded-lg bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── List ───────────────────────────────────── */}
         {isLoading ? (
@@ -214,24 +288,59 @@ const IouTracker: React.FC = () => {
               Add an IOU
             </button>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : matchCount === 0 ? (
           <div className="text-center py-12 bg-card border border-border rounded-2xl">
             <p className="text-sm text-muted-foreground">
-              No {filter} IOUs
+              {query ? `No matches for “${query}”` : `No ${filter} IOUs`}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filtered.map((iou) => (
-              <IouCard
-                key={iou._id}
-                iou={iou}
-                onClick={() => setSelectedIouId(iou._id)}
-              />
-            ))}
+          <div>
+            {active.length > 0 && (
+              <section className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <h2 className="text-sm font-bold text-foreground">Active</h2>
+                  <span className="text-[11px] font-semibold text-muted-foreground bg-grey-x100 rounded-full px-2 py-0.5">
+                    {active.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {active.map((iou) => (
+                    <IouCard key={iou._id} iou={iou} onClick={() => setSelectedIouId(iou._id)} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {settled.length > 0 && (
+              <section className={active.length > 0 ? 'border-t border-border pt-6' : ''}>
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <h2 className="text-sm font-bold text-foreground">Settled</h2>
+                  <span className="text-[11px] font-semibold text-muted-foreground bg-grey-x100 rounded-full px-2 py-0.5">
+                    {settled.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {settled.map((iou) => (
+                    <IouCard key={iou._id} iou={iou} onClick={() => setSelectedIouId(iou._id)} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
+
+      {/* Mobile FAB — mirrors the expense tracker's add affordance. */}
+      <button
+        onClick={openCreate}
+        className="lg:hidden fixed bottom-20 right-5 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        aria-label="New IOU"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       <IouFormSheet
         open={formOpen}

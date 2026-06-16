@@ -2,6 +2,16 @@ import React from 'react'
 import Ring from './Ring'
 import { useCurrency } from '@/hooks/useCurrency'
 
+// Compact money for the tight 52px ring: 9900 → "9.9k", 10000 → "10k",
+// 1.2m → "1.2m". Keeps large nets from overflowing the circle.
+const fmtCompact = (n: number): string => {
+  const abs = Math.abs(n)
+  if (abs >= 1_000_000) return `${(abs / 1_000_000).toFixed(1)}m`
+  if (abs >= 10_000) return `${Math.round(abs / 1000)}k`
+  if (abs >= 1000) return `${(abs / 1000).toFixed(1)}k`
+  return abs.toLocaleString()
+}
+
 interface DailyPulseProps {
   // Budget — shows daily allowance (different from the monthly card below)
   dailyBudget: number     // budgetLeft / daysLeft — what you can spend per day
@@ -121,12 +131,12 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
             Card below shows: you-owe / owed-to-you split + people chips
         */}
         <div className="bg-grey-x100 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center">
-          <div className="w-[52px] h-[52px] rounded-full bg-grey-x200 flex flex-col items-center justify-center flex-shrink-0">
+          <div className="w-[52px] h-[52px] rounded-full bg-grey-x200 flex flex-col items-center justify-center flex-shrink-0 px-1 overflow-hidden">
             <span
-              className="text-sm font-extrabold leading-none"
+              className="text-xs font-extrabold leading-none"
               style={{ color: iouNet >= 0 ? 'var(--success)' : 'var(--error)' }}
             >
-              {iouNet >= 0 ? '+' : '-'}{symbol}{Math.abs(iouNet)}
+              {iouNet >= 0 ? '+' : '-'}{symbol}{fmtCompact(iouNet)}
             </span>
           </div>
           <div>

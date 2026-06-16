@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, Repeat, ChevronRight } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,10 @@ interface ExpenseSummaryCardProps {
   budget: number
   budgetPct: number
   topCategories: TopCategory[]
+  /** Records this month that logged themselves from recurring rules. */
+  autoLoggedCount: number
+  /** Opens the recurring-rules manager (owned by the dashboard). */
+  onManageRecurring: () => void
   isLoading: boolean
   onBudgetSaved: () => void
 }
@@ -34,6 +38,8 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   budget,
   budgetPct,
   topCategories,
+  autoLoggedCount,
+  onManageRecurring,
   isLoading,
   onBudgetSaved,
 }) => {
@@ -109,7 +115,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
       <div className="bg-card border border-border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="skeleton w-7 h-7 rounded-lg" />
+            <div className="skeleton w-9 h-9 rounded-xl" />
             <div className="skeleton h-4 w-20" />
           </div>
           <div className="skeleton h-5 w-16 rounded-full" />
@@ -136,7 +142,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Header — no click, no chevron */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-grey-x100 flex items-center justify-center text-sm">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-base">
               💳
             </div>
             <span className="text-sm font-bold text-foreground">Expenses</span>
@@ -195,6 +201,24 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
               </div>
             ))}
           </div>
+        )}
+
+        {/* Recurring automation, surfaced as a quiet win rather than its own
+            block — reinforces the spend number ("some of this logged itself")
+            and opens the rule manager in place (no page switch). */}
+        {autoLoggedCount > 0 && (
+          <button
+            type="button"
+            onClick={onManageRecurring}
+            className="flex items-center gap-1.5 mb-4 w-fit text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Repeat className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
+            <span>
+              <span className="font-bold text-foreground">{autoLoggedCount}</span>
+              {autoLoggedCount === 1 ? ' entry' : ' entries'} logged automatically this month
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
+          </button>
         )}
 
         {/* Action row — one entry button (the dashboard is built for quick

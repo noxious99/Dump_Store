@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, RefreshCw } from 'lucide-react'
 import moment from 'moment'
+import { toast } from 'sonner'
 import axiosInstance from '@/utils/axiosInstance'
 import DailyPulse from '@/feature-component/dashboard/DailyPulse'
+import QuickLog from '@/feature-component/dashboard/QuickLog'
 import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard'
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
+import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
 import type { Goal, ExpenseSummary, RecentExpense, IouData, DashboardInsight } from '@/types/dashboard'
+import type { ExpenseRecord, RecurringRule } from '@/types/expenseTracker'
+import { computeQuickChips } from '@/utils/quickChips'
 import { categoryEmojiMap } from '@/utils/constant'
 import { getGreeting } from '@/utils/utils-functions'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -209,8 +214,12 @@ const Dashboard_Page: React.FC = () => {
     totalSpend: 0, budget: 0, totalIncome: 0, topCategories: [],
   })
   const [goals, setGoals] = useState<Goal[]>([])
+  // Full current-month records: feeds both the recent list and the quick-log chips.
+  const [monthExpenses, setMonthExpenses] = useState<ExpenseRecord[]>([])
   const [recentExpenses, setRecentExpenses] = useState<RecentExpense[]>([])
   const [iouData, setIouData] = useState<IouData>(EMPTY_IOU)
+  const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
+  const [recurringSheetOpen, setRecurringSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [highlightInsights, setHighlightInsights] = useState(false)
@@ -250,6 +259,40 @@ const Dashboard_Page: React.FC = () => {
     }
   }
 
+  const loadRecurring = async () => {
+    try {
+      const res = await axiosInstance.get('/v1/expenses/recurring')
+      setRecurringRules(res.data?.rules ?? [])
+    } catch (err) {
+      console.error('Recurring fetch error:', err)
+    }
+  }
+
+  // Pause/resume and delete mirror the expense tracker's behavior so a rule
+  // managed from the dashboard behaves identically. Records already logged
+  // are never touched.
+  const handleToggleRecurring = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.patch(`/v1/expenses/recurring/${rule._id}`, { isActive: !rule.isActive })
+      toast.success(rule.isActive ? 'Paused' : 'Back on, starting next due date')
+      await loadRecurring()
+    } catch (err) {
+      console.error('Error updating recurring rule:', err)
+      toast.error('Failed to update rule')
+    }
+  }
+
+  const handleDeleteRecurring = async (rule: RecurringRule) => {
+    try {
+      await axiosInstance.delete(`/v1/expenses/recurring/${rule._id}`)
+      toast.success('Rule deleted. Your past records are safe')
+      await loadRecurring()
+    } catch (err) {
+      console.error('Error deleting recurring rule:', err)
+      toast.error('Failed to delete rule')
+    }
+  }
+
   useEffect(() => {
     fetchInsights()
   }, [])
@@ -265,10 +308,13 @@ const Dashboard_Page: React.FC = () => {
             .get(`/v1/expenses/details?date=${moment().format('YYYY-MM-DD')}`)
             .catch(() => ({ data: { expenseRecords: [] } })),
           axiosInstance.get('/v1/iou/summary').catch(() => ({ data: EMPTY_IOU })),
+          loadRecurring(), // sets recurring state itself; result unused here
         ])
+        const records: ExpenseRecord[] = recentRes.data?.expenseRecords ?? []
         setExpenseSummary(processExpenseData(expRes.data))
         setGoals(goalsRes.data?.goals ?? [])
-        setRecentExpenses((recentRes.data?.expenseRecords ?? []).slice(0, 7))
+        setMonthExpenses(records)
+        setRecentExpenses(records.slice(0, 7))
         setIouData({ ...EMPTY_IOU, ...(iouRes.data ?? {}) })
       } catch (err) {
         console.error('Dashboard fetch error:', err)
@@ -280,6 +326,15 @@ const Dashboard_Page: React.FC = () => {
   }, [refreshKey])
 
   // ── Derived values ──────────────────────────────────────────────────────────
+  const quickChips = useMemo(() => computeQuickChips(monthExpenses), [monthExpenses])
+
+  // How many of this month's records logged themselves from recurring rules —
+  // the "you didn't have to do this" signal, surfaced inside the expense card.
+  const autoLoggedCount = useMemo(
+    () => monthExpenses.filter((r) => !!r.recurringRuleId).length,
+    [monthExpenses]
+  )
+
   const budgetPct = expenseSummary.budget > 0
     ? Math.min(Math.round((expenseSummary.totalSpend / expenseSummary.budget) * 100), 100)
     : 0
@@ -352,6 +407,10 @@ const Dashboard_Page: React.FC = () => {
           {/* ══ LEFT COLUMN — Feature cards ══════════════════════════ */}
           <div className="space-y-3 animate-stagger-in">
 
+            {/* One-tap re-logging of frequent expenses — top of the stack so a
+                forgetful user can log before anything else competes for attention. */}
+            <QuickLog chips={quickChips} onLogged={() => setRefreshKey((p) => p + 1)} />
+
             <DailyPulse
               dailyBudget={dailyBudget}
               budgetLeft={budgetLeft}
@@ -371,8 +430,21 @@ const Dashboard_Page: React.FC = () => {
               budget={expenseSummary.budget}
               budgetPct={budgetPct}
               topCategories={expenseSummary.topCategories}
+              autoLoggedCount={autoLoggedCount}
+              onManageRecurring={() => setRecurringSheetOpen(true)}
               isLoading={isLoading}
               onBudgetSaved={() => setRefreshKey((p) => p + 1)}
+            />
+
+            {/* Headless: trigger lives in the expense card above; this only
+                renders the bottom sheet so recurring rules are managed in place. */}
+            <RecurringManager
+              rules={recurringRules}
+              monthlyExpenseTotal={0}
+              onToggleActive={handleToggleRecurring}
+              onDelete={handleDeleteRecurring}
+              open={recurringSheetOpen}
+              onOpenChange={setRecurringSheetOpen}
             />
 
             <GoalsSummaryCard

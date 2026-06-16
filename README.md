@@ -1,40 +1,51 @@
 # Tracero
 
-Track expenses, hit goals, settle IOUs — all in one place.
+Track expenses, hit goals, and settle IOUs — all in one place.
 
 [![Live](https://img.shields.io/badge/Live-tracero.me-6366F1?style=for-the-badge)](https://tracero.me)
 
----
-
 ## About
 
-Tracero is a full-stack web app for managing personal finances and goals. Instead of switching between multiple apps, everything lives under one roof.
+Tracero is a Ai powered web app for managing your personal finances and goals, so you don't have to juggle a separate app for each one.
 
-- **Expense Tracker** — Log income and expenses, set monthly budgets with per-category allocations, automate recurring entries, and break down your spending with charts and insights.
-- **IOU Tracker** — Track money you've lent or borrowed, record partial payments, settle up, and see at a glance who owes who.
-- **Goal Tracker** — Set short or long term goals, break them into tasks, and track progress over time.
-- **Smart Insights** — AI-generated takeaways across your finances, with a rule-based fallback when AI is unavailable.
+- **Expense Tracker** — Log income and expenses, set monthly budgets, allocate by category, automate recurring entries, and see where your money goes.
+- **IOU Tracker** — Keep track of money you've lent or borrowed, record payments, and settle up.
+- **Goal Tracker** — Set short or long term goals, break them into tasks, and track your progress.
 
----
+## Features
+
+### Expense Tracker
+- Fast expense and income logging with a calculator-style entry pad
+- One-tap quick add for the things you log often
+- Monthly budgets with per-category allocations and daily pacing
+- Recurring entries that log themselves — rent, bills, subscriptions
+- Spending breakdowns by category and over time
+- Records grouped by day and category, with full edit and delete
+
+### IOU Tracker
+- Track money lent and borrowed, in both directions
+- Partial payments, settle, and cancel
+- Overdue detection and a running net balance
+- Active and settled views, with search and filters
+
+### Goals
+- Short or long term goals with target dates
+- Break goals into tasks and track progress
+
+### Across the app
+- Smart insights to help you stay on top of your money
+- Dashboard with quick add and an at-a-glance overview
+- Multi-currency support
+- User profiles with avatar upload
+- Password reset via email
+- Responsive, mobile-first design
+- Dark mode
 
 ## Tech Stack
 
-### Frontend
-- React 19 + TypeScript
-- Vite
-- Tailwind CSS v4
-- shadcn/ui (Radix UI)
-- Redux Toolkit + React Query
-- React Hook Form + Zod
+**Frontend** — React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui (Radix UI), Redux Toolkit, React Query, React Hook Form + Zod
 
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT Authentication
-- Cloudinary (image storage)
-- Nodemailer / Resend (transactional emails)
-
----
+**Backend** — Node.js, Express, MongoDB (Mongoose), JWT auth, Cloudinary, Nodemailer / Resend
 
 ## Getting Started
 
@@ -99,42 +110,6 @@ npm run dev
 
 App runs on `http://localhost:5173`
 
-
----
-
-## Features
-
-### Expense Tracker
-- Fast expense and income logging with a calculator-style amount pad
-- Categories with one-tap quick-add for entries you make often
-- Monthly budgets with per-category allocation and spending-pace tracking
-- Recurring rules — rent, subscriptions and bills log themselves automatically
-- Analytics: category breakdowns, spending trends, and time-range comparisons
-- Records grouped by day and category, with full edit/delete
-
-### IOU Tracker
-- Track money lent and borrowed in both directions
-- Partial payments, settle, and cancel
-- Overdue detection and a running net-balance summary
-- Filter by lent or borrowed
-
-### Goal Tracker
-- Short or long term goals with target dates
-- Break goals into tasks and track progress over time
-
-### Insights
-- AI-generated insights across your expenses, goals, and IOUs (rule-based fallback when AI is off)
-
-### Account & app
-- User profiles with avatar upload
-- Multi-currency support
-- Password reset via email
-- Dashboard with quick-add and a summary overview
-- Responsive, mobile-first design
-- Dark mode
-
----
-
 ## License
 
-Personal use.
+Non commercial use.
