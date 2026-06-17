@@ -64,6 +64,14 @@ export interface DashboardInsight {
   domain: 'expense' | 'goals' | 'iou' | 'general'
 }
 
+export interface ActivityStreak {
+  /** Consecutive days (ending today, or yesterday via grace) with any activity. */
+  current: number
+  /** Longest run found in the lookback window. */
+  longest: number
+  loggedToday: boolean
+}
+
 export interface DashboardInsightsResponse {
   insights: DashboardInsight[]
   source: 'ai' | 'fallback'

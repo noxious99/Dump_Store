@@ -11,7 +11,7 @@ import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
 import FeatureCarousel from '@/feature-component/dashboard/FeatureCarousel'
 import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import type { Goal, ExpenseSummary, IouData, DashboardInsight } from '@/types/dashboard'
+import type { Goal, ExpenseSummary, IouData, DashboardInsight, ActivityStreak } from '@/types/dashboard'
 import type { ExpenseRecord, IncomeRecord, RecurringRule } from '@/types/expenseTracker'
 import type { Iou } from '@/types/iou'
 import { computeQuickChips } from '@/utils/quickChips'
@@ -234,6 +234,7 @@ const Dashboard_Page: React.FC = () => {
   // IOU records (for activity-feed events) — the summary lacks per-IOU timestamps.
   const [ious, setIous] = useState<Iou[]>([])
   const [iouData, setIouData] = useState<IouData>(EMPTY_IOU)
+  const [streak, setStreak] = useState<ActivityStreak>({ current: 0, longest: 0, loggedToday: false })
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
   const [recurringSheetOpen, setRecurringSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -317,7 +318,7 @@ const Dashboard_Page: React.FC = () => {
     const fetchAll = async () => {
       setIsLoading(true)
       try {
-        const [expRes, goalsRes, recentRes, iouRes, iouListRes] = await Promise.all([
+        const [expRes, goalsRes, recentRes, iouRes, iouListRes, streakRes] = await Promise.all([
           axiosInstance.get('/v1/expenses/dashboard-summary'),
           axiosInstance.get('/v1/goals').catch(() => ({ data: { goals: [] } })),
           axiosInstance
@@ -325,6 +326,7 @@ const Dashboard_Page: React.FC = () => {
             .catch(() => ({ data: { expenseRecords: [], incomeRecords: [] } })),
           axiosInstance.get('/v1/iou/summary').catch(() => ({ data: EMPTY_IOU })),
           axiosInstance.get('/v1/iou').catch(() => ({ data: { ious: [] } })),
+          axiosInstance.get('/v1/streak').catch(() => ({ data: null })),
           loadRecurring(), // sets recurring state itself; result unused here
         ])
         const records: ExpenseRecord[] = recentRes.data?.expenseRecords ?? []
@@ -334,6 +336,7 @@ const Dashboard_Page: React.FC = () => {
         setMonthIncome(recentRes.data?.incomeRecords ?? [])
         setIous(iouListRes.data?.ious ?? [])
         setIouData({ ...EMPTY_IOU, ...(iouRes.data ?? {}) })
+        if (streakRes.data) setStreak(streakRes.data)
       } catch (err) {
         console.error('Dashboard fetch error:', err)
       } finally {
@@ -442,22 +445,35 @@ const Dashboard_Page: React.FC = () => {
             </h1>
           </div>
 
-          {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
-              sit at the bottom of the stack). Desktop shows them in the sticky
-              right panel, so no jump is needed there. */}
-          <button
-            onClick={goToInsights}
-            aria-label="Jump to Smart Insights"
-            className="lg:hidden relative inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-xs font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-          >
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
-            </span>
-            <Sparkles className="w-3.5 h-3.5" />
-            Insights
-          </button>
-          {/* TODO: Show streak badge when backend streak data is available */}
+          <div className="flex items-center gap-2">
+            {/* Activity streak — consecutive days the user showed up (any
+                feature). Shown on both breakpoints; hidden until there's a run. */}
+            {streak.current > 0 && (
+              <div
+                className="inline-flex items-center gap-1 h-9 px-3 rounded-full bg-warning/10 text-warning text-xs font-bold"
+                title={streak.longest > streak.current ? `Best: ${streak.longest} days` : undefined}
+              >
+                <span className="text-sm leading-none">🔥</span>
+                {streak.current} day
+              </div>
+            )}
+
+            {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
+                sit at the bottom of the stack). Desktop shows them in the sticky
+                right panel, so no jump is needed there. */}
+            <button
+              onClick={goToInsights}
+              aria-label="Jump to Smart Insights"
+              className="lg:hidden relative inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-xs font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+            >
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
+              </span>
+              <Sparkles className="w-3.5 h-3.5" />
+              Insights
+            </button>
+          </div>
         </header>
 
         {/*
