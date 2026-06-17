@@ -46,6 +46,8 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
   // Color rule: primary always, error ONLY when over budget
   const budgetRingColor = budgetPct >= 100 ? 'var(--error)' : 'var(--primary)'
   const isOverBudget = budgetPct >= 100
+  // How far past the monthly budget (budgetLeft goes negative once over).
+  const overspend = Math.max(0, -budgetLeft)
 
   if (isLoading) {
     return (
@@ -87,23 +89,36 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
           <Ring pct={budgetPct} size={52} sw={4} strokeColor={budgetRingColor}>
             <span className="text-[10px] font-extrabold text-foreground leading-none">
               {budgetTotal > 0
-                ? isOverBudget ? '—' : `${symbol}${dailyBudget}`
+                ? isOverBudget ? `${symbol}0` : `${symbol}${dailyBudget}`
                 : '—'}
             </span>
           </Ring>
           <div>
             <p className="text-[11px] font-bold text-foreground">Daily limit</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">
-              {budgetTotal > 0
-                ? isOverBudget
-                  ? 'Over budget'
-                  : `${symbol}${Math.max(0, budgetLeft).toLocaleString()} left · ${daysLeft}d`
-                : 'Budget not set'}
-            </p>
+            {budgetTotal > 0 ? (
+              isOverBudget ? (
+                // Hero + whisper: the overspend is the one number that matters
+                // (emphasized red), with days-left as calm muted context. The
+                // ring already shows ৳0, so the text never repeats it.
+                <>
+                  <p className="text-[9px] text-error font-semibold mt-0.5 leading-tight">
+                    {symbol}{overspend.toLocaleString()} over
+                  </p>
+                  <p className="text-[9px] text-muted-foreground leading-tight">
+                    {daysLeft}d left
+                  </p>
+                </>
+              ) : (
+                <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">
+                  {symbol}{Math.max(0, budgetLeft).toLocaleString()} left · {daysLeft}d
+                </p>
+              )
+            ) : (
+              <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">
+                Budget not set
+              </p>
+            )}
           </div>
-          {isOverBudget && (
-            <span className="text-[9px] font-semibold text-error">Over budget</span>
-          )}
         </div>
 
         {/* ── Goals Aggregate ──
@@ -142,12 +157,12 @@ const DailyPulse: React.FC<DailyPulseProps> = ({
           <div>
             <p className="text-[11px] font-bold text-foreground">IOUs</p>
             <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">Net balance</p>
+            {iouPending > 0 && (
+              <p className="text-[9px] text-muted-foreground leading-tight">
+                {iouPending} pending
+              </p>
+            )}
           </div>
-          {iouPending > 0 && (
-            <span className="text-[9px] font-semibold text-muted-foreground">
-              {iouPending} pending
-            </span>
-          )}
         </div>
 
       </div>

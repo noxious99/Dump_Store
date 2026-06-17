@@ -34,7 +34,7 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4">
+    <div className="bg-card border border-border rounded-2xl p-4 h-full flex flex-col">
       {/* Header — neutral icon, financial value badge only */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
       </div>
 
       {/* Action row — uniform add button + tracker link, matching the other cards */}
-      <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border">
+      <div className="flex items-center gap-2 pt-3 mt-auto border-t border-border">
         <button
           onClick={() => setFormOpen(true)}
           className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-secondary/10 text-secondary text-xs font-semibold hover:bg-secondary/15 transition-colors"

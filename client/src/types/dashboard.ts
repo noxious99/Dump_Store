@@ -50,6 +50,8 @@ export interface IouData {
   owedToYou: number
   net: number
   pendingCount: number
+  /** Open IOUs past their expected payback date — drives the dashboard alert dot. */
+  overdueCount: number
   people: Person[]
 }
 
@@ -60,6 +62,14 @@ export interface DashboardInsight {
   emoji: string
   tone: 'good' | 'warn' | 'neutral'
   domain: 'expense' | 'goals' | 'iou' | 'general'
+}
+
+export interface ActivityStreak {
+  /** Consecutive days (ending today, or yesterday via grace) with any activity. */
+  current: number
+  /** Longest run found in the lookback window. */
+  longest: number
+  loggedToday: boolean
 }
 
 export interface DashboardInsightsResponse {

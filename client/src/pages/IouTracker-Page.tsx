@@ -94,12 +94,21 @@ const IouTracker: React.FC = () => {
     }
   }
 
-  const handleSettle = async (paidAmount?: number, paidOn?: string) => {
+  const handleSettle = async (paidAmount?: number, paidOn?: string, recordCashFlow?: boolean) => {
     if (!selectedIou) return
     try {
-      await axiosInstance.post(`/v1/iou/${selectedIou._id}/settle`, { paidAmount, paidOn })
+      const res = await axiosInstance.post(`/v1/iou/${selectedIou._id}/settle`, {
+        paidAmount, paidOn, recordCashFlow,
+      })
       await fetchData()
-      toast.success('Payment recorded')
+      const kind = res.data?.cashFlow?.kind
+      toast.success(
+        kind === 'income'
+          ? 'Payment recorded · added to income'
+          : kind === 'expense'
+            ? 'Payment recorded · logged as expense'
+            : 'Payment recorded'
+      )
     } catch (error) {
       console.error('Error settling IOU:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to record payment')

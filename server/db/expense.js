@@ -169,6 +169,18 @@ const findDefaultCategories = async () => {
     return Category.find({ isDefault: true }).select('_id name');
 };
 
+// Resolve a category by name, preferring an existing default or the user's own;
+// create a user-scoped one if none exists. Used by the IOU→cash-flow bridge so
+// a repayment can be logged as an expense without forcing a category picker.
+const findOrCreateCategory = async (userId, name) => {
+    const existing = await Category.findOne({
+        name,
+        $or: [{ userId }, { userId: null }, { isDefault: true }],
+    }).select('_id name');
+    if (existing) return existing;
+    return Category.create({ name, userId, isDefault: false });
+};
+
 
 module.exports = {
     insertExpense,
@@ -197,4 +209,5 @@ module.exports = {
     updateBudgetAllocation,
     findCategoryById,
     findDefaultCategories,
+    findOrCreateCategory,
 };

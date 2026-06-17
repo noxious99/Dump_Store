@@ -33,6 +33,7 @@ const deleteIouForUser = async (iouId, userId) => {
  * Returns: totals (by type, all still-owed) + per-counterparty net breakdown.
  */
 const getOutstandingSummary = async (userId) => {
+    const now = new Date();
     return Iou.aggregate([
         {
             $match: {
@@ -44,6 +45,7 @@ const getOutstandingSummary = async (userId) => {
             $project: {
                 type: 1,
                 counterpartyName: 1,
+                expectedPaybackDate: 1,
                 remaining: { $max: [{ $subtract: ['$amount', { $ifNull: ['$amountPaid', 0] }] }, 0] }
             }
         },
@@ -72,6 +74,12 @@ const getOutstandingSummary = async (userId) => {
                     { $sort: { net: -1 } }
                 ],
                 pending: [
+                    { $count: 'value' }
+                ],
+                // Open IOUs whose expected payback date has passed — the
+                // "needs attention" signal for the dashboard.
+                overdue: [
+                    { $match: { expectedPaybackDate: { $ne: null, $lt: now } } },
                     { $count: 'value' }
                 ]
             }

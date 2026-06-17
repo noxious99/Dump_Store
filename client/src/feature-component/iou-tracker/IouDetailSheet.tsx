@@ -14,7 +14,7 @@ interface IouDetailSheetProps {
   iou: Iou | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSettle: (paidAmount?: number, paidOn?: string) => Promise<void> | void
+  onSettle: (paidAmount?: number, paidOn?: string, recordCashFlow?: boolean) => Promise<void> | void
   onCancel: () => Promise<void> | void
   onEdit: () => void
   onDelete: () => Promise<void> | void
@@ -43,6 +43,9 @@ const IouDetailSheet: React.FC<IouDetailSheetProps> = ({
   const [busy, setBusy] = useState(false)
   const [payAmount, setPayAmount] = useState('')
   const [payOn, setPayOn] = useState('')
+  // Default on: a settlement usually means money actually moved, so mirroring it
+  // into the ledger is the common case. The user can opt out per settle.
+  const [recordCashFlow, setRecordCashFlow] = useState(true)
 
   useEffect(() => {
     if (open && iou) {
@@ -50,6 +53,7 @@ const IouDetailSheet: React.FC<IouDetailSheetProps> = ({
       setBusy(false)
       setPayAmount(String(iou.amountRemaining))
       setPayOn(moment().format('YYYY-MM-DD'))
+      setRecordCashFlow(true)
     }
   }, [open, iou])
 
@@ -66,7 +70,7 @@ const IouDetailSheet: React.FC<IouDetailSheetProps> = ({
     try {
       // Empty/full amount settles in full; a partial value records that much.
       const partial = !Number.isNaN(amt) && amt > 0 && amt < iou.amountRemaining
-      await onSettle(partial ? amt : undefined, payOn || undefined)
+      await onSettle(partial ? amt : undefined, payOn || undefined, recordCashFlow)
       setMode('view')
     } finally {
       setBusy(false)
@@ -237,6 +241,26 @@ const IouDetailSheet: React.FC<IouDetailSheetProps> = ({
                   className="w-full h-10 px-3 text-sm rounded-lg bg-card border border-border focus:outline-none focus:border-primary text-foreground"
                 />
               </div>
+
+              {/* Cash-flow bridge: mirror this payment into the ledger.
+                  lent → income (money back to you); borrowed → expense (you paid out). */}
+              <label className="flex items-start gap-2.5 rounded-lg bg-grey-x100 border border-border px-3 py-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={recordCashFlow}
+                  onChange={(e) => setRecordCashFlow(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span className="text-xs text-foreground">
+                  Also record as {lent ? 'income' : 'an expense'}
+                  <span className="block text-[10px] text-muted-foreground mt-0.5">
+                    {lent
+                      ? 'Adds the amount received to your income.'
+                      : 'Logs the amount paid under “Loan Repayment”.'}
+                  </span>
+                </span>
+              </label>
+
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={() => setMode('view')}

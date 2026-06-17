@@ -112,7 +112,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="bg-card border border-border rounded-2xl p-4 h-full">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="skeleton w-9 h-9 rounded-xl" />
@@ -138,7 +138,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
 
   return (
     <>
-      <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="bg-card border border-border rounded-2xl p-4 h-full flex flex-col">
         {/* Header — no click, no chevron */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Action row — one entry button (the dashboard is built for quick
             logging). Expense vs income is a single tab-tap away inside the
             adder, so two separate buttons just split one action in two. */}
-        <div className="flex items-center gap-2 pt-3 border-t border-border">
+        <div className="flex items-center gap-2 pt-3 mt-auto border-t border-border">
           <button
             onClick={() => setAdderMode('expense')}
             className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"

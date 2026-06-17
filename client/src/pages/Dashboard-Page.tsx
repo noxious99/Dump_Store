@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Sparkles, RefreshCw } from 'lucide-react'
 import moment from 'moment'
 import { toast } from 'sonner'
@@ -9,10 +8,14 @@ import QuickLog from '@/feature-component/dashboard/QuickLog'
 import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard'
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
+import FeatureCarousel from '@/feature-component/dashboard/FeatureCarousel'
 import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
-import type { Goal, ExpenseSummary, RecentExpense, IouData, DashboardInsight } from '@/types/dashboard'
-import type { ExpenseRecord, RecurringRule } from '@/types/expenseTracker'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import type { Goal, ExpenseSummary, IouData, DashboardInsight, ActivityStreak } from '@/types/dashboard'
+import type { ExpenseRecord, IncomeRecord, RecurringRule } from '@/types/expenseTracker'
+import type { Iou } from '@/types/iou'
 import { computeQuickChips } from '@/utils/quickChips'
+import { buildActivityFeed, type ActivityItem } from '@/utils/activityFeed'
 import { categoryEmojiMap } from '@/utils/constant'
 import { getGreeting } from '@/utils/utils-functions'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -24,6 +27,7 @@ const EMPTY_IOU: IouData = {
   owedToYou: 0,
   net: 0,
   pendingCount: 0,
+  overdueCount: 0,
   people: [],
 }
 
@@ -44,30 +48,31 @@ const processExpenseData = (data: any): ExpenseSummary => ({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-interface RecentExpensesProps {
-  expenses: RecentExpense[]
+interface RecentActivityProps {
+  items: ActivityItem[]
   isLoading: boolean
-  onViewAll: () => void
   /** Desktop right-col shows more rows */
   skeletonRows?: number
 }
 
-const RecentExpenses: React.FC<RecentExpensesProps> = ({
-  expenses, isLoading, onViewAll, skeletonRows = 3,
+// Amount color + sign prefix per tone. Income is green (+), expenses red (-),
+// IOU movements stay neutral teal with no sign (they aren't budget spend).
+const TONE: Record<ActivityItem['tone'], { className: string; sign: string }> = {
+  positive: { className: 'text-success', sign: '+' },
+  negative: { className: 'text-error', sign: '-' },
+  neutral: { className: 'text-secondary', sign: '' },
+}
+
+const RecentActivity: React.FC<RecentActivityProps> = ({
+  items, isLoading, skeletonRows = 3,
 }) => {
   const { symbol } = useCurrency()
   return (
   <div>
-    <div className="flex items-center justify-between mb-2">
+    <div className="flex items-center mb-2">
       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-        Recent Expenses
+        Recent Activity
       </span>
-      <button
-        onClick={onViewAll}
-        className="text-xs text-primary font-semibold hover:underline"
-      >
-        View all →
-      </button>
     </div>
 
     {isLoading ? (
@@ -87,37 +92,42 @@ const RecentExpenses: React.FC<RecentExpensesProps> = ({
           </div>
         ))}
       </div>
-    ) : expenses.length === 0 ? (
+    ) : items.length === 0 ? (
       <div className="text-center py-6 bg-card border border-border rounded-2xl">
-        <p className="text-sm text-muted-foreground">No expenses logged today</p>
+        <p className="text-sm text-muted-foreground">No activity yet</p>
       </div>
     ) : (
       <div className="bg-card border border-border rounded-2xl px-4">
-        {expenses.map((tx, i) => (
-          <div
-            key={tx._id}
-            className="flex items-center gap-3 py-3"
-            style={{
-              borderBottom: i < expenses.length - 1 ? '1px solid var(--border)' : 'none',
-            }}
-          >
-            <div className="w-8 h-8 rounded-xl bg-grey-x100 flex items-center justify-center text-sm flex-shrink-0">
-              {getCategoryEmoji(tx.category?.name ?? '')}
+        {items.map((item, i) => {
+          const tone = TONE[item.tone]
+          return (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 py-3"
+              style={{
+                borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+              }}
+            >
+              <div className="w-8 h-8 rounded-xl bg-grey-x100 flex items-center justify-center text-sm flex-shrink-0">
+                {item.emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground capitalize truncate">
+                  {item.title}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {item.subtitle ? `${item.subtitle} · ` : ''}
+                  {moment(item.date).fromNow()}
+                </p>
+              </div>
+              {item.amount != null && (
+                <span className={`text-sm font-bold flex-shrink-0 ${tone.className}`}>
+                  {tone.sign}{symbol}{item.amount.toLocaleString()}
+                </span>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground capitalize truncate">
-                {tx.category?.name ?? 'Uncategorized'}
-              </p>
-              <p className="text-[10px] text-muted-foreground truncate">
-                {tx.note ? `${tx.note} · ` : ''}
-                {moment(tx.createdAt).fromNow()}
-              </p>
-            </div>
-            <span className="text-sm font-bold text-error flex-shrink-0">
-              -{symbol}{tx.amount.toLocaleString()}
-            </span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     )}
   </div>
@@ -207,17 +217,24 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const Dashboard_Page: React.FC = () => {
-  const navigate = useNavigate()
   const { symbol } = useCurrency()
+  // Below lg, the three feature cards become a swipeable carousel instead of a
+  // tall stack; desktop keeps the equal stacked cards. Branching here (rather
+  // than CSS show/hide) mounts the cards once, so their internal fetches don't
+  // double-fire.
+  const isMobile = useIsMobile()
 
   const [expenseSummary, setExpenseSummary] = useState<ExpenseSummary>({
     totalSpend: 0, budget: 0, totalIncome: 0, topCategories: [],
   })
   const [goals, setGoals] = useState<Goal[]>([])
-  // Full current-month records: feeds both the recent list and the quick-log chips.
+  // Full current-month records: feed the activity list and the quick-log chips.
   const [monthExpenses, setMonthExpenses] = useState<ExpenseRecord[]>([])
-  const [recentExpenses, setRecentExpenses] = useState<RecentExpense[]>([])
+  const [monthIncome, setMonthIncome] = useState<IncomeRecord[]>([])
+  // IOU records (for activity-feed events) — the summary lacks per-IOU timestamps.
+  const [ious, setIous] = useState<Iou[]>([])
   const [iouData, setIouData] = useState<IouData>(EMPTY_IOU)
+  const [streak, setStreak] = useState<ActivityStreak>({ current: 0, longest: 0, loggedToday: false })
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
   const [recurringSheetOpen, setRecurringSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -301,21 +318,25 @@ const Dashboard_Page: React.FC = () => {
     const fetchAll = async () => {
       setIsLoading(true)
       try {
-        const [expRes, goalsRes, recentRes, iouRes] = await Promise.all([
+        const [expRes, goalsRes, recentRes, iouRes, iouListRes, streakRes] = await Promise.all([
           axiosInstance.get('/v1/expenses/dashboard-summary'),
           axiosInstance.get('/v1/goals').catch(() => ({ data: { goals: [] } })),
           axiosInstance
             .get(`/v1/expenses/details?date=${moment().format('YYYY-MM-DD')}`)
-            .catch(() => ({ data: { expenseRecords: [] } })),
+            .catch(() => ({ data: { expenseRecords: [], incomeRecords: [] } })),
           axiosInstance.get('/v1/iou/summary').catch(() => ({ data: EMPTY_IOU })),
+          axiosInstance.get('/v1/iou').catch(() => ({ data: { ious: [] } })),
+          axiosInstance.get('/v1/streak').catch(() => ({ data: null })),
           loadRecurring(), // sets recurring state itself; result unused here
         ])
         const records: ExpenseRecord[] = recentRes.data?.expenseRecords ?? []
         setExpenseSummary(processExpenseData(expRes.data))
         setGoals(goalsRes.data?.goals ?? [])
         setMonthExpenses(records)
-        setRecentExpenses(records.slice(0, 7))
+        setMonthIncome(recentRes.data?.incomeRecords ?? [])
+        setIous(iouListRes.data?.ious ?? [])
         setIouData({ ...EMPTY_IOU, ...(iouRes.data ?? {}) })
+        if (streakRes.data) setStreak(streakRes.data)
       } catch (err) {
         console.error('Dashboard fetch error:', err)
       } finally {
@@ -327,6 +348,13 @@ const Dashboard_Page: React.FC = () => {
 
   // ── Derived values ──────────────────────────────────────────────────────────
   const quickChips = useMemo(() => computeQuickChips(monthExpenses), [monthExpenses])
+
+  // Unified cross-feature feed: expenses, income, IOU events, goal completions,
+  // newest first. Built in a framework-agnostic util so it ports to RN as-is.
+  const activity = useMemo<ActivityItem[]>(
+    () => buildActivityFeed({ expenses: monthExpenses, incomes: monthIncome, ious, goals, limit: 8 }),
+    [monthExpenses, monthIncome, ious, goals]
+  )
 
   // How many of this month's records logged themselves from recurring rules —
   // the "you didn't have to do this" signal, surfaced inside the expense card.
@@ -360,6 +388,44 @@ const Dashboard_Page: React.FC = () => {
     ? Math.round((tasksStarted / tasksTotal) * 100)
     : avgPct
 
+  // Attention signals drive the carousel tab dots — shown only when a feature
+  // genuinely needs the user (Action-Dots principle: no dot = nothing wrong).
+  // Expenses: over budget. Goals: an active goal past its target date.
+  // IOU: an open IOU past its expected payback date (overdueCount from summary).
+  const expenseAttention = expenseSummary.budget > 0 && budgetPct >= 100
+  const goalsAttention = activeGoals.some(
+    (g) => g.targetDate && new Date(g.targetDate).getTime() < now.getTime()
+  )
+  const iouAttention = iouData.overdueCount > 0
+
+  // Built once; rendered either inside the mobile carousel or the desktop
+  // stack (never both — see isMobile), so no duplicate mounts/fetches.
+  const expenseCard = (
+    <ExpenseSummaryCard
+      totalSpend={expenseSummary.totalSpend}
+      budget={expenseSummary.budget}
+      budgetPct={budgetPct}
+      topCategories={expenseSummary.topCategories}
+      autoLoggedCount={autoLoggedCount}
+      onManageRecurring={() => setRecurringSheetOpen(true)}
+      isLoading={isLoading}
+      onBudgetSaved={() => setRefreshKey((p) => p + 1)}
+    />
+  )
+  const goalsCard = (
+    <GoalsSummaryCard
+      goals={goals}
+      isLoading={isLoading}
+      onChanged={() => setRefreshKey((p) => p + 1)}
+    />
+  )
+  const iouCard = (
+    <IouSummaryCard
+      iouData={iouData}
+      onChanged={() => setRefreshKey((p) => p + 1)}
+    />
+  )
+
   return (
     <div className="min-h-screen bg-background">
       {/*
@@ -369,7 +435,7 @@ const Dashboard_Page: React.FC = () => {
       <div className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 py-6 pb-12">
 
         {/* ── Header — full width on both breakpoints ─────────────── */}
-        <header className="flex items-center justify-between mb-6 animate-fade-up">
+        <header className="flex items-center justify-between mb-4 animate-fade-up">
           <div>
             <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
               {moment().format('dddd, MMM D')}
@@ -379,22 +445,35 @@ const Dashboard_Page: React.FC = () => {
             </h1>
           </div>
 
-          {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
-              sit at the bottom of the stack). Desktop shows them in the sticky
-              right panel, so no jump is needed there. */}
-          <button
-            onClick={goToInsights}
-            aria-label="Jump to Smart Insights"
-            className="lg:hidden relative inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-xs font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-          >
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
-            </span>
-            <Sparkles className="w-3.5 h-3.5" />
-            Insights
-          </button>
-          {/* TODO: Show streak badge when backend streak data is available */}
+          <div className="flex items-center gap-2">
+            {/* Activity streak — consecutive days the user showed up (any
+                feature). Shown on both breakpoints; hidden until there's a run. */}
+            {streak.current > 0 && (
+              <div
+                className="inline-flex items-center gap-1 h-9 px-3 rounded-full bg-warning/10 text-warning text-xs font-bold"
+                title={streak.longest > streak.current ? `Best: ${streak.longest} days` : undefined}
+              >
+                <span className="text-sm leading-none">🔥</span>
+                {streak.current} day
+              </div>
+            )}
+
+            {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
+                sit at the bottom of the stack). Desktop shows them in the sticky
+                right panel, so no jump is needed there. */}
+            <button
+              onClick={goToInsights}
+              aria-label="Jump to Smart Insights"
+              className="lg:hidden relative inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-xs font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+            >
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary" />
+              </span>
+              <Sparkles className="w-3.5 h-3.5" />
+              Insights
+            </button>
+          </div>
         </header>
 
         {/*
@@ -425,19 +504,26 @@ const Dashboard_Page: React.FC = () => {
               isLoading={isLoading}
             />
 
-            <ExpenseSummaryCard
-              totalSpend={expenseSummary.totalSpend}
-              budget={expenseSummary.budget}
-              budgetPct={budgetPct}
-              topCategories={expenseSummary.topCategories}
-              autoLoggedCount={autoLoggedCount}
-              onManageRecurring={() => setRecurringSheetOpen(true)}
-              isLoading={isLoading}
-              onBudgetSaved={() => setRefreshKey((p) => p + 1)}
-            />
+            {/* Below lg: swipeable carousel (one card at a time, equal turn,
+                tab dots for triage). lg+: the equal stacked cards, unchanged. */}
+            {isMobile ? (
+              <FeatureCarousel
+                slides={[
+                  { key: 'expenses', label: 'Expenses', emoji: '💳', accent: 'var(--primary)', attention: expenseAttention, node: expenseCard },
+                  { key: 'goals', label: 'Goals', emoji: '🎯', accent: 'var(--accent)', attention: goalsAttention, node: goalsCard },
+                  { key: 'iou', label: 'IOUs', emoji: '🤝', accent: 'var(--secondary)', attention: iouAttention, node: iouCard },
+                ]}
+              />
+            ) : (
+              <>
+                {expenseCard}
+                {goalsCard}
+                {iouCard}
+              </>
+            )}
 
-            {/* Headless: trigger lives in the expense card above; this only
-                renders the bottom sheet so recurring rules are managed in place. */}
+            {/* Headless: trigger lives in the expense card; this only renders the
+                bottom sheet so recurring rules are managed in place. */}
             <RecurringManager
               rules={recurringRules}
               monthlyExpenseTotal={0}
@@ -445,17 +531,6 @@ const Dashboard_Page: React.FC = () => {
               onDelete={handleDeleteRecurring}
               open={recurringSheetOpen}
               onOpenChange={setRecurringSheetOpen}
-            />
-
-            <GoalsSummaryCard
-              goals={goals}
-              isLoading={isLoading}
-              onChanged={() => setRefreshKey((p) => p + 1)}
-            />
-
-            <IouSummaryCard
-              iouData={iouData}
-              onChanged={() => setRefreshKey((p) => p + 1)}
             />
 
             {/*
@@ -474,10 +549,9 @@ const Dashboard_Page: React.FC = () => {
                   highlight={highlightInsights}
                 />
               </div>
-              <RecentExpenses
-                expenses={recentExpenses.slice(0, 4)}
+              <RecentActivity
+                items={activity.slice(0, 4)}
                 isLoading={isLoading}
-                onViewAll={() => navigate('/expense-tracker')}
                 skeletonRows={3}
               />
             </div>
@@ -536,10 +610,9 @@ const Dashboard_Page: React.FC = () => {
               source={insightsSource}
             />
 
-            <RecentExpenses
-              expenses={recentExpenses}
+            <RecentActivity
+              items={activity}
               isLoading={isLoading}
-              onViewAll={() => navigate('/expense-tracker')}
               skeletonRows={5}
             />
 
