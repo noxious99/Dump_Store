@@ -9,8 +9,7 @@ interface NavTab {
     icon: LucideIcon
 }
 
-// Top-level app sections. Goals/IOU currently resolve to a "Coming soon"
-// placeholder until those pages are built — every tab still lands somewhere real.
+// Top-level app sections — each tab lands on its own page.
 const TABS: NavTab[] = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/expense-tracker', label: 'Expenses', icon: Wallet },
