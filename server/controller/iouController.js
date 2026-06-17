@@ -84,9 +84,9 @@ const updateIouHandler = async (req, res) => {
  */
 const settleIouHandler = async (req, res) => {
     try {
-        const { paidAmount, paidOn } = req.body;
-        const iou = await iouService.settleIou(req.user.id, req.params.id, { paidAmount, paidOn });
-        return res.status(200).json({ iou });
+        const { paidAmount, paidOn, recordCashFlow } = req.body;
+        const { iou, cashFlow } = await iouService.settleIou(req.user.id, req.params.id, { paidAmount, paidOn, recordCashFlow });
+        return res.status(200).json({ iou, cashFlow });
     } catch (error) {
         return res.status(statusFromError(error)).json({ msg: error.message });
     }

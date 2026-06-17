@@ -1,4 +1,28 @@
 const iouRepository = require('../db/iou');
+const expenseRepository = require('../db/expense');
+const expenseService = require('./expenseServices');
+
+// Category used when a borrowed-IOU repayment is mirrored into the expense
+// ledger via the cash-flow bridge.
+const IOU_EXPENSE_CATEGORY = 'Loan Repayment';
+
+// Mirror a settlement payment into the expense/income ledger.
+// 'lent'    → the money came back to the user → record as income.
+// 'borrowed'→ the user paid someone back        → record as expense.
+// Bridge only: an IOU is not itself a budget line, so this is opt-in per settle.
+const recordIouCashFlow = async (userId, iou, amount, paidOn) => {
+    if (iou.type === 'lent') {
+        const record = await expenseService.addIncome(
+            userId, amount, `Repayment from ${iou.counterpartyName}`, iou.note || ''
+        );
+        return { kind: 'income', record };
+    }
+    const category = await expenseRepository.findOrCreateCategory(userId, IOU_EXPENSE_CATEGORY);
+    const record = await expenseService.addExpense(
+        userId, amount, category._id, `Repaid ${iou.counterpartyName}`, paidOn ? new Date(paidOn) : undefined
+    );
+    return { kind: 'expense', record };
+};
 
 
 // ── Internal helpers ─────────────────────────────────────
@@ -107,7 +131,7 @@ const deleteIou = async (userId, iouId) => {
  *  - paidAmount < remaining → partial, status = 'partial'
  *  - paidAmount >= remaining → status = 'settled', stamp actualPaybackDate
  */
-const settleIou = async (userId, iouId, { paidAmount, paidOn } = {}) => {
+const settleIou = async (userId, iouId, { paidAmount, paidOn, recordCashFlow } = {}) => {
     const existing = await iouRepository.findIouByIdForUser(iouId, userId);
     if (!existing) throw new Error("IOU not found");
     if (existing.status === 'cancelled') throw new Error("Cannot settle a cancelled IOU");
@@ -126,7 +150,20 @@ const settleIou = async (userId, iouId, { paidAmount, paidOn } = {}) => {
     }
 
     const iou = await iouRepository.updateIouForUser(iouId, userId, update);
-    return withVirtuals(iou);
+
+    // Optional cash-flow bridge: mirror the amount that actually moved into the
+    // expense/income ledger. Reflects this exact payment (settleBy), so partial
+    // payments record only what was paid. Failure here must not undo the settle.
+    let cashFlow = null;
+    if (recordCashFlow) {
+        try {
+            cashFlow = await recordIouCashFlow(userId, existing, settleBy, paidOn);
+        } catch (error) {
+            console.error('IOU cash-flow bridge failed:', error.message);
+        }
+    }
+
+    return { iou: withVirtuals(iou), cashFlow };
 };
 
 const cancelIou = async (userId, iouId) => {

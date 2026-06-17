@@ -4,11 +4,9 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const userRoute = require("./routes/userRoute");
-const postRoute = require("./routes/postRoute");
 const goalRoute = require("./routes/goalRoute");
 const expenseRoute = require("./routes/expenseRoute");
 const iouRoute = require("./routes/iouRoute");
-const noteRoute = require("./routes/noteRoute");
 const insightsRoute = require("./routes/insightsRoute");
 const streakRoute = require("./routes/streakRoute");
 const healthRouter = require("./routes/healthRoute")
@@ -27,11 +25,9 @@ app.use(express.json());
 const api_prefix = process.env.API_PREFIX ?? "/api/v1";
 // Api end-points
 app.use(`${api_prefix}/user`, userRoute);
-app.use(`${api_prefix}/posts`, postRoute);
 app.use(`${api_prefix}/goals`, goalRoute);
 app.use(`${api_prefix}/expenses`, expenseRoute);
 app.use(`${api_prefix}/iou`, iouRoute);
-app.use(`${api_prefix}/notes`, noteRoute);
 app.use(`${api_prefix}/insights`, insightsRoute);
 app.use(`${api_prefix}/streak`, streakRoute);
 app.use(`${api_prefix}/utils`, healthRouter);
