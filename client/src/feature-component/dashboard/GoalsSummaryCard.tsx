@@ -36,7 +36,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="bg-card border border-border rounded-2xl p-4 h-full">
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
             <div className="skeleton w-9 h-9 rounded-xl" />
@@ -59,7 +59,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4">
+    <div className="bg-card border border-border rounded-2xl p-4 h-full flex flex-col">
       {/* Header — no click, no chevron */}
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
       )}
 
       {/* Action row — uniform add button + tracker link, matching the other cards */}
-      <div className="flex items-center gap-2 pt-3 border-t border-border">
+      <div className="flex items-center gap-2 pt-3 mt-auto border-t border-border">
         <button
           onClick={() => setFormOpen(true)}
           className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/15 transition-colors"

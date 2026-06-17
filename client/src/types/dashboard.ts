@@ -50,6 +50,8 @@ export interface IouData {
   owedToYou: number
   net: number
   pendingCount: number
+  /** Open IOUs past their expected payback date — drives the dashboard alert dot. */
+  overdueCount: number
   people: Person[]
 }
 

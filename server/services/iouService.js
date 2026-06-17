@@ -149,6 +149,7 @@ const getDashboardSummary = async (userId) => {
     const owedToYou = totals.find(t => t._id === 'lent')?.amount ?? 0;
     const youOwe = totals.find(t => t._id === 'borrowed')?.amount ?? 0;
     const pendingCount = agg?.pending?.[0]?.value ?? 0;
+    const overdueCount = agg?.overdue?.[0]?.value ?? 0;
 
     const people = perPerson
         .filter(p => p.net !== 0)
@@ -164,6 +165,7 @@ const getDashboardSummary = async (userId) => {
         owedToYou,
         net: owedToYou - youOwe,
         pendingCount,
+        overdueCount,
         people,
     };
 };
