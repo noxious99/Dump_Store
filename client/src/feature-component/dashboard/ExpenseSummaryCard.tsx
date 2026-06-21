@@ -19,6 +19,7 @@ import TransactionAdder, {
   type TransactionMode,
 } from '@/feature-component/expense-tracker/TransactionAdder'
 import { useCurrency } from '@/hooks/useCurrency'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 interface ExpenseSummaryCardProps {
   totalSpend: number
@@ -142,8 +143,8 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         {/* Header — no click, no chevron */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-base">
-              💳
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <CategoryIcon name="expense" size={20} />
             </div>
             <span className="text-sm font-bold text-foreground">Expenses</span>
           </div>
@@ -192,7 +193,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
           <div className="flex items-center gap-3 flex-wrap mb-4">
             {topCategories.map((cat, i) => (
               <div key={i} className="flex items-center gap-1">
-                <span className="text-xs">{cat.emoji}</span>
+                <CategoryIcon name={cat.name} size={16} />
                 <span className="text-[10px] text-muted-foreground font-medium">
                   {symbol}{cat.amount >= 1000
                     ? `${(cat.amount / 1000).toFixed(1)}k`

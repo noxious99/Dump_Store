@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import moment from 'moment'
-import { categoryEmojiMap, incomeSourceOptions, incomeSourceEmojiMap } from '@/utils/constant'
+import { incomeSourceOptions } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { ExpenseRecord, IncomeRecord } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -12,8 +13,6 @@ interface ExpenseRecordsListProps {
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString()
-const getEmoji = (name: string) =>
-  categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 const sourceLabel = (source: string) =>
   incomeSourceOptions.find((o) => o.value === source)?.label || source
 
@@ -79,8 +78,8 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
       onClick={() => onSelectRecord?.(r)}
       className="w-full flex items-center gap-3 py-3 px-1 text-left rounded-lg hover:bg-grey-x100/60 transition-colors"
     >
-      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-        {getEmoji(r.category?.name)}
+      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+        <CategoryIcon name={r.category?.name} size={20} />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -120,8 +119,8 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
           aria-expanded={isOpen}
           aria-label={`${first.category?.name}, ${records.length} records, ${symbol}${fmt(total)} total`}
         >
-          <div className="relative w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-            {getEmoji(first.category?.name)}
+          <div className="relative w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+            <CategoryIcon name={first.category?.name} size={20} />
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
               {records.length}
             </span>
@@ -184,8 +183,8 @@ const ExpenseRecordsList: React.FC<ExpenseRecordsListProps> = ({
       onClick={() => onSelectIncome?.(r)}
       className="w-full flex items-center gap-3 py-3 px-1 text-left rounded-lg hover:bg-grey-x100/60 transition-colors"
     >
-      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-        {incomeSourceEmojiMap[r.source] || '💼'}
+      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+        <CategoryIcon name={r.source} size={20} fallback="salary" />
       </div>
 
       <div className="flex-1 min-w-0">

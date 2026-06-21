@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { FaCaretLeft, FaCaretRight, FaWallet, FaArrowRight } from 'react-icons/fa6'
 import { Pencil, Check, X, Plus, Trash2 } from 'lucide-react'
 import moment from 'moment'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import {
   Sheet,
   SheetContent,
@@ -102,7 +102,6 @@ const RECORDS_COUNT = 44
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 const fmt = (n: number) => n.toLocaleString()
 const fmtShort = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`)
 
@@ -173,7 +172,7 @@ const MonthGlance: React.FC = () => {
               key={c.name}
               className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2.5 py-1"
             >
-              <span className="text-sm">{getEmoji(c.name)}</span>
+              <CategoryIcon name={c.name} size={16} />
               <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span>
               <span className="text-xs text-muted-foreground">${fmtShort(c.amount)}</span>
             </div>
@@ -331,8 +330,8 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
 
           return (
             <div key={a.id} className="group flex items-center gap-3 py-3">
-              <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-                {getEmoji(a.category)}
+              <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+                <CategoryIcon name={a.category} size={20} />
               </div>
 
               <div className="flex-1 min-w-0">
@@ -606,8 +605,8 @@ const RecordsList: React.FC<{
                         borderBottom: i < records.length - 1 ? '1px solid var(--border)' : 'none',
                       }}
                     >
-                      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-                        {getEmoji(r.category)}
+                      <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+                        <CategoryIcon name={r.category} size={20} />
                       </div>
 
                       <div className="flex-1 min-w-0">

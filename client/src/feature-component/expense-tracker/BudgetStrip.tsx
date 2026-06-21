@@ -2,7 +2,7 @@ import React from 'react'
 import { FaWallet, FaArrowRight } from 'react-icons/fa6'
 import { Plus } from 'lucide-react'
 import { useCurrency } from '@/hooks/useCurrency'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { TopCategoryItem } from '@/types/expenseTracker'
 
 interface BudgetStripProps {
@@ -22,7 +22,6 @@ interface BudgetStripProps {
 const fmt = (n: number) => Math.round(n).toLocaleString()
 const fmtShort = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${Math.round(n)}`
-const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const BudgetStrip: React.FC<BudgetStripProps> = ({
   monthLabel,
@@ -46,7 +45,7 @@ const BudgetStrip: React.FC<BudgetStripProps> = ({
           key={c.categoryId}
           className="flex items-center gap-1 bg-grey-x100 border border-border rounded-md px-2 py-0.5 text-[11px]"
         >
-          <span>{getEmoji(c.name)}</span>
+          <CategoryIcon name={c.name} size={16} />
           <span className="text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
         </span>
       ))}

@@ -5,11 +5,12 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel'
+import { CategoryIcon, type CategoryIconName } from '@/components/CategoryIcon'
 
 export interface FeatureSlide {
   key: string
   label: string
-  emoji: string
+  icon: CategoryIconName
   /** Accent color token for the active tab — each card's identity color. */
   accent: string
   /** When true, a dot on the tab flags that this feature needs the user now. */
@@ -67,7 +68,7 @@ const FeatureCarousel: React.FC<FeatureCarouselProps> = ({ slides }) => {
               }`}
               style={active ? { color: s.accent } : undefined}
             >
-              <span className="text-sm leading-none">{s.emoji}</span>
+              <CategoryIcon name={s.icon} size={16} />
               <span>{s.label}</span>
               {s.attention && (
                 <span

@@ -19,7 +19,7 @@ const frequencyLabel = (rule: RecurringRule): string => {
   }
   return RECURRING_FREQUENCY_LABELS[rule.frequency] || rule.frequency
 }
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon, type CategoryIconName } from '@/components/CategoryIcon'
 import { useCurrency } from '@/hooks/useCurrency'
 
 type RecurringManagerProps = {
@@ -33,12 +33,14 @@ type RecurringManagerProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-const ruleLabel = (rule: RecurringRule): { emoji: string; name: string } => {
+const ruleLabel = (
+  rule: RecurringRule
+): { iconName?: string; fallback: CategoryIconName; name: string } => {
   if (rule.kind === 'expense') {
     const name = rule.categoryId?.name || 'Expense'
-    return { emoji: categoryEmojiMap[name?.toLowerCase()] || '🔀', name }
+    return { iconName: name, fallback: 'miscellaneous', name }
   }
-  return { emoji: '💼', name: rule.source || 'Income' }
+  return { iconName: rule.source, fallback: 'salary', name: rule.source || 'Income' }
 }
 
 const RecurringManager: React.FC<RecurringManagerProps> = ({
@@ -121,11 +123,11 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
 
           <div className="divide-y divide-border">
             {rules.map((rule) => {
-              const { emoji, name } = ruleLabel(rule)
+              const { iconName, fallback, name } = ruleLabel(rule)
               const busy = busyId === rule._id
               return (
                 <div key={rule._id} className="flex items-center gap-3 py-3">
-                  <span className="text-lg leading-none">{emoji}</span>
+                  <CategoryIcon name={iconName} fallback={fallback} size={20} />
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold capitalize truncate ${rule.isActive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                       {name} · {symbol}{rule.amount.toLocaleString()}

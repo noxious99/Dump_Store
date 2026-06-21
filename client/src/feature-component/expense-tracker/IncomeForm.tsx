@@ -7,6 +7,7 @@ import { Loader2Icon } from "lucide-react";
 import AmountPad, { evaluateAmountExpression } from "./AmountPad";
 import RepeatPicker, { DEFAULT_REPEAT, type RepeatValue } from "./RepeatPicker";
 import { incomeSourceOptions } from "@/utils/constant";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface IncomeFormProps {
     // Returns false when the save failed (so no recurring rule gets created)
@@ -84,7 +85,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
                                         : "bg-grey-x100 hover:bg-grey-x200"
                                 }`}
                             >
-                                <span className="text-lg leading-none">{option.emoji}</span>
+                                <CategoryIcon name={option.value} size={20} fallback="salary" />
                                 <span className="text-[10px] font-medium truncate w-full text-center text-foreground">
                                     {option.label}
                                 </span>

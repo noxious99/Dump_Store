@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/utils/axiosInstance'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { useCurrency } from '@/hooks/useCurrency'
 import { recordCategoryUse } from '@/utils/categoryUsage'
 import type { QuickChip } from '@/utils/quickChips'
@@ -79,9 +79,7 @@ const QuickLog: React.FC<QuickLogProps> = ({ chips, onLogged }) => {
             {savingKey === chip.key ? (
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             ) : (
-              <span className="text-base leading-none">
-                {categoryEmojiMap[chip.categoryName?.toLowerCase()] || '🔀'}
-              </span>
+              <CategoryIcon name={chip.categoryName} size={20} />
             )}
             <span className="text-sm font-bold text-foreground">
               {symbol}{chip.amount.toLocaleString()}

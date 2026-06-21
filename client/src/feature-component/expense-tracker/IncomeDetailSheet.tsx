@@ -7,7 +7,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { incomeSourceOptions, incomeSourceEmojiMap } from '@/utils/constant'
+import { incomeSourceOptions } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { IncomeRecord } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -101,8 +102,8 @@ const IncomeDetailSheet: React.FC<IncomeDetailSheetProps> = ({
         <div className="px-5 pb-6 pt-3">
           {/* ── Identity ──────────────────────────────────────── */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-11 h-11 rounded-xl bg-grey-x100 flex items-center justify-center text-xl flex-shrink-0">
-              {incomeSourceEmojiMap[record.source] || '💼'}
+            <div className="w-11 h-11 rounded-xl bg-grey-x100 flex items-center justify-center flex-shrink-0">
+              <CategoryIcon name={record.source} size={20} fallback="salary" />
             </div>
             <div className="min-w-0">
               <p className="text-base font-semibold text-foreground capitalize truncate">
@@ -175,7 +176,7 @@ const IncomeDetailSheet: React.FC<IncomeDetailSheetProps> = ({
                             : 'bg-grey-x100 hover:bg-grey-x200'
                         }`}
                       >
-                        <span className="text-lg leading-none">{option.emoji}</span>
+                        <CategoryIcon name={option.value} size={20} fallback="salary" />
                         <span className="text-[10px] font-medium truncate w-full text-center text-foreground">
                           {option.label}
                         </span>

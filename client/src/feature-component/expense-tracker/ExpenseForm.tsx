@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import type { ExpensePayload, ExpenseRecord, RecurringRulePayload } from "@/types/expenseTracker";
 import RepeatPicker, { DEFAULT_REPEAT, type RepeatValue } from "./RepeatPicker";
-import { categoryEmojiMap } from "@/utils/constant";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useCurrency } from "@/hooks/useCurrency";
 import {
     recordCategoryUse,
@@ -169,9 +169,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                                 {savingChipKey === chip.key ? (
                                     <Loader2Icon className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
                                 ) : (
-                                    <span className="text-sm leading-none">
-                                        {categoryEmojiMap[chip.categoryName?.toLowerCase()] || "🔀"}
-                                    </span>
+                                    <CategoryIcon name={chip.categoryName} size={20} />
                                 )}
                                 <span className="text-sm font-semibold text-foreground">
                                     {symbol}{chip.amount.toLocaleString()}
@@ -205,9 +203,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                                         : "bg-grey-x100 hover:bg-grey-x200"
                                 }`}
                             >
-                                <span className="text-lg leading-none">
-                                    {categoryEmojiMap[option.name?.toLowerCase()] || "🔀"}
-                                </span>
+                                <CategoryIcon name={option.name} size={20} />
                                 <span className="text-[10px] font-medium capitalize truncate w-full text-center text-foreground">
                                     {option.name}
                                 </span>

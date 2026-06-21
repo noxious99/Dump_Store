@@ -1,5 +1,5 @@
 import React from 'react'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { TopCategoryItem } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -12,7 +12,6 @@ interface MonthGlanceProps {
 const fmt = (n: number) => Math.round(n).toLocaleString()
 const fmtShort = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
-const getEmoji = (name: string) => categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories }) => {
   const { symbol } = useCurrency()
@@ -64,7 +63,7 @@ const MonthGlance: React.FC<MonthGlanceProps> = ({ income, spent, topCategories 
                 key={c.categoryId}
                 className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2.5 py-1"
               >
-                <span className="text-sm">{getEmoji(c.name)}</span>
+                <CategoryIcon name={c.name} size={16} />
                 {/* <span className="text-xs font-semibold text-foreground capitalize">{c.name}</span> */}
                 <span className="text-xs text-muted-foreground">{symbol}{fmtShort(c.amount)}</span>
               </div>

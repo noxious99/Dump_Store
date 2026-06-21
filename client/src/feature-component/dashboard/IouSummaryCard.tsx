@@ -7,6 +7,7 @@ import IouFormSheet from '@/feature-component/iou-tracker/IouFormSheet'
 import type { IouData } from '@/types/dashboard'
 import type { IouPayload } from '@/types/iou'
 import { useCurrency } from '@/hooks/useCurrency'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 interface IouSummaryCardProps {
   iouData: IouData
@@ -38,8 +39,8 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
       {/* Header — neutral icon, financial value badge only */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-base">
-            🤝
+          <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
+            <CategoryIcon name="iou" size={20} />
           </div>
           <span className="text-sm font-bold text-foreground">IOUs</span>
         </div>

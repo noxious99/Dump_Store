@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Pencil, Check, X, Plus, Wallet } from 'lucide-react'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import {
   Select,
   SelectContent,
@@ -32,8 +32,6 @@ interface BudgetCardProps {
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString()
-const getEmoji = (name: string) =>
-  categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const BudgetCard: React.FC<BudgetCardProps> = ({
   budgetId,
@@ -382,8 +380,8 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                 key={a._id}
                 className="group flex items-center gap-3 py-3"
               >
-                <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center text-base flex-shrink-0">
-                  {getEmoji(a.categoryName)}
+                <div className="w-9 h-9 rounded-lg bg-grey-x100 flex items-center justify-center flex-shrink-0">
+                  <CategoryIcon name={a.categoryName} size={20} />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -502,7 +500,10 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
                       value={c._id}
                       className="capitalize"
                     >
-                      {getEmoji(c.name)} {c.name}
+                      <span className="flex items-center gap-2">
+                        <CategoryIcon name={c.name} size={16} />
+                        {c.name}
+                      </span>
                     </SelectItem>
                   ))
                 )}
