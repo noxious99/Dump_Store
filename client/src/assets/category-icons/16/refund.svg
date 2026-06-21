@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="grad-refund-16" x1="2" y1="12" x2="32" y2="12" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+    <g fill="url(#grad-refund-16)" fill-opacity="0.8" stroke="none"><path d="M9 14 4 9l5-5z"/></g>
+  <g fill="none" stroke="url(#grad-refund-16)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></g>
+</svg>

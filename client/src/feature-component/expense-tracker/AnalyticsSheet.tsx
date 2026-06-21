@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/dialog'
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
 import axiosInstance from '@/utils/axiosInstance'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { AnalyticsData, AnalyticsRange, AnalyticsInsight } from '@/types/expenseTracker'
@@ -317,8 +317,9 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
                   {donutData.map((d) => (
                     <div key={d.name} className="flex items-center gap-2 text-sm">
                       <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: d.color }} />
-                      <span className="text-foreground capitalize truncate">
-                        {d.name !== 'Other' && (categoryEmojiMap[d.name.toLowerCase()] || '')} {d.name}
+                      <span className="text-foreground capitalize truncate inline-flex items-center gap-1">
+                        {d.name !== 'Other' && <CategoryIcon name={d.name} size={16} />}
+                        {d.name}
                       </span>
                       <span className="ml-auto text-muted-foreground tabular-nums shrink-0">{d.pct}%</span>
                       <span className="text-foreground font-medium tabular-nums shrink-0 w-14 text-right">

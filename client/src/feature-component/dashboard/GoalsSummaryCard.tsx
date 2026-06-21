@@ -7,6 +7,7 @@ import axiosInstance from '@/utils/axiosInstance'
 import GoalFormSheet from '@/feature-component/goal-tracker/GoalFormSheet'
 import type { Goal } from '@/types/dashboard'
 import type { GoalPayload } from '@/types/goal'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 interface GoalsSummaryCardProps {
   goals: Goal[]
@@ -63,8 +64,8 @@ const GoalsSummaryCard: React.FC<GoalsSummaryCardProps> = ({ goals, isLoading, o
       {/* Header — no click, no chevron */}
       <div className="flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center text-base">
-            🎯
+          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+            <CategoryIcon name="goal" size={20} />
           </div>
           <span className="text-sm font-bold text-foreground">Goals</span>
         </div>

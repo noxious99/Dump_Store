@@ -17,6 +17,7 @@ import type { Iou } from '@/types/iou'
 import { computeQuickChips } from '@/utils/quickChips'
 import { buildActivityFeed, type ActivityItem } from '@/utils/activityFeed'
 import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { getGreeting } from '@/utils/utils-functions'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -108,8 +109,16 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
                 borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
               }}
             >
-              <div className="w-8 h-8 rounded-xl bg-grey-x100 flex items-center justify-center text-sm flex-shrink-0">
-                {item.emoji}
+              <div className="w-8 h-8 rounded-xl bg-grey-x100 flex items-center justify-center flex-shrink-0">
+                {item.kind === 'expense' ? (
+                  <CategoryIcon name={item.title} size={20} />
+                ) : item.kind === 'income' ? (
+                  <CategoryIcon name={item.title} size={20} fallback="salary" />
+                ) : item.kind === 'goal-completed' ? (
+                  <CategoryIcon name="goal" size={20} />
+                ) : (
+                  <CategoryIcon name="iou" size={20} />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground capitalize truncate">
@@ -235,6 +244,9 @@ const Dashboard_Page: React.FC = () => {
   const [ious, setIous] = useState<Iou[]>([])
   const [iouData, setIouData] = useState<IouData>(EMPTY_IOU)
   const [streak, setStreak] = useState<ActivityStreak>({ current: 0, longest: 0, loggedToday: false })
+  // Streak UI is temporarily commented out (see header). State + fetch stay wired
+  // so restoring it is just uncommenting the badge below.
+  void streak
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([])
   const [recurringSheetOpen, setRecurringSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -432,7 +444,7 @@ const Dashboard_Page: React.FC = () => {
         Mobile:  max-w-lg centered, single column stack
         Desktop: max-w-5xl, header full-width, content splits into 2 columns
       */}
-      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 py-6 pb-12">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 pt-4 pb-12">
 
         {/* ── Header — full width on both breakpoints ─────────────── */}
         <header className="flex items-center justify-between mb-4 animate-fade-up">
@@ -447,8 +459,9 @@ const Dashboard_Page: React.FC = () => {
 
           <div className="flex items-center gap-2">
             {/* Activity streak — consecutive days the user showed up (any
-                feature). Shown on both breakpoints; hidden until there's a run. */}
-            {streak.current > 0 && (
+                feature). Shown on both breakpoints; hidden until there's a run.
+                Temporarily hidden. */}
+            {/* {streak.current > 0 && (
               <div
                 className="inline-flex items-center gap-1 h-9 px-3 rounded-full bg-warning/10 text-warning text-xs font-bold"
                 title={streak.longest > streak.current ? `Best: ${streak.longest} days` : undefined}
@@ -456,7 +469,7 @@ const Dashboard_Page: React.FC = () => {
                 <span className="text-sm leading-none">🔥</span>
                 {streak.current} day
               </div>
-            )}
+            )} */}
 
             {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
                 sit at the bottom of the stack). Desktop shows them in the sticky
@@ -509,9 +522,9 @@ const Dashboard_Page: React.FC = () => {
             {isMobile ? (
               <FeatureCarousel
                 slides={[
-                  { key: 'expenses', label: 'Expenses', emoji: '💳', accent: 'var(--primary)', attention: expenseAttention, node: expenseCard },
-                  { key: 'goals', label: 'Goals', emoji: '🎯', accent: 'var(--accent)', attention: goalsAttention, node: goalsCard },
-                  { key: 'iou', label: 'IOUs', emoji: '🤝', accent: 'var(--secondary)', attention: iouAttention, node: iouCard },
+                  { key: 'expenses', label: 'Expenses', icon: 'expense', accent: 'var(--primary)', attention: expenseAttention, node: expenseCard },
+                  { key: 'goals', label: 'Goals', icon: 'goal', accent: 'var(--accent)', attention: goalsAttention, node: goalsCard },
+                  { key: 'iou', label: 'IOUs', icon: 'iou', accent: 'var(--secondary)', attention: iouAttention, node: iouCard },
                 ]}
               />
             ) : (

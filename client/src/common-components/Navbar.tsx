@@ -42,13 +42,30 @@ const Navbar: React.FC = () => {
     }
 
     return (
-        <nav className="bg-gradient-to-r from-primary to-accent h-[68px] flex justify-between items-center px-4 lg:px-8 shadow-md">
-            {/* Logo - Always links to home page */}
+        <nav className="h-[60px] flex justify-between items-center px-4 lg:px-8 shadow-md">
+            {/* Navbar background gradient removed for now.
+                Restore by adding back to the <nav> className:
+                bg-gradient-to-r from-primary to-accent
+                (if restored, revert the nav item colors below from foreground → primary-foreground) */}
+            {/* Logo - Always links to home page. Gradient-recolored from the white
+                logo PNG via CSS mask, using the brand from-primary→to-accent flow
+                (theme-aware via CSS vars). */}
             <Link to="/home" className="flex items-center group">
-                <img
-                    src={logo}
-                    className="h-[34px] sm:h-[38px] lg:h-[42px] w-auto transition-transform duration-200 group-hover:scale-105"
-                    alt="Tracero"
+                <div
+                    role="img"
+                    aria-label="Tracero"
+                    className="h-[30px] sm:h-[32px] lg:h-[34px] transition-transform duration-200 group-hover:scale-105 bg-gradient-to-r from-primary to-accent"
+                    style={{
+                        aspectRatio: "558 / 502",
+                        WebkitMaskImage: `url(${logo})`,
+                        maskImage: `url(${logo})`,
+                        WebkitMaskRepeat: "no-repeat",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                        maskPosition: "center",
+                        WebkitMaskSize: "contain",
+                        maskSize: "contain",
+                    }}
                 />
             </Link>
 
@@ -57,12 +74,12 @@ const Navbar: React.FC = () => {
                 <button
                     onClick={toggleTheme}
                     aria-label="Toggle theme"
-                    className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-lg hover:bg-foreground/10 transition-colors"
                 >
                     {resolvedTheme === 'dark' ? (
-                        <Sun className="w-5 h-5 text-primary-foreground" />
+                        <Sun className="w-5 h-5 text-foreground" />
                     ) : (
-                        <Moon className="w-5 h-5 text-primary-foreground" />
+                        <Moon className="w-5 h-5 text-foreground" />
                     )}
                 </button>
                 {!loggedinState ? (
@@ -70,13 +87,13 @@ const Navbar: React.FC = () => {
                         <Button
                             asChild
                             variant="ghost"
-                            className="text-primary-foreground/90 hover:text-primary-foreground hover:bg-white/10 font-medium"
+                            className="text-foreground/90 hover:text-foreground hover:bg-foreground/10 font-medium"
                         >
                             <Link to="/auth?mode=signin">Sign In</Link>
                         </Button>
                         <Button
                             asChild
-                            className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm"
+                            className="font-semibold shadow-sm"
                         >
                             <Link to="/auth?mode=signup">Get Started</Link>
                         </Button>
@@ -92,9 +109,9 @@ const Navbar: React.FC = () => {
                     <SheetTrigger asChild>
                         <button
                             aria-label="Open menu"
-                            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            className="p-2 rounded-lg hover:bg-foreground/10 transition-colors"
                         >
-                            <IoMdMenu className="text-2xl text-primary-foreground" />
+                            <IoMdMenu className="text-2xl text-foreground" />
                         </button>
                     </SheetTrigger>
                     <SheetContent side="right" className="p-6 bg-background border-l border-border">

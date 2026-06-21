@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { categoryEmojiMap } from '@/utils/constant'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { ExpenseRecord, CategoryOption } from '@/types/expenseTracker'
 import { useCurrency } from '@/hooks/useCurrency'
 
@@ -40,8 +40,6 @@ interface RecordDetailSheetProps {
 type Mode = 'view' | 'edit' | 'confirm-delete'
 
 const fmt = (n: number) => Math.round(n).toLocaleString()
-const getEmoji = (name: string) =>
-  categoryEmojiMap[name?.toLowerCase()] ?? '🔀'
 
 const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
   record,
@@ -130,8 +128,8 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
         <div className="px-5 pb-6 pt-3">
           {/* ── Identity ──────────────────────────────────────── */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-11 h-11 rounded-xl bg-grey-x100 flex items-center justify-center text-xl flex-shrink-0">
-              {getEmoji(record.category?.name)}
+            <div className="w-11 h-11 rounded-xl bg-grey-x100 flex items-center justify-center flex-shrink-0">
+              <CategoryIcon name={record.category?.name} size={20} />
             </div>
             <div className="min-w-0">
               <p className="text-base font-semibold text-foreground capitalize truncate">
@@ -200,7 +198,10 @@ const RecordDetailSheet: React.FC<RecordDetailSheetProps> = ({
                         value={c._id}
                         className="capitalize"
                       >
-                        {getEmoji(c.name)} {c.name}
+                        <span className="flex items-center gap-2">
+                          <CategoryIcon name={c.name} size={16} />
+                          {c.name}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
