@@ -177,7 +177,7 @@ const IouTracker: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-4 pb-24 lg:pb-8">
         {/* ── Header ─────────────────────────────────── */}
         <header className="flex items-end justify-between gap-4 mb-6">
           <div>

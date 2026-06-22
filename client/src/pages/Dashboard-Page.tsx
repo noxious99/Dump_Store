@@ -4,7 +4,7 @@ import moment from 'moment'
 import { toast } from 'sonner'
 import axiosInstance from '@/utils/axiosInstance'
 import DailyPulse from '@/feature-component/dashboard/DailyPulse'
-import QuickLog from '@/feature-component/dashboard/QuickLog'
+// import QuickLog from '@/feature-component/dashboard/QuickLog' // temporarily commented out
 import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard'
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
@@ -14,7 +14,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Goal, ExpenseSummary, IouData, DashboardInsight, ActivityStreak } from '@/types/dashboard'
 import type { ExpenseRecord, IncomeRecord, RecurringRule } from '@/types/expenseTracker'
 import type { Iou } from '@/types/iou'
-import { computeQuickChips } from '@/utils/quickChips'
+// import { computeQuickChips } from '@/utils/quickChips' // temporarily commented out (QuickLog)
 import { buildActivityFeed, type ActivityItem } from '@/utils/activityFeed'
 import { categoryEmojiMap } from '@/utils/constant'
 import { CategoryIcon } from '@/components/CategoryIcon'
@@ -359,7 +359,7 @@ const Dashboard_Page: React.FC = () => {
   }, [refreshKey])
 
   // ── Derived values ──────────────────────────────────────────────────────────
-  const quickChips = useMemo(() => computeQuickChips(monthExpenses), [monthExpenses])
+  // const quickChips = useMemo(() => computeQuickChips(monthExpenses), [monthExpenses]) // temporarily commented out (QuickLog)
 
   // Unified cross-feature feed: expenses, income, IOU events, goal completions,
   // newest first. Built in a framework-agnostic util so it ports to RN as-is.
@@ -501,7 +501,8 @@ const Dashboard_Page: React.FC = () => {
 
             {/* One-tap re-logging of frequent expenses — top of the stack so a
                 forgetful user can log before anything else competes for attention. */}
-            <QuickLog chips={quickChips} onLogged={() => setRefreshKey((p) => p + 1)} />
+            {/* QuickLog temporarily commented out
+            <QuickLog chips={quickChips} onLogged={() => setRefreshKey((p) => p + 1)} /> */}
 
             <DailyPulse
               dailyBudget={dailyBudget}

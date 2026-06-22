@@ -460,7 +460,10 @@ const ExpenseTracker: React.FC = () => {
           makes the page taller than the viewport and brings back the
           whole-page scrollbar */}
       <div className="min-h-screen bg-background lg:h-[calc(100vh-68px)] lg:min-h-0 lg:overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8 lg:h-full lg:flex lg:flex-col">
+        {/* pb clears BOTH fixed bottom layers: the 64px nav AND the FAB that
+            rises to ~136px above it — so the last row's amount is never stuck
+            hidden behind the + button at rest. */}
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-4 pb-36 lg:pb-8 lg:h-full lg:flex lg:flex-col">
           {/* ── Header ─────────────────────────────────────────── */}
           <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 lg:mb-4">
             <div>

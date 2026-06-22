@@ -132,7 +132,7 @@ const GoalsTracker: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6">
+      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-4">
         {/* ── Header ─────────────────────────────────── */}
         <header className="flex items-center justify-between mb-6">
           <div>

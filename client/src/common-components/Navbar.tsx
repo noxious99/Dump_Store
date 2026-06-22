@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
     }
 
     return (
-        <nav className="h-[60px] flex justify-between items-center px-4 lg:px-8 shadow-md">
+        <nav className="h-[56px] flex justify-between items-center px-4 lg:px-8 border-b border-border">
             {/* Navbar background gradient removed for now.
                 Restore by adding back to the <nav> className:
                 bg-gradient-to-r from-primary to-accent
