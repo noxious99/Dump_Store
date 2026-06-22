@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Loader2, Plus, Target } from 'lucide-react'
+import { Plus, Target } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
 import GoalCard from '@/feature-component/goal-tracker/GoalCard'
+import GoalsSkeleton from '@/feature-component/goal-tracker/GoalsSkeleton'
 import GoalFormSheet from '@/feature-component/goal-tracker/GoalFormSheet'
 import GoalDetailSheet from '@/feature-component/goal-tracker/GoalDetailSheet'
 import type { Goal, GoalPayload, TaskPayload } from '@/types/goal'
@@ -132,7 +133,7 @@ const GoalsTracker: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6">
+      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-4">
         {/* ── Header ─────────────────────────────────── */}
         <header className="flex items-center justify-between mb-6">
           <div>
@@ -153,10 +154,7 @@ const GoalsTracker: React.FC = () => {
         </header>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 className="h-7 w-7 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading your goals...</p>
-          </div>
+          <GoalsSkeleton />
         ) : goals.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">

@@ -60,7 +60,8 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
         if (!open) onClose();
     };
 
-    // Active tab keeps the financial color cue (error = money out, success = money in)
+    // Active tab carries the app's primary indigo accent (matches the gradient
+    // icon set), instead of the old red/green money-in/out cue.
     // mr-9 keeps the segmented control clear of the sheet/dialog close (X) button
     const segment = (
         <div className="flex bg-grey-x100 rounded-lg p-1 mb-3 mr-9">
@@ -70,7 +71,7 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
                 aria-pressed={mode === "expense"}
                 className={`flex-1 h-9 rounded-md text-sm font-semibold transition-colors ${
                     mode === "expense"
-                        ? "bg-card shadow-sm text-error"
+                        ? "bg-card shadow-sm text-primary"
                         : "text-muted-foreground hover:text-foreground"
                 }`}
             >
@@ -82,7 +83,7 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
                 aria-pressed={mode === "income"}
                 className={`flex-1 h-9 rounded-md text-sm font-semibold transition-colors ${
                     mode === "income"
-                        ? "bg-card shadow-sm text-success"
+                        ? "bg-card shadow-sm text-primary"
                         : "text-muted-foreground hover:text-foreground"
                 }`}
             >
@@ -91,38 +92,42 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
         </div>
     );
 
-    const body = (
-        <>
-            {segment}
-            {mode === "expense" ? (
-                <ExpenseForm
-                    addExpense={addExpense}
-                    isLoading={isExpenseLoading}
-                    categories={categories}
-                    expenseRecords={expenseRecords}
-                    onCreateRecurringRule={onCreateRecurringRule}
-                />
-            ) : (
-                <IncomeForm
-                    addIncome={addIncome}
-                    isLoading={isIncomeLoading}
-                    onCreateRecurringRule={onCreateRecurringRule}
-                />
-            )}
-        </>
-    );
+    const form =
+        mode === "expense" ? (
+            <ExpenseForm
+                addExpense={addExpense}
+                isLoading={isExpenseLoading}
+                categories={categories}
+                expenseRecords={expenseRecords}
+                onCreateRecurringRule={onCreateRecurringRule}
+            />
+        ) : (
+            <IncomeForm
+                addIncome={addIncome}
+                isLoading={isIncomeLoading}
+                onCreateRecurringRule={onCreateRecurringRule}
+            />
+        );
 
     if (isMobile) {
         return (
             <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+                {/* Fixed-height flex column: tabs pinned at the top, the form
+                    fills the rest. The form docks its note + action to the
+                    bottom edge, so both tabs share one height and the slack on
+                    the shorter tab becomes breathing room above the action —
+                    never a dead void below it. */}
                 <SheetContent
                     side="bottom"
-                    className="rounded-t-2xl max-h-[92vh] overflow-y-auto p-5"
+                    className="rounded-t-2xl h-[96vh] p-5 flex flex-col"
                 >
                     <SheetHeader className="sr-only">
                         <SheetTitle>Add transaction</SheetTitle>
                     </SheetHeader>
-                    {body}
+                    {segment}
+                    <div className="flex-1 min-h-0 overflow-y-auto px-1 -mx-1">
+                        {form}
+                    </div>
                 </SheetContent>
             </Sheet>
         );
@@ -134,7 +139,8 @@ const TransactionAdder: React.FC<TransactionAdderProps> = ({
                 <DialogHeader className="sr-only">
                     <DialogTitle>Add transaction</DialogTitle>
                 </DialogHeader>
-                {body}
+                {segment}
+                {form}
             </DialogContent>
         </Dialog>
     );

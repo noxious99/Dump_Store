@@ -60,7 +60,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
     };
 
     return (
-        <>
+        <div className="flex flex-col min-h-full">
             {error && (
                 <Alert variant="destructive" className="py-2 px-3 border-red-200 bg-red-50">
                     <AlertDescription className="text-xs leading-tight text-red-800">
@@ -96,6 +96,12 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
                 {onCreateRecurringRule && (
                     <RepeatPicker value={repeat} onChange={setRepeat} />
                 )}
+            </div>
+            {/* Flexible gap docks the note + action to the sheet's bottom edge,
+                so the shorter income form never leaves a dead void below the
+                button — the slack collects here as breathing room instead. */}
+            <div className="flex-1 min-h-[12px]" />
+            <div className="space-y-2">
                 <Input
                     type="text"
                     placeholder="Add a note"
@@ -119,7 +125,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({
                     )}
                 </Button>
             </div>
-        </>
+        </div>
     );
 };
 

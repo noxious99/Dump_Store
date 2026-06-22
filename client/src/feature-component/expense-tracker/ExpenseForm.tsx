@@ -144,7 +144,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     };
 
     return (
-        <>
+        <div className="flex flex-col min-h-full">
             {error && (
                 <Alert variant="destructive" className="py-2 px-3 border-red-200 bg-red-50">
                     <AlertDescription className="text-xs leading-tight text-red-800">
@@ -265,6 +265,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 )}
                 </div>
                 )}
+            </div>
+            {/* Flexible gap docks the note + action to the sheet's bottom edge,
+                so a shorter form never leaves a dead void below the button —
+                the slack collects here as breathing room instead. */}
+            <div className="flex-1 min-h-[12px]" />
+            <div className="space-y-2">
                 <Input
                     type="text"
                     placeholder="Add a note "
@@ -288,7 +294,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     )}
                 </Button>
             </div>
-        </>
+        </div>
     );
 };
 

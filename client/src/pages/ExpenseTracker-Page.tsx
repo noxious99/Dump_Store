@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { FaCaretLeft, FaCaretRight } from 'react-icons/fa6'
-import { Loader2, BarChart3 } from 'lucide-react'
+import { BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
@@ -23,6 +23,7 @@ import TransactionAdder, {
 } from '@/feature-component/expense-tracker/TransactionAdder'
 import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
 import AnalyticsSheet from '@/feature-component/expense-tracker/AnalyticsSheet'
+import ExpenseTrackerSkeleton from '@/feature-component/expense-tracker/ExpenseTrackerSkeleton'
 import {
   promptKey,
   wasPromptShown,
@@ -460,7 +461,10 @@ const ExpenseTracker: React.FC = () => {
           makes the page taller than the viewport and brings back the
           whole-page scrollbar */}
       <div className="min-h-screen bg-background lg:h-[calc(100vh-68px)] lg:min-h-0 lg:overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8 lg:h-full lg:flex lg:flex-col">
+        {/* pb clears BOTH fixed bottom layers: the 64px nav AND the FAB that
+            rises to ~136px above it — so the last row's amount is never stuck
+            hidden behind the + button at rest. */}
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-4 pb-36 lg:pb-8 lg:h-full lg:flex lg:flex-col">
           {/* ── Header ─────────────────────────────────────────── */}
           <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 lg:mb-4">
             <div>
@@ -525,12 +529,7 @@ const ExpenseTracker: React.FC = () => {
           </header>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Loader2 className="h-7 w-7 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Loading your records...
-              </p>
-            </div>
+            <ExpenseTrackerSkeleton />
           ) : (
             <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 lg:flex-1 lg:min-h-0">
               {/* Left column on desktop: glance + budget (no column scrollbar;
