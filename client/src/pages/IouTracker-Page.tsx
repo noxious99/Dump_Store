@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Handshake, Search, CheckCircle2 } from 'lucide-react'
+import { Plus, Handshake, Search, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import axiosInstance from '@/utils/axiosInstance'
 import { useCurrency } from '@/hooks/useCurrency'
 import IouCard from '@/feature-component/iou-tracker/IouCard'
+import IouListSkeleton from '@/feature-component/iou-tracker/IouListSkeleton'
 import IouFormSheet from '@/feature-component/iou-tracker/IouFormSheet'
 import IouDetailSheet from '@/feature-component/iou-tracker/IouDetailSheet'
 import type { Iou, IouPayload, IouSummary } from '@/types/iou'
@@ -276,10 +277,7 @@ const IouTracker: React.FC = () => {
 
         {/* ── List ───────────────────────────────────── */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <Loader2 className="h-7 w-7 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading your IOUs...</p>
-          </div>
+          <IouListSkeleton />
         ) : ious.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
