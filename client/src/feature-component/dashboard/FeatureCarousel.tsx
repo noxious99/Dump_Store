@@ -20,6 +20,8 @@ export interface FeatureSlide {
 
 interface FeatureCarouselProps {
   slides: FeatureSlide[]
+  /** Reports the active slide index so the dashboard FAB can follow it. */
+  onSelectIndex?: (index: number) => void
 }
 
 /**
@@ -35,20 +37,24 @@ interface FeatureCarouselProps {
  * still signal it needs the user (e.g. over budget). That dot is what keeps the
  * dashboard a triage surface even though only one card is visible at a time.
  */
-const FeatureCarousel: React.FC<FeatureCarouselProps> = ({ slides }) => {
+const FeatureCarousel: React.FC<FeatureCarouselProps> = ({ slides, onSelectIndex }) => {
   const [api, setApi] = React.useState<CarouselApi>()
   const [selected, setSelected] = React.useState(0)
 
   React.useEffect(() => {
     if (!api) return
-    const onSelect = () => setSelected(api.selectedScrollSnap())
+    const onSelect = () => {
+      const i = api.selectedScrollSnap()
+      setSelected(i)
+      onSelectIndex?.(i)
+    }
     onSelect()
     api.on('select', onSelect)
     api.on('reInit', onSelect)
     return () => {
       api.off('select', onSelect)
     }
-  }, [api])
+  }, [api, onSelectIndex])
 
   return (
     <div>

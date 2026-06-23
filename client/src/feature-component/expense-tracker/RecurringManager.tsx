@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Repeat, Trash2, Loader2 } from 'lucide-react'
+import { Repeat, Trash2, Loader2, CalendarClock } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -127,23 +127,40 @@ const RecurringManager: React.FC<RecurringManagerProps> = ({
               const busy = busyId === rule._id
               return (
                 <div key={rule._id} className="flex items-center gap-3 py-3">
-                  <CategoryIcon name={iconName} fallback={fallback} size={20} />
+                  {/* Framed icon — matches the app's card language. */}
+                  <span className="w-9 h-9 rounded-xl bg-grey-x100 flex items-center justify-center shrink-0">
+                    <CategoryIcon name={iconName} fallback={fallback} size={20} />
+                  </span>
+
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold capitalize truncate ${rule.isActive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                       {name} · {symbol}{rule.amount.toLocaleString()}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {frequencyLabel(rule)}
-                      {rule.isActive
-                        ? ` · next ${new Date(rule.nextRunDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                        : ' · paused'}
-                      {rule.note && <> · {rule.note}</>}
-                    </p>
+                    {/* Frequency + next-run grouped — the pattern and its next
+                        instance read together. The date is a chip, not loose
+                        text, so it never looks like it's floating or misaligned. */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-muted-foreground">
+                      <span className="truncate">
+                        {frequencyLabel(rule)}
+                        {rule.note ? ` · ${rule.note}` : ''}
+                      </span>
+                      {rule.isActive ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-grey-x100 pl-2 pr-2 py-1 font-medium text-foreground whitespace-nowrap">
+                          <CalendarClock className="w-4 h-4 text-primary" />
+                          {new Date(rule.nextRunDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-grey-x100 px-2 py-0.5 font-medium whitespace-nowrap">
+                          Paused
+                        </span>
+                      )}
+                    </div>
                   </div>
+
                   {busy ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
                   ) : (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {/* Text label, not an icon — a pause/play glyph reads
                           like a status instead of an action */}
                       <button
