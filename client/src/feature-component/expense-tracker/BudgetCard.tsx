@@ -60,7 +60,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   const chrome = embedded
-    ? ''
+    ? 'flex flex-col min-h-0 flex-1'
     : 'bg-card border border-border rounded-2xl p-5 lg:p-6 lg:flex lg:flex-col lg:min-h-0 lg:flex-1'
 
   // ── Empty state: no budget for this month ──────────────────
@@ -76,7 +76,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
           </span>
         </div>
 
-        <div className="flex flex-col items-center text-center px-2 py-8 lg:flex-1 lg:justify-center">
+        <div className={`flex flex-col items-center text-center px-2 py-8 ${embedded ? 'flex-1 justify-center' : 'lg:flex-1 lg:justify-center'}`}>
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Wallet className="w-7 h-7 text-primary" />
           </div>
@@ -358,11 +358,23 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
       </div>
 
       {allocations.length === 0 ? (
-        <div className="py-6 text-center text-xs text-muted-foreground lg:flex-1 lg:flex lg:items-center lg:justify-center">
+        <div
+          className={`py-6 text-center text-xs text-muted-foreground ${
+            embedded
+              ? 'flex-1 flex items-center justify-center'
+              : 'lg:flex-1 lg:flex lg:items-center lg:justify-center'
+          }`}
+        >
           No allocations yet. Split your budget into categories.
         </div>
       ) : (
-        <div className="divide-y divide-border lg:flex-1 lg:min-h-0 lg:overflow-y-auto [scrollbar-width:thin] lg:pr-1">
+        <div
+          className={`divide-y divide-border [scrollbar-width:thin] ${
+            embedded
+              ? 'flex-1 min-h-0 overflow-y-auto pr-1'
+              : 'lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1'
+          }`}
+        >
           {allocations.map((a) => {
             const isVirtual = Boolean(a.isVirtual)
             const pctUsed =
@@ -476,7 +488,7 @@ const BudgetCard: React.FC<BudgetCardProps> = ({
       )}
 
       {/* ── Unallocated footer ─────────────────────────────────── */}
-      <div className="mt-3 pt-3 border-t border-dashed border-border">
+      <div className="mt-3 pt-3 border-t border-dashed border-border shrink-0">
         {isAllocating ? (
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <Select

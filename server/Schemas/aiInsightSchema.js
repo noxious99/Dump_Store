@@ -45,6 +45,17 @@ const aiInsightSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    // Manual "refresh" forces a fresh LLM call, so it's rate-limited per UTC day
+    // to stop a user spamming the model. refreshDay is the 'YYYY-MM-DD' the
+    // count belongs to; it resets when a new day's first refresh lands.
+    refreshDay: {
+        type: String,
+        default: '',
+    },
+    refreshCount: {
+        type: Number,
+        default: 0,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model("AiInsight", aiInsightSchema);

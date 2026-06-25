@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -23,6 +23,8 @@ import {
   PieChart as PieIcon,
   Calendar,
   ChevronRight,
+  ChevronDown,
+  BarChart3,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -99,6 +101,21 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
   const [cache, setCache] = useState<Partial<Record<AnalyticsRange, AnalyticsData>>>({})
   const [loading, setLoading] = useState(false)
 
+  // Scroll affordance for the mobile sheet — the charts sit below the fold and
+  // were silently cut off, with nothing signalling there was more to see.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollDown, setCanScrollDown] = useState(false)
+  const updateScrollHint = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const overflow = el.scrollHeight - el.clientHeight
+    setCanScrollDown(overflow > 4 && el.scrollTop < overflow - 4)
+  }, [])
+  const scrollToBottom = () => {
+    const el = scrollRef.current
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }
+
   const data = cache[range]
 
   // Drop the cache when the sheet closes so reopening after an add/edit/delete
@@ -123,6 +140,19 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
       cancelled = true
     }
   }, [open, range, cache])
+
+  // Recompute the scroll hint whenever the body height changes — range switches,
+  // data arriving, and async chart renders all change how tall the content is.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!open || !el) return
+    updateScrollHint()
+    const inner = el.firstElementChild
+    if (!inner || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(updateScrollHint)
+    ro.observe(inner)
+    return () => ro.disconnect()
+  }, [open, data, loading, range, updateScrollHint])
 
   const money = (n: number) => `${symbol}${Math.round(n).toLocaleString()}`
   const renderInsightText = (text: string) => text.split('¤').join(symbol)
@@ -338,19 +368,45 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
 
   const header = (
     <div className="flex items-center gap-2">
-      <Sparkles className="w-4 h-4 text-primary" />
-      <span className="text-base font-extrabold text-foreground">Insights</span>
+      <BarChart3 className="w-4 h-4 text-primary" />
+      <span className="text-base font-extrabold text-foreground">Analytics</span>
     </div>
   )
 
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto p-5">
-          <SheetHeader className="text-left mb-3 p-0">
+        <SheetContent side="bottom" className="rounded-t-2xl h-[96vh] p-0 flex flex-col">
+          <SheetHeader className="text-left px-5 pt-5 pb-3 shrink-0">
             <SheetTitle>{header}</SheetTitle>
           </SheetHeader>
-          {body}
+          <div className="relative flex-1 min-h-0">
+            <div
+              ref={scrollRef}
+              onScroll={updateScrollHint}
+              className="h-full overflow-y-auto px-5 pb-5"
+            >
+              {body}
+            </div>
+            {/* Scroll affordance — fade + bouncing chevron while there's more
+                below the fold; both fade out once you reach the bottom. */}
+            <div
+              className={`pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-background to-transparent transition-opacity duration-200 ${
+                canScrollDown ? 'opacity-100' : 'opacity-0'
+              }`}
+              aria-hidden
+            />
+            <button
+              type="button"
+              onClick={scrollToBottom}
+              aria-label="Scroll to bottom"
+              className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-foreground/10 transition-opacity duration-200 ${
+                canScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <ChevronDown className="w-5 h-5 text-muted-foreground animate-bounce" />
+            </button>
+          </div>
         </SheetContent>
       </Sheet>
     )

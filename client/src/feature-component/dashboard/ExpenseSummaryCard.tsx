@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Repeat, ChevronRight } from 'lucide-react'
+import { ArrowRight, Repeat, ChevronRight } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -14,10 +14,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import axiosInstance from '@/utils/axiosInstance'
 import type { TopCategory } from '@/types/dashboard'
-import type { ExpensePayload, ExpenseRecord, IncomePayload } from '@/types/expenseTracker'
-import TransactionAdder, {
-  type TransactionMode,
-} from '@/feature-component/expense-tracker/TransactionAdder'
 import { useCurrency } from '@/hooks/useCurrency'
 import { CategoryIcon } from '@/components/CategoryIcon'
 
@@ -48,45 +44,6 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   const [showBudgetDialog, setShowBudgetDialog] = useState(false)
   const [newBudget, setNewBudget] = useState('')
   const [saving, setSaving] = useState(false)
-
-  const [adderMode, setAdderMode] = useState<TransactionMode | null>(null)
-  const [isExpenseLoading, setIsExpenseLoading] = useState(false)
-  const [isIncomeLoading, setIsIncomeLoading] = useState(false)
-  const [categories, setCategories] = useState<{ _id: string; name: string }[]>([])
-
-  useEffect(() => {
-    axiosInstance.get('/v1/expenses/category')
-      .then((res) => setCategories(res.data))
-      .catch(console.error)
-  }, [])
-
-  const handleAddExpense = async (payload: ExpensePayload): Promise<ExpenseRecord | null> => {
-    setIsExpenseLoading(true)
-    try {
-      const res = await axiosInstance.post('/v1/expenses', payload)
-      setAdderMode(null)
-      onBudgetSaved() // refresh dashboard
-      return res.data?._id ? res.data : null
-    } catch (err) {
-      console.error(err)
-      return null
-    } finally {
-      setIsExpenseLoading(false)
-    }
-  }
-
-  const handleAddIncome = async (payload: IncomePayload) => {
-    setIsIncomeLoading(true)
-    try {
-      await axiosInstance.post('/v1/expenses/add-income', payload)
-      setAdderMode(null)
-      onBudgetSaved() // refresh dashboard
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsIncomeLoading(false)
-    }
-  }
 
   // Status badge: only shows a colored state when there's an actual problem
   const isAlert = budgetPct >= 100
@@ -129,10 +86,7 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
           ))}
         </div>
         <div className="skeleton h-px w-full mb-3" />
-        <div className="flex gap-2">
-          <div className="skeleton h-9 flex-1 rounded-lg" />
-          <div className="skeleton h-9 w-24 rounded-lg" />
-        </div>
+        <div className="skeleton h-9 w-full rounded-lg" />
       </div>
     )
   }
@@ -222,35 +176,18 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
           </button>
         )}
 
-        {/* Action row — one entry button (the dashboard is built for quick
-            logging). Expense vs income is a single tab-tap away inside the
-            adder, so two separate buttons just split one action in two. */}
-        <div className="flex items-center gap-2 pt-3 mt-auto border-t border-border">
-          <button
-            onClick={() => setAdderMode('expense')}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add transaction
-          </button>
+        {/* Footer — drilling in is the card's one action now; adding lives on
+            the dashboard FAB (mobile) / header (desktop). */}
+        <div className="pt-3 mt-auto border-t border-border">
           <Link
             to="/expense-tracker"
-            className="text-xs font-semibold text-primary hover:underline px-3 py-2 whitespace-nowrap"
+            className="w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
           >
-            Open tracker →
+            Open tracker
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
-
-      <TransactionAdder
-        openMode={adderMode}
-        onClose={() => setAdderMode(null)}
-        addExpense={handleAddExpense}
-        addIncome={handleAddIncome}
-        isExpenseLoading={isExpenseLoading}
-        isIncomeLoading={isIncomeLoading}
-        categories={categories}
-      />
 
       {/* Budget Dialog */}
       <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>

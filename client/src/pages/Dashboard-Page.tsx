@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Sparkles, RefreshCw } from 'lucide-react'
+import { Sparkles, RefreshCw, Plus } from 'lucide-react'
 import moment from 'moment'
 import { toast } from 'sonner'
 import axiosInstance from '@/utils/axiosInstance'
@@ -9,6 +9,8 @@ import ExpenseSummaryCard from '@/feature-component/dashboard/ExpenseSummaryCard
 import GoalsSummaryCard from '@/feature-component/dashboard/GoalsSummaryCard'
 import IouSummaryCard from '@/feature-component/dashboard/IouSummaryCard'
 import FeatureCarousel from '@/feature-component/dashboard/FeatureCarousel'
+import QuickAddSheet, { type QuickAddType } from '@/feature-component/dashboard/QuickAddSheet'
+import DashboardFab from '@/feature-component/dashboard/DashboardFab'
 import RecurringManager from '@/feature-component/expense-tracker/RecurringManager'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Goal, ExpenseSummary, IouData, DashboardInsight, ActivityStreak } from '@/types/dashboard'
@@ -31,6 +33,14 @@ const EMPTY_IOU: IouData = {
   overdueCount: 0,
   people: [],
 }
+
+// Carousel order → the quick-add tab + FAB accent it maps to. Index matches the
+// slides array passed to FeatureCarousel below (expenses / goals / iou).
+const CARD_ADD: { type: QuickAddType; accent: string }[] = [
+  { type: 'transaction', accent: 'var(--primary)' },
+  { type: 'goal', accent: 'var(--accent)' },
+  { type: 'iou', accent: 'var(--secondary)' },
+]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -153,13 +163,18 @@ interface SmartInsightsProps {
   /** 'ai' shows a subtle AI badge; 'fallback' stays unmarked. */
   source?: 'ai' | 'fallback' | null
   highlight?: boolean
+  /** Manual AI refreshes used today + the daily cap (server-enforced). */
+  refreshesUsed?: number
+  refreshLimit?: number | null
 }
 
 const SmartInsights: React.FC<SmartInsightsProps> = ({
   insights, isLoading, isRefreshing, onRefresh, symbol, source = null, highlight = false,
+  refreshesUsed = 0, refreshLimit = null,
 }) => {
   const render = (text: string) => text.split('¤').join(symbol)
   const skeletonRows = 3
+  const limitReached = refreshLimit != null && refreshesUsed >= refreshLimit
 
   return (
     <div>
@@ -173,14 +188,27 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({
             </span>
           )}
         </p>
-        <button
-          onClick={onRefresh}
-          disabled={isLoading || isRefreshing}
-          aria-label="Refresh insights"
-          className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 p-1 -m-1"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {refreshLimit != null && (
+            <span
+              className={`text-[10px] font-semibold tabular-nums tracking-normal ${
+                limitReached ? 'text-muted-foreground/60' : 'text-muted-foreground'
+              }`}
+              title={limitReached ? "You've used today's insight refreshes" : 'Insight refreshes used today'}
+            >
+              {refreshesUsed}/{refreshLimit}
+            </span>
+          )}
+          <button
+            onClick={onRefresh}
+            disabled={isLoading || isRefreshing || limitReached}
+            aria-label="Refresh insights"
+            title={limitReached ? 'Daily refresh limit reached' : 'Refresh insights'}
+            className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:hover:text-muted-foreground p-1 -m-1"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       <div
@@ -253,10 +281,20 @@ const Dashboard_Page: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0)
   const [highlightInsights, setHighlightInsights] = useState(false)
 
+  // Quick-add: one sheet for the whole dashboard, opened from the FAB (mobile)
+  // or the header button (desktop). The FAB follows the active carousel card.
+  const [addOpen, setAddOpen] = useState(false)
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const activeAdd = isMobile ? CARD_ADD[activeCardIndex] ?? CARD_ADD[0] : CARD_ADD[0]
+
   const [insights, setInsights] = useState<DashboardInsight[]>([])
   const [insightsSource, setInsightsSource] = useState<'ai' | 'fallback' | null>(null)
   const [insightsLoading, setInsightsLoading] = useState(true)
   const [insightsRefreshing, setInsightsRefreshing] = useState(false)
+  // Manual AI refreshes are capped per day (server-enforced); track usage so the
+  // button shows X/N and disables at the cap.
+  const [insightsRefreshesUsed, setInsightsRefreshesUsed] = useState(0)
+  const [insightsRefreshLimit, setInsightsRefreshLimit] = useState<number | null>(null)
 
   // Scroll to Smart Insights and briefly pulse a ring so the eye lands on it.
   const goToInsights = () => {
@@ -279,6 +317,11 @@ const Dashboard_Page: React.FC = () => {
       })
       setInsights(res.data?.insights ?? [])
       setInsightsSource(res.data?.source ?? null)
+      if (typeof res.data?.refreshLimit === 'number') setInsightsRefreshLimit(res.data.refreshLimit)
+      if (typeof res.data?.refreshesUsed === 'number') setInsightsRefreshesUsed(res.data.refreshesUsed)
+      if (res.data?.limitReached) {
+        toast.message(`You've used today's ${res.data.refreshLimit ?? 3} insight refreshes`)
+      }
     } catch (err) {
       console.error('Insights fetch error:', err)
       setInsights([])
@@ -425,17 +468,10 @@ const Dashboard_Page: React.FC = () => {
     />
   )
   const goalsCard = (
-    <GoalsSummaryCard
-      goals={goals}
-      isLoading={isLoading}
-      onChanged={() => setRefreshKey((p) => p + 1)}
-    />
+    <GoalsSummaryCard goals={goals} isLoading={isLoading} />
   )
   const iouCard = (
-    <IouSummaryCard
-      iouData={iouData}
-      onChanged={() => setRefreshKey((p) => p + 1)}
-    />
+    <IouSummaryCard iouData={iouData} />
   )
 
   return (
@@ -470,6 +506,16 @@ const Dashboard_Page: React.FC = () => {
                 {streak.current} day
               </div>
             )} */}
+
+            {/* Desktop quick-add — the FAB's counterpart where there's no
+                carousel/thumb-zone. Opens the same sheet on the Transaction tab. */}
+            <button
+              onClick={() => setAddOpen(true)}
+              className="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:bg-primary/90 active:scale-95 transition-transform"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add
+            </button>
 
             {/* Mobile only: eye-catching jump to Smart Insights (which otherwise
                 sit at the bottom of the stack). Desktop shows them in the sticky
@@ -522,6 +568,7 @@ const Dashboard_Page: React.FC = () => {
                 tab dots for triage). lg+: the equal stacked cards, unchanged. */}
             {isMobile ? (
               <FeatureCarousel
+                onSelectIndex={setActiveCardIndex}
                 slides={[
                   { key: 'expenses', label: 'Expenses', icon: 'expense', accent: 'var(--primary)', attention: expenseAttention, node: expenseCard },
                   { key: 'goals', label: 'Goals', icon: 'goal', accent: 'var(--accent)', attention: goalsAttention, node: goalsCard },
@@ -561,6 +608,8 @@ const Dashboard_Page: React.FC = () => {
                   symbol={symbol}
                   source={insightsSource}
                   highlight={highlightInsights}
+                  refreshesUsed={insightsRefreshesUsed}
+                  refreshLimit={insightsRefreshLimit}
                 />
               </div>
               <RecentActivity
@@ -622,6 +671,8 @@ const Dashboard_Page: React.FC = () => {
               onRefresh={() => fetchInsights(true)}
               symbol={symbol}
               source={insightsSource}
+              refreshesUsed={insightsRefreshesUsed}
+              refreshLimit={insightsRefreshLimit}
             />
 
             <RecentActivity
@@ -634,6 +685,23 @@ const Dashboard_Page: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Quick-add — one sheet shared by the mobile FAB and desktop header
+          button. Opens on the tab matching the active card. */}
+      <QuickAddSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        initialType={activeAdd.type}
+        onChanged={() => setRefreshKey((p) => p + 1)}
+      />
+
+      {/* Mobile FAB — recolors to the active card and ghosts its glyph behind
+          the +. Hidden on lg+ (the header Add button covers desktop). */}
+      <DashboardFab
+        onAdd={() => setAddOpen(true)}
+        accent={activeAdd.accent}
+        type={activeAdd.type}
+      />
     </div>
   )
 }

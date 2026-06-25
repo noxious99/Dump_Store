@@ -20,7 +20,13 @@ const getDashboardInsightsHandler = async (req, res) => {
     } catch (error) {
         // Degrade gracefully — the dashboard should still render something.
         console.error('Dashboard insights error:', error.message);
-        return res.status(200).json({ insights: SAFE_FALLBACK, source: 'fallback', cached: false });
+        return res.status(200).json({
+            insights: SAFE_FALLBACK,
+            source: 'fallback',
+            cached: false,
+            refreshesUsed: 0,
+            refreshLimit: 3,
+        });
     }
 };
 

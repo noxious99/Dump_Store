@@ -500,13 +500,14 @@ const ExpenseTracker: React.FC = () => {
                 </button>
               </div>
 
-              {/* Insights — opens the analytics sheet with charts + filters */}
+              {/* Analytics — charts + filters. "Insights" is reserved for the
+                  dashboard's AI advisory layer; this is the exploration surface. */}
               <button
                 onClick={() => setAnalyticsOpen(true)}
                 className="h-9 px-3 flex items-center gap-1.5 text-sm font-semibold text-foreground bg-card border border-border rounded-lg hover:bg-grey-x100 transition-colors"
               >
                 <BarChart3 className="w-4 h-4 text-primary" />
-                <span>Insights</span>
+                <span>Analytics</span>
               </button>
 
               <div className="hidden lg:flex items-center gap-2">
@@ -588,14 +589,14 @@ const ExpenseTracker: React.FC = () => {
                   >
                     <SheetContent
                       side="bottom"
-                      className="rounded-t-2xl max-h-[88vh] overflow-y-auto p-0"
+                      className="rounded-t-2xl h-[96vh] p-0 flex flex-col"
                     >
-                      <SheetHeader className="px-5 pt-5 pb-3 text-left">
+                      <SheetHeader className="px-5 pt-5 pb-3 text-left shrink-0">
                         <SheetTitle className="text-base font-extrabold text-foreground">
                           Budget · {monthLabel}
                         </SheetTitle>
                       </SheetHeader>
-                      <div className="px-5 pb-6">
+                      <div className="flex-1 min-h-0 px-5 pb-6 flex flex-col">
                         <BudgetCard {...budgetCardProps} embedded />
                       </div>
                     </SheetContent>

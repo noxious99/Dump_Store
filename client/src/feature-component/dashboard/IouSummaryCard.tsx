@@ -1,38 +1,17 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
-import { toast } from 'sonner'
-import axiosInstance from '@/utils/axiosInstance'
-import IouFormSheet from '@/feature-component/iou-tracker/IouFormSheet'
+import { ArrowRight } from 'lucide-react'
 import type { IouData } from '@/types/dashboard'
-import type { IouPayload } from '@/types/iou'
 import { useCurrency } from '@/hooks/useCurrency'
 import { CategoryIcon } from '@/components/CategoryIcon'
 
 interface IouSummaryCardProps {
   iouData: IouData
-  /** Called after an IOU is created so the dashboard can refresh. */
-  onChanged?: () => void
 }
 
-const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) => {
+const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
   const { symbol } = useCurrency()
   const netPositive = iouData.net >= 0
-  const [formOpen, setFormOpen] = useState(false)
-
-  // Quick-create from the dashboard. Rethrow keeps the form open on failure,
-  // matching the tracker page's behaviour.
-  const handleCreateIou = async (payload: IouPayload) => {
-    try {
-      await axiosInstance.post('/v1/iou', payload)
-      toast.success('IOU added')
-      onChanged?.()
-    } catch (error) {
-      console.error('Error creating IOU:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to add IOU')
-      throw error
-    }
-  }
 
   return (
     <div className="bg-card border border-border rounded-2xl p-4 h-full flex flex-col">
@@ -94,24 +73,17 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData, onChanged }) =
         ))}
       </div>
 
-      {/* Action row — uniform add button + tracker link, matching the other cards */}
-      <div className="flex items-center gap-2 pt-3 mt-auto border-t border-border">
-        <button
-          onClick={() => setFormOpen(true)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-secondary/10 text-secondary text-xs font-semibold hover:bg-secondary/15 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add IOU
-        </button>
+      {/* Footer — drilling in is the card's one action; adding lives on the
+          dashboard FAB (mobile) / header (desktop). */}
+      <div className="pt-3 mt-auto border-t border-border">
         <Link
           to="/iou-tracker"
-          className="text-xs font-semibold text-secondary hover:underline px-3 py-2 whitespace-nowrap"
+          className="w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-secondary/10 text-secondary text-xs font-semibold hover:bg-secondary/15 transition-colors"
         >
-          Open tracker →
+          Open tracker
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
-
-      <IouFormSheet open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreateIou} />
     </div>
   )
 }

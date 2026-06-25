@@ -13,6 +13,10 @@ const AiInsight = require('../Schemas/aiInsightSchema');
 const TTL_MS = Number(process.env.INSIGHTS_TTL_MS) || 12 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_INSIGHTS = 4;
+// How many times a user may force a fresh AI generation (the refresh button)
+// per UTC day. Automatic regeneration (stale TTL / changed data) is exempt.
+const MAX_REFRESH = Number(process.env.INSIGHTS_MAX_REFRESH) || 3;
+const utcDayKey = (d = new Date()) => d.toISOString().slice(0, 10);
 
 // The client swaps this token for the user's currency symbol (same convention
 // as the analytics sheet), so amounts stay correct per user.
@@ -294,12 +298,35 @@ const getDashboardInsights = async (userId, { refresh = false } = {}) => {
     const inputHash = hashSnapshot(snapshot);
 
     const cached = await AiInsight.findOne({ userId }).lean();
+    const today = utcDayKey();
+    // Refreshes used today; a stored day other than today means the cap reset.
+    const usedToday = cached && cached.refreshDay === today ? (cached.refreshCount || 0) : 0;
+
     const isFresh = cached
         && cached.inputHash === inputHash
         && Date.now() - new Date(cached.generatedAt).getTime() < TTL_MS;
 
+    // Manual refresh that would exceed the daily cap: serve the cache untouched
+    // and never spend an AI call. The client shows the cap is reached.
+    if (refresh && usedToday >= MAX_REFRESH) {
+        return {
+            insights: cached ? cached.insights : buildFallbackInsights(snapshot),
+            source: cached ? cached.source : 'fallback',
+            cached: true,
+            refreshesUsed: usedToday,
+            refreshLimit: MAX_REFRESH,
+            limitReached: true,
+        };
+    }
+
     if (cached && isFresh && !refresh) {
-        return { insights: cached.insights, source: cached.source, cached: true };
+        return {
+            insights: cached.insights,
+            source: cached.source,
+            cached: true,
+            refreshesUsed: usedToday,
+            refreshLimit: MAX_REFRESH,
+        };
     }
 
     let insights;
@@ -317,13 +344,28 @@ const getDashboardInsights = async (userId, { refresh = false } = {}) => {
         source = 'fallback';
     }
 
+    // Only an explicit manual refresh counts toward the cap; automatic
+    // regeneration (stale TTL / changed data) must not spend the user's budget.
+    const nextCount = refresh ? usedToday + 1 : usedToday;
+    const update = { userId, insights, source, inputHash, generatedAt: new Date() };
+    if (refresh) {
+        update.refreshCount = nextCount;
+        update.refreshDay = today;
+    }
+
     await AiInsight.findOneAndUpdate(
         { userId },
-        { userId, insights, source, inputHash, generatedAt: new Date() },
+        update,
         { upsert: true, new: true }
     );
 
-    return { insights, source, cached: false };
+    return {
+        insights,
+        source,
+        cached: false,
+        refreshesUsed: nextCount,
+        refreshLimit: MAX_REFRESH,
+    };
 };
 
 module.exports = {
