@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ChevronDown,
   BarChart3,
+  Download,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -45,6 +46,9 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { AnalyticsData, AnalyticsRange, AnalyticsInsight } from '@/types/expenseTracker'
+import moment from 'moment'
+import { useExport } from '@/hooks/useExport'
+import type { ExportFormat } from '@/types/export'
 
 interface AnalyticsSheetProps {
   open: boolean
@@ -78,6 +82,25 @@ const RANGES: { value: AnalyticsRange; label: string }[] = [
   { value: '6-months', label: '6 months' },
 ]
 
+// Resolve a range key to concrete inclusive dates for the export request, so the
+// exported file matches exactly the window the user is viewing.
+const rangeToDates = (key: AnalyticsRange) => {
+  const now = moment()
+  switch (key) {
+    case 'last-month': {
+      const m = now.clone().subtract(1, 'month')
+      return { from: m.clone().startOf('month'), to: m.clone().endOf('month'), label: 'Last month' }
+    }
+    case '3-months':
+      return { from: now.clone().subtract(2, 'month').startOf('month'), to: now.clone().endOf('month'), label: 'Last 3 months' }
+    case '6-months':
+      return { from: now.clone().subtract(5, 'month').startOf('month'), to: now.clone().endOf('month'), label: 'Last 6 months' }
+    case 'this-month':
+    default:
+      return { from: now.clone().startOf('month'), to: now.clone().endOf('month'), label: 'This month' }
+  }
+}
+
 const DONUT_COLORS = [
   'var(--chart-1)',
   'var(--chart-2)',
@@ -95,8 +118,9 @@ const fmtShort = (n: number) =>
 const EMPTY_CONFIG = {}
 
 const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onOpenBudget }) => {
-  const { symbol } = useCurrency()
+  const { symbol, currency } = useCurrency()
   const isMobile = useIsMobile()
+  const { exporting, start: startExport } = useExport()
   const [range, setRange] = useState<AnalyticsRange>('this-month')
   const [cache, setCache] = useState<Partial<Record<AnalyticsRange, AnalyticsData>>>({})
   const [loading, setLoading] = useState(false)
@@ -117,6 +141,12 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
   }
 
   const data = cache[range]
+
+  // Export the currently selected range as CSV/PDF (queued + generated server-side).
+  const doExport = (format: ExportFormat) => {
+    const { from, to, label } = rangeToDates(range)
+    startExport({ format, from: from.toISOString(), to: to.toISOString(), label, currency, symbol })
+  }
 
   // Drop the cache when the sheet closes so reopening after an add/edit/delete
   // shows fresh numbers (the cache otherwise persists stale totals for the
@@ -242,6 +272,29 @@ const AnalyticsSheet: React.FC<AnalyticsSheetProps> = ({ open, onOpenChange, onO
             {r.label}
           </button>
         ))}
+      </div>
+
+      {/* Export the selected range — queued + generated server-side, then downloaded */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold text-muted-foreground">Export this range</span>
+        <div className="flex items-center gap-1.5">
+          {(['csv', 'pdf'] as ExportFormat[]).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => doExport(f)}
+              disabled={exporting !== null}
+              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-grey-x100 text-xs font-semibold text-foreground hover:bg-grey-x200 disabled:opacity-50 transition-colors"
+            >
+              {exporting === f ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading && !data ? (

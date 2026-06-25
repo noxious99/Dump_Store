@@ -9,7 +9,9 @@ const expenseRoute = require("./routes/expenseRoute");
 const iouRoute = require("./routes/iouRoute");
 const insightsRoute = require("./routes/insightsRoute");
 const streakRoute = require("./routes/streakRoute");
+const exportRoute = require("./routes/exportRoute");
 const healthRouter = require("./routes/healthRoute")
+const { startExportWorker } = require("./workers/exportWorker");
 
 app = express();
 app.use(
@@ -30,6 +32,7 @@ app.use(`${api_prefix}/expenses`, expenseRoute);
 app.use(`${api_prefix}/iou`, iouRoute);
 app.use(`${api_prefix}/insights`, insightsRoute);
 app.use(`${api_prefix}/streak`, streakRoute);
+app.use(`${api_prefix}/exports`, exportRoute);
 app.use(`${api_prefix}/utils`, healthRouter);
 
 // Test route
@@ -54,6 +57,8 @@ const serverConnect = async () => {
   try {
     await mongoose.connect(DB_URI);
     console.log("DB connected");
+    // Background export worker (Mongo-backed queue). Disable with EXPORT_WORKER=off.
+    if (process.env.EXPORT_WORKER !== "off") startExportWorker();
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`server running at ${PORT}`);
     });
