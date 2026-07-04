@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import logo from "../assets/tracero_logo.png";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -20,13 +20,24 @@ import { RiDashboardFill } from "react-icons/ri";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 
+// Homepage section anchors (h2 ids get scroll-margin for the sticky nav)
+const HOME_LINKS = [
+    { label: "What's inside", href: '#toolkit-heading' },
+    { label: 'How it works', href: '#how-it-works-heading' },
+    { label: 'In practice', href: '#day-heading' },
+]
+
 const Navbar: React.FC = () => {
     const [loggedinState, setLoggedinState] = useState(false)
     const [isOpen, setIsOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false)
     const user = useSelector(selectUser)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const { pathname } = useLocation()
     const { resolvedTheme, toggleTheme } = useTheme()
+
+    const isHome = pathname === '/home' || pathname === '/'
 
     useEffect(() => {
         if (user.token) {
@@ -36,38 +47,72 @@ const Navbar: React.FC = () => {
         }
     }, [user])
 
+    // Transparent over the hero, glass once the page scrolls
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 8)
+        onScroll()
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [])
+
     const handleLogout = async () => {
         await dispatch(logout())
         navigate("/")
     }
 
     return (
-        <nav className="h-[56px] flex justify-between items-center px-4 lg:px-8 border-b border-border">
-            {/* Navbar background gradient removed for now.
-                Restore by adding back to the <nav> className:
-                bg-gradient-to-r from-primary to-accent
-                (if restored, revert the nav item colors below from foreground → primary-foreground) */}
-            {/* Logo - Always links to home page. Gradient-recolored from the white
-                logo PNG via CSS mask, using the brand from-primary→to-accent flow
-                (theme-aware via CSS vars). */}
-            <Link to="/home" className="flex items-center group">
-                <div
-                    role="img"
-                    aria-label="Tracero"
-                    className="h-[30px] sm:h-[32px] lg:h-[34px] transition-transform duration-200 group-hover:scale-105 bg-gradient-to-r from-primary to-accent"
-                    style={{
-                        aspectRatio: "558 / 502",
-                        WebkitMaskImage: `url(${logo})`,
-                        maskImage: `url(${logo})`,
-                        WebkitMaskRepeat: "no-repeat",
-                        maskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskPosition: "center",
-                        WebkitMaskSize: "contain",
-                        maskSize: "contain",
-                    }}
-                />
-            </Link>
+        <nav
+            className={`sticky top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-300 ${
+                scrolled
+                    ? 'bg-background/70 backdrop-blur-md border-b border-border/60'
+                    : 'bg-transparent border-b border-transparent'
+            }`}
+        >
+            <div className="max-w-7xl mx-auto h-14 md:h-16 flex justify-between items-center px-4 sm:px-6 lg:px-12">
+            <div className="flex items-center">
+                {/* Logo - Always links to home page. Gradient-recolored from the white
+                    logo PNG via CSS mask, using the brand from-primary→to-accent flow
+                    (theme-aware via CSS vars). */}
+                <Link to="/home" className="flex items-center gap-2.5 group">
+                    <div
+                        role="img"
+                        aria-label="Tracero"
+                        className="h-[24px] sm:h-[30px] lg:h-[34px] transition-transform duration-200 group-hover:scale-105 bg-gradient-to-r from-primary to-accent"
+                        style={{
+                            aspectRatio: "558 / 502",
+                            WebkitMaskImage: `url(${logo})`,
+                            maskImage: `url(${logo})`,
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                        }}
+                    />
+                    <span
+                        className="text-base sm:text-lg font-extrabold tracking-tight text-foreground"
+                        style={{ fontFamily: 'var(--font-heading)' }}
+                    >
+                        Tracero
+                    </span>
+                </Link>
+
+                {/* Homepage section anchors */}
+                {isHome && (
+                    <div className="hidden md:flex items-center gap-6 ml-10">
+                        {HOME_LINKS.map((link) => (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Desktop Links */}
             <div className="hidden md:flex items-center gap-3">
@@ -89,13 +134,13 @@ const Navbar: React.FC = () => {
                             variant="ghost"
                             className="text-foreground/90 hover:text-foreground hover:bg-foreground/10 font-medium"
                         >
-                            <Link to="/auth?mode=signin">Sign In</Link>
+                            <Link to="/auth?mode=signin">Sign in</Link>
                         </Button>
                         <Button
                             asChild
-                            className="font-semibold shadow-sm"
+                            className="font-semibold shadow-sm rounded-xl"
                         >
-                            <Link to="/auth?mode=signup">Get Started</Link>
+                            <Link to="/auth?mode=signup">Get started</Link>
                         </Button>
                     </>
                 ) : (
@@ -121,6 +166,20 @@ const Navbar: React.FC = () => {
                             </SheetTitle>
                         </SheetHeader>
                         <div className="flex flex-col gap-3 mt-8">
+                            {isHome && (
+                                <div className="flex flex-col gap-1 mb-2 pb-4 border-b border-border">
+                                    {HOME_LINKS.map((link) => (
+                                        <a
+                                            key={link.href}
+                                            href={link.href}
+                                            onClick={() => setIsOpen(false)}
+                                            className="py-2 text-base font-medium text-foreground/90 hover:text-primary transition-colors"
+                                        >
+                                            {link.label}
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
                             {!loggedinState ? (
                                 <>
                                     <Button
@@ -128,7 +187,7 @@ const Navbar: React.FC = () => {
                                         className="w-full h-12 font-semibold"
                                         onClick={() => setIsOpen(false)}
                                     >
-                                        <Link to="/auth?mode=signin">Sign In</Link>
+                                        <Link to="/auth?mode=signin">Sign in</Link>
                                     </Button>
                                     <Button
                                         asChild
@@ -136,7 +195,7 @@ const Navbar: React.FC = () => {
                                         className="w-full h-12 font-semibold border-2"
                                         onClick={() => setIsOpen(false)}
                                     >
-                                        <Link to="/auth?mode=signup">Sign Up</Link>
+                                        <Link to="/auth?mode=signup">Sign up</Link>
                                     </Button>
                                 </>
                             ) : (
@@ -202,6 +261,7 @@ const Navbar: React.FC = () => {
                         </div>
                     </SheetContent>
                 </Sheet>
+            </div>
             </div>
         </nav>
     );
