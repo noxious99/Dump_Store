@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import signin_img from '../../assets/signin_avatar.png'
+import AuthShell from './AuthShell'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -107,34 +107,10 @@ const Signup: React.FC = () => {
     }
   }, [token, navigate])
   return (
-    <div className='min-h-screen flex'>
-      {/* Left Section - Decorative */}
-      <div className='hidden xl:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-secondary via-primary to-accent'>
-        {/* Decorative blobs */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className='relative z-10 flex flex-col justify-center items-center w-full px-16'>
-          <div className='flex flex-col items-center gap-6 text-center'>
-            <h2 className='text-4xl xl:text-5xl font-bold text-white leading-tight'>
-              Start your journey<br />with Tracero
-            </h2>
-            <p className='text-lg text-white/80 max-w-md'>
-              Track your goals, manage expenses, and stay on top of IOUs — all in one place.
-            </p>
-          </div>
-          <img
-            src={signin_img}
-            alt="Welcome illustration"
-            className='w-full max-w-[500px] h-auto mt-8 drop-shadow-2xl'
-          />
-        </div>
-      </div>
-
-      {/* Right Section - Form */}
-      <div className='w-full xl:w-1/2 min-h-screen flex items-center justify-center bg-background px-4 sm:px-8 lg:px-16 py-12'>
+    <AuthShell
+      headline="Start keeping score."
+      sub="One account for your money, goals, and IOUs. Free forever."
+    >
         <Card className="w-full max-w-[440px] border-0 shadow-none xl:shadow-xl xl:border xl:border-border">
           <CardHeader className="text-center xl:text-left space-y-2 pb-6">
             <CardTitle className="text-2xl xl:text-3xl font-bold text-foreground">
@@ -280,7 +256,7 @@ const Signup: React.FC = () => {
                   Creating account...
                 </>
               ) : (
-                "Create Account"
+                "Create account"
               )}
             </Button>
 
@@ -301,13 +277,12 @@ const Signup: React.FC = () => {
             <p className='mt-4 text-sm text-muted-foreground'>
               Already have an account?{' '}
               <Link to="/auth?mode=signin" className='text-primary hover:text-accent font-semibold transition-colors'>
-                Sign In
+                Sign in
               </Link>
             </p>
           </CardFooter>
         </Card>
-      </div>
-    </div>
+    </AuthShell>
   )
 }
 
