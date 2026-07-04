@@ -293,6 +293,9 @@
         @apply bg-background text-foreground;
         font-family: var(--font-sans);
         line-height: 1.6;
+        /* horizontal-scroll guard lives here (not on .App) so descendants
+           can still position: sticky against the viewport */
+        overflow-x: hidden;
     }
 
     /* Typography */
@@ -305,6 +308,11 @@
     /* Focus visible styles */
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-ring;
+    }
+
+    /* Anchor targets clear the sticky nav when jumped to */
+    h2[id] {
+        scroll-margin-top: 5.5rem;
     }
 
     /* Hide number input spinners app-wide */
@@ -332,8 +340,6 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    max-width: 100vw;
-    overflow-x: hidden;
 }
 
 main {
@@ -534,6 +540,294 @@ main {
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
     border-radius: var(--radius-md);
+}
+
+/* --------------------------------------------
+   10b. LANDING PAGE — MOTION & TEXTURE
+   -------------------------------------------- */
+/* Gentle vertical float for hero collage cards */
+@keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+    animation: float-y 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-y 7s ease-in-out 1.4s infinite;
+}
+
+/* Slow drift for background aurora orbs */
+@keyframes aurora-drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(32px, -24px) scale(1.08); }
+    66% { transform: translate(-24px, 18px) scale(0.94); }
+}
+
+.animate-aurora {
+    animation: aurora-drift 18s ease-in-out infinite;
+}
+
+/* Quick-log toast lifecycle — enters, holds, fades (retriggered via key) */
+@keyframes toast-cycle {
+    0% { opacity: 0; transform: translateY(12px) scale(0.95); }
+    10%, 86% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
+
+/* Scroll-reveal states (driven by <Reveal/>) */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(24px);
+}
+
+.reveal-shown {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity 0.7s ease-out,
+        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Child choreography inside a revealed block — used by the "How it works"
+   step cards: the mock UI pops in, streak cells fill one by one */
+.step-pop {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+    transition:
+        opacity 0.5s ease-out 0.25s,
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+}
+
+.reveal-shown .step-pop {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.streak-cell {
+    opacity: 0;
+    transform: scale(0.5);
+}
+
+.reveal-shown .streak-cell {
+    opacity: 1;
+    transform: scale(1);
+    /* springy overshoot; per-cell stagger set inline via transition-delay */
+    transition:
+        opacity 0.35s ease-out,
+        transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Fine line grid that fades out radially — hero backdrop */
+.bg-grid-fade {
+    background-image:
+        linear-gradient(color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, black 25%, transparent 72%);
+    mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, black 25%, transparent 72%);
+}
+
+/* Slow diagonal drift for the hero grid — a living blueprint */
+@keyframes grid-pan {
+    from { background-position: 0 0; }
+    to { background-position: 44px 44px; }
+}
+
+.animate-grid-pan {
+    animation: grid-pan 8s linear infinite;
+}
+
+/* Mock micro-interactions inside step cards (armed by .reveal-shown) */
+.type-in {
+    display: inline-block;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.reveal-shown .type-in {
+    animation: typing 1.4s steps(13, end) 0.6s forwards;
+}
+
+@keyframes typing {
+    from { max-width: 0; }
+    to { max-width: 16ch; }
+}
+
+/* Late joiner — element fades in after the rest of the mock has settled
+   (delay set per element via --join-delay) */
+.join-in {
+    opacity: 0;
+}
+
+.reveal-shown .join-in {
+    animation: join-in 0.6s ease-out both;
+    animation-delay: var(--join-delay, 1.5s);
+}
+
+@keyframes join-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Bento mock choreography (armed by .reveal-shown, staggered inline) */
+/* rows populate one by one, like a feed filling up */
+.row-in {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.reveal-shown .row-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity 0.45s ease-out,
+        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* progress bars fill to their target width (--bar-w) */
+.fill-bar {
+    width: 0;
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--fill-delay, 0.7s);
+}
+
+.reveal-shown .fill-bar {
+    width: var(--bar-w, 100%);
+}
+
+/* SVG line draws itself (requires pathLength="1" on the path) */
+.draw-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+.reveal-shown .draw-line {
+    animation: draw-line 1.3s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+}
+
+@keyframes draw-line {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Handwritten notes ink in letter by letter (delay via --ci per char) */
+.note-char {
+    opacity: 0;
+}
+
+.reveal-shown .note-char {
+    animation: note-char-in 0.25s ease-out both;
+    animation-delay: calc(var(--note-base, 0.55s) + var(--ci) * 0.024s);
+}
+
+@keyframes note-char-in {
+    from {
+        opacity: 0;
+        filter: blur(2px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* opacity-only late fade — safe for SVG paths where scale would distort */
+.fade-late {
+    opacity: 0;
+}
+
+.reveal-shown .fade-late {
+    animation: fade-late 0.8s ease-out both;
+    animation-delay: var(--join-delay, 1.5s);
+}
+
+@keyframes fade-late {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* White variant of the fading grid — ties gradient panels to the hero */
+.bg-grid-white {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 15%, black 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 90% 85% at 50% 15%, black 20%, transparent 75%);
+}
+
+/* Film grain overlay — adds physical texture to gradient panels */
+.grain {
+    position: relative;
+}
+
+.grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-float-delayed,
+    .animate-aurora {
+        animation: none;
+    }
+
+    .reveal-hidden {
+        opacity: 1;
+        transform: none;
+    }
+
+    .step-pop,
+    .streak-cell,
+    .join-in {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        animation: none;
+    }
+
+    .type-in {
+        max-width: none;
+    }
+
+    .animate-grid-pan {
+        animation: none;
+    }
+
+    .row-in {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .fill-bar {
+        width: var(--bar-w, 100%);
+        transition: none;
+    }
+
+    .draw-line {
+        stroke-dashoffset: 0;
+        animation: none;
+    }
+
+    .fade-late {
+        opacity: 1;
+        animation: none;
+    }
+
+    .note-char {
+        opacity: 1;
+        animation: none;
+        filter: none;
+    }
 }
 
 /* --------------------------------------------

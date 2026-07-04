@@ -4,7 +4,7 @@ import type { RootState, AppDispatch } from '@/store/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginUser } from './userSlice'
 import { Link, useNavigate } from 'react-router-dom'
-import signin_img from '../../assets/signin_avatar.png'
+import AuthShell from './AuthShell'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -77,34 +77,10 @@ const Signin: React.FC = () => {
     }, [token, navigate])
 
     return (
-        <div className='min-h-screen flex'>
-            {/* Left Section - Decorative */}
-            <div className='hidden xl:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-accent to-secondary'>
-                {/* Decorative blobs */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-                </div>
-
-                <div className='relative z-10 flex flex-col justify-center items-center w-full px-16'>
-                    <div className='flex flex-col items-center gap-6 text-center'>
-                        <h2 className='text-4xl xl:text-5xl font-bold text-white leading-tight'>
-                            Welcome back to<br />Tracero
-                        </h2>
-                        <p className='text-lg text-white/80 max-w-md'>
-                            Sign in to continue tracking your progress and achieving your goals.
-                        </p>
-                    </div>
-                    <img
-                        src={signin_img}
-                        alt="Welcome illustration"
-                        className='w-full max-w-[500px] h-auto mt-8 drop-shadow-2xl'
-                    />
-                </div>
-            </div>
-
-            {/* Right Section - Form */}
-            <div className='w-full xl:w-1/2 min-h-screen flex items-center justify-center bg-background px-4 sm:px-8 lg:px-16 py-12'>
+        <AuthShell
+            headline="Welcome back."
+            sub="Sign in and pick up where you left off."
+        >
                 <Card className="w-full max-w-[440px] border-0 shadow-none xl:shadow-xl xl:border xl:border-border">
                     <CardHeader className="text-center xl:text-left space-y-2 pb-6">
                         <CardTitle className="text-2xl xl:text-3xl font-bold text-foreground">
@@ -204,7 +180,7 @@ const Signin: React.FC = () => {
                                     Signing in...
                                 </>
                             ) : (
-                                "Sign In"
+                                "Sign in"
                             )}
                         </Button>
 
@@ -225,13 +201,12 @@ const Signin: React.FC = () => {
                         <p className='mt-4 text-sm text-muted-foreground'>
                             Don't have an account?{' '}
                             <Link to="/auth?mode=signup" className='text-primary hover:text-accent font-semibold transition-colors'>
-                                Sign Up
+                                Sign up
                             </Link>
                         </p>
                     </CardFooter>
                 </Card>
-            </div>
-        </div>
+        </AuthShell>
     )
 }
 

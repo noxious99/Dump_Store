@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { rehydrateUser, selectUser } from './feature-component/auth/userSlice';
 import type { AppDispatch } from './store/store';
 import { Toaster } from 'sonner'
+import { useTheme } from '@/hooks/useTheme';
 
 // App sections that get the mobile bottom nav (and no marketing footer).
 const APP_ROUTES = ['/dashboard', '/expense-tracker', '/expense-tracker-preview', '/goals-tracker', '/iou-tracker', '/profile'];
@@ -27,13 +28,18 @@ const AppContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const user = useSelector(selectUser);
+  // Applies the .dark class at the root so theming works on every route,
+  // including focused flows that render without the navbar.
+  useTheme();
 
   useEffect(() => {
     dispatch(rehydrateUser());
   }, [dispatch]);
 
   const isAppRoute = APP_ROUTES.some((route) => location.pathname.startsWith(route));
-  const hideFooter = isAppRoute;
+  // Auth is a focused flow: no navbar or footer, the page carries its own logo.
+  const isFocusedFlow = location.pathname.startsWith('/auth');
+  const hideFooter = isAppRoute || isFocusedFlow;
   // Mobile bottom nav: only for logged-in users inside the app sections.
   const showBottomNav = Boolean(user.token) && isAppRoute;
 
@@ -44,7 +50,7 @@ const AppContent: React.FC = () => {
         richColors
         closeButton
       />
-      <Navbar />
+      {!isFocusedFlow && <Navbar />}
       {/* pb on mobile keeps page content clear of the fixed bottom nav */}
       <main className={showBottomNav ? 'pb-20 md:pb-0' : undefined}>
         <Routes>
