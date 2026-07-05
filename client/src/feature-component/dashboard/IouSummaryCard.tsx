@@ -9,9 +9,18 @@ interface IouSummaryCardProps {
   iouData: IouData
 }
 
+// Cap the chips so the card keeps a stable height; the biggest balances
+// are the ones worth a glance, the rest live in the tracker
+const MAX_PEOPLE = 4
+
 const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
   const { symbol } = useCurrency()
   const netPositive = iouData.net >= 0
+
+  const topPeople = [...iouData.people]
+    .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
+    .slice(0, MAX_PEOPLE)
+  const moreCount = iouData.people.length - topPeople.length
 
   return (
     <div className="bg-card border border-border rounded-2xl p-4 h-full flex flex-col">
@@ -51,9 +60,10 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
         </div>
       </div>
 
-      {/* People chips */}
-      <div className="flex flex-wrap gap-1.5">
-        {iouData.people.map((person, i) => (
+      {/* People chips — shrink-0 so a tight carousel height can't squeeze
+          this row into the footer border */}
+      <div className="flex flex-wrap gap-1.5 mb-3 shrink-0">
+        {topPeople.map((person, i) => (
           <div
             key={i}
             className="flex items-center gap-1.5 bg-grey-x100 border border-border rounded-lg px-2 py-1"
@@ -71,6 +81,13 @@ const IouSummaryCard: React.FC<IouSummaryCardProps> = ({ iouData }) => {
             </span>
           </div>
         ))}
+        {moreCount > 0 && (
+          <div className="flex items-center bg-grey-x100 border border-border rounded-lg px-2 py-1">
+            <span className="text-[10px] font-semibold text-muted-foreground">
+              +{moreCount} more
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Footer — drilling in is the card's one action; adding lives on the

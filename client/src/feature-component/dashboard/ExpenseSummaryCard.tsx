@@ -1,17 +1,12 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Repeat, ChevronRight } from 'lucide-react'
+import { ArrowRight, Repeat, ChevronRight, Plus, Loader2 } from 'lucide-react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import axiosInstance from '@/utils/axiosInstance'
 import type { TopCategory } from '@/types/dashboard'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -30,6 +25,9 @@ interface ExpenseSummaryCardProps {
   onBudgetSaved: () => void
 }
 
+// One-tap starting points for the budget sheet, bKash-top-up style
+const QUICK_AMOUNTS = [10000, 15000, 20000, 25000]
+
 const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   totalSpend,
   budget,
@@ -44,6 +42,10 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
   const [showBudgetDialog, setShowBudgetDialog] = useState(false)
   const [newBudget, setNewBudget] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // For the live "about X a day" preview while typing a budget
+  const now = new Date()
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
   // Status badge: only shows a colored state when there's an actual problem
   const isAlert = budgetPct >= 100
@@ -120,26 +122,29 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
           <span className="text-2xl font-extrabold text-foreground tracking-tight">
             {symbol}{totalSpend.toLocaleString()}
           </span>
-          {budget > 0 ? (
-            <span className="text-sm text-muted-foreground">/ {symbol}{budget.toLocaleString()}</span>
-          ) : (
-            <button
-              onClick={() => setShowBudgetDialog(true)}
-              className="text-xs text-primary font-semibold hover:underline"
-            >
-              Set budget
-            </button>
-          )}
+          <span className="text-sm text-muted-foreground">
+            {budget > 0
+              ? `/ ${symbol}${budget.toLocaleString()}`
+              : 'spent this month'}
+          </span>
         </div>
 
-        {/* Progress bar */}
-        {budget > 0 && (
+        {/* Progress bar, or the invitation to get one */}
+        {budget > 0 ? (
           <div className="h-1 bg-border rounded-full overflow-hidden mb-3">
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{ width: `${Math.min(budgetPct, 100)}%`, backgroundColor: barColor }}
             />
           </div>
+        ) : (
+          <button
+            onClick={() => setShowBudgetDialog(true)}
+            className="w-full h-9 mb-3 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Set a monthly budget
+          </button>
         )}
 
         {/* Top categories */}
@@ -189,38 +194,84 @@ const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({
         </div>
       </div>
 
-      {/* Budget Dialog */}
-      <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
-        <DialogContent className="sm:max-w-[400px] rounded-xl">
-          <form onSubmit={handleBudgetSubmit}>
-            <DialogHeader>
-              <DialogTitle>Set Monthly Budget</DialogTitle>
-              <DialogDescription>Define your spending limit for this month.</DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                value={newBudget}
-                onChange={(e) => setNewBudget(e.target.value)}
-                className="h-12 bg-input border-border focus:border-primary rounded-lg"
-              />
+      {/* Budget sheet — same bottom-sheet pattern as the rest of the app */}
+      <Sheet open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 sm:max-w-md sm:mx-auto"
+        >
+          <SheetHeader className="px-5 pt-5 pb-1 text-left">
+            <SheetTitle className="text-base font-extrabold text-foreground">
+              Set monthly budget
+            </SheetTitle>
+            <p className="text-xs text-muted-foreground">
+              How much you plan to spend this month. You can change it anytime.
+            </p>
+          </SheetHeader>
+          <form onSubmit={handleBudgetSubmit} className="px-5 pb-6 pt-4 space-y-4">
+            {/* The amount is the hero — same big-number language as the cards */}
+            <div className="py-2">
+              <label className="flex items-baseline justify-center gap-1 cursor-text">
+                <span className="text-lg font-bold text-muted-foreground">
+                  {symbol}
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  maxLength={7}
+                  placeholder="0"
+                  value={newBudget}
+                  onChange={(e) =>
+                    setNewBudget(e.target.value.replace(/[^0-9]/g, ''))
+                  }
+                  style={{ width: `${Math.max(newBudget.length, 1)}ch` }}
+                  className="bg-transparent text-3xl font-extrabold text-foreground tracking-tight focus:outline-none placeholder:text-muted-foreground/40 [font-variant-numeric:tabular-nums]"
+                />
+              </label>
+              {/* Live translation while typing; spend context before it */}
+              <p className="text-center text-xs text-muted-foreground mt-1.5 h-4">
+                {Number(newBudget) > 0
+                  ? `about ${symbol}${Math.round(
+                      Number(newBudget) / daysInMonth
+                    ).toLocaleString()} a day`
+                  : totalSpend > 0
+                    ? `You've spent ${symbol}${totalSpend.toLocaleString()} this month so far`
+                    : ''}
+              </p>
             </div>
-            <DialogFooter className="gap-2">
-              <DialogClose asChild>
-                <Button variant="outline" className="rounded-lg">Cancel</Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                disabled={saving}
-                className="rounded-lg bg-primary hover:bg-primary/90"
-              >
-                {saving ? 'Saving...' : 'Save Budget'}
-              </Button>
-            </DialogFooter>
+
+            <div className="flex justify-center gap-2">
+              {QUICK_AMOUNTS.map((amount) => {
+                const active = Number(newBudget) === amount
+                return (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => setNewBudget(String(amount))}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                      active
+                        ? 'bg-primary/10 border-primary/40 text-primary'
+                        : 'border-border text-foreground hover:bg-grey-x100'
+                    }`}
+                  >
+                    {symbol}{amount / 1000}k
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving || !newBudget || Number(newBudget) <= 0}
+              className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-accent disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              {saving ? 'Saving...' : 'Save budget'}
+            </button>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

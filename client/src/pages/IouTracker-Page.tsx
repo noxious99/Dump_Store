@@ -169,7 +169,12 @@ const IouTracker: React.FC = () => {
       active: matched.filter(isOpen).sort(sortActive),
       settled: matched
         .filter((i) => !isOpen(i))
-        .sort((a, b) => time(b.transactionDate) - time(a.transactionDate)),
+        // Most recently closed first — settlement date, not lent date
+        .sort(
+          (a, b) =>
+            time(b.actualPaybackDate || b.updatedAt) -
+            time(a.actualPaybackDate || a.updatedAt)
+        ),
       matchCount: matched.length,
     }
   }, [ious, filter, query])

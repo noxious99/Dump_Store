@@ -610,6 +610,7 @@ const ExpenseTracker: React.FC = () => {
                 <ExpenseRecordsList
                   expenseRecords={expenseDetails.expenseRecords}
                   incomeRecords={expenseDetails.incomeRecords}
+                  monthDate={currentDate}
                   onSelectRecord={(record) => {
                     setSelectedRecord(record)
                     setRecordSheetOpen(true)
