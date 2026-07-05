@@ -44,7 +44,9 @@ const AppContent: React.FC = () => {
   const showBottomNav = Boolean(user.token) && isAppRoute;
 
   return (
-    <div className="App box-border max-w-[2160px] flex justify-center min-w-[360px]">
+    // The shell is uncapped so backgrounds, grid, and footer bleed to the
+    // viewport edge at any resolution; each page caps its own content width
+    <div className="App box-border flex justify-center min-w-[360px]">
       <Toaster
         duration={1000}
         richColors

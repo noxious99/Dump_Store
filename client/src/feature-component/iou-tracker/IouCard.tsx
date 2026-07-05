@@ -67,9 +67,13 @@ const IouCard: React.FC<IouCardProps> = ({ iou, onClick }) => {
             {iou.isOverdue && !closed && (
               <span className="text-error font-semibold">Overdue · </span>
             )}
-            {iou.expectedPaybackDate
-              ? `Due ${moment(iou.expectedPaybackDate).format('MMM D')}`
-              : moment(iou.transactionDate).format('MMM D, YYYY')}
+            {iou.status === 'settled'
+              ? `Settled ${moment(iou.actualPaybackDate || iou.updatedAt).format('MMM D, YYYY')}`
+              : iou.status === 'cancelled'
+                ? moment(iou.transactionDate).format('MMM D, YYYY')
+                : iou.expectedPaybackDate
+                  ? `Due ${moment(iou.expectedPaybackDate).format('MMM D')}`
+                  : moment(iou.transactionDate).format('MMM D, YYYY')}
           </p>
         </div>
 

@@ -149,14 +149,27 @@ const IouDetailSheet: React.FC<IouDetailSheetProps> = ({
               </p>
             </div>
             <div className="bg-grey-x100 rounded-lg px-3 py-2">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
-                Payback by
-              </p>
-              <p className={`text-sm ${iou.isOverdue && open_ ? 'text-error font-semibold' : 'text-foreground'}`}>
-                {iou.expectedPaybackDate
-                  ? moment(iou.expectedPaybackDate).format('MMM D, YYYY')
-                  : '—'}
-              </p>
+              {iou.status === 'settled' ? (
+                <>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
+                    Paid on
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {moment(iou.actualPaybackDate || iou.updatedAt).format('MMM D, YYYY')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
+                    Payback by
+                  </p>
+                  <p className={`text-sm ${iou.isOverdue && open_ ? 'text-error font-semibold' : 'text-foreground'}`}>
+                    {iou.expectedPaybackDate
+                      ? moment(iou.expectedPaybackDate).format('MMM D, YYYY')
+                      : '—'}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
